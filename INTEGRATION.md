@@ -206,9 +206,31 @@ Request a manual camera path family when framing:
 ```ts
 await engine.framePlace(place, { pathFamily: "high-arc" });
 await engine.frameBounds(bounds, { pathFamily: "straight" });
+await engine.framePlace(place, { pathFamily: "straight", durationMs: 6400 });
 ```
 
 Highlight applies an emissive tint on the picked mesh; it does not cross the public API with Three.js types.
+
+#### Async mesh-feature picks
+
+When `EXT_mesh_features` stores feature ids in textures, the first sync raycast may return a provisional key (batch id or mesh uuid). Atlas queues `MeshFeatures.getFeaturesAsync` for that hit and re-emits `onGeoHover` / `onGeoSelect` when the semantic `mf:{id}@{objectUuid}` key resolves. Hover highlight upgrades with the resolved id.
+
+#### Structural metadata on pick
+
+For picked tileset features, Atlas reads batch-table properties and `EXT_structural_metadata` property tables / property textures (when the optional peer registers metadata extensions). Properties surface two ways:
+
+```ts
+engine.onGeoHover((event) => {
+  if (event.tilesetFeatureProperties) {
+    // e.g. { name: "Tower", height: 310 }
+  }
+});
+
+// Or query after hover/select (requires recent pick on that feature id)
+const props = engine.getTilesetFeatureProperties("city-mesh", featureId);
+```
+
+`GeoHoverEvent` / `GeoSelectEvent` include optional `tilesetFeatureProperties?: Record<string, unknown> | null` — omitted for non-tileset picks (backward compatible).
 
 ### Studio wiring (remaining)
 
@@ -216,9 +238,10 @@ Creator Studio Director still needs to:
 
 1. Register and enable 3D Tiles layers via `registerTileset3DLayer` / `setTileset3DLayers` (optional `3d-tiles-renderer` peer).
 2. Forward map pointer events to `updateGeoHover` / `selectGeoAt` (already done for other layers via `AtlasMapView`).
-3. Surface tileset hover readout in Director UX using `onGeoHover` feature ids (`tileset3d:…` prefix).
+3. Surface tileset hover readout in Director UX using `onGeoHover` feature ids (`tileset3d:…` prefix) and `event.tilesetFeatureProperties` when present.
 4. Optionally call `frameTilesetFeature` on tileset select for building-centric workflows.
-5. Recopy `public/map-styles/locatial-editorial.json` when that file changes in Atlas.
+5. Use `getTilesetFeatureProperties(layerId, featureId)` for detail panels after pick.
+6. Recopy `public/map-styles/locatial-editorial.json` when that file changes in Atlas.
 
 ### Optional peers summary (Studio)
 

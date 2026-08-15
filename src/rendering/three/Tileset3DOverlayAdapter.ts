@@ -21,8 +21,13 @@ import {
 import { applyTileset3DFeatureHighlight, computeFeatureGeographicBounds } from "./tileset3DHighlight";
 import {
   pickTileset3DFeatureAtScreen,
+  resolveAsyncMeshFeaturePick,
   type Tileset3DPickResult
 } from "./pickTileset3DFeature";
+import {
+  readTilesetFeaturePropertiesForParsedAsync,
+  readTilesetFeaturePropertiesSync
+} from "./tileset3DFeatureProperties";
 import {
   beginTerrainAlignedDepthPass,
   resetOverlayRendererState
@@ -35,7 +40,7 @@ import {
   type AtlasTilesRendererConstructor
 } from "./tilesRendererLoader";
 import { tileset3DCustomLayerId, validateTileset3DUrl } from "./tileset3DSetup";
-import { parseTileset3DFeatureId } from "../../interaction/tileset3dFeatureIds";
+import { parseTileset3DFeatureId, parseTileset3DFeatureKey } from "../../interaction/tileset3dFeatureIds";
 
 interface Tileset3DRuntimeLayer {
   definition: Tileset3DLayerDefinition;
@@ -70,6 +75,7 @@ export class Tileset3DOverlayAdapter {
   private projectionTransition = 0;
   private decoderBaseUrl: string | undefined;
   private readonly layers = new Map<string, Tileset3DRuntimeLayer>();
+  private readonly pickContextByFeatureId = new Map<string, Tileset3DPickResult>();
   private tilesRendererCtor: AtlasTilesRendererConstructor | null | undefined;
   private readonly pendingDefinitions: Tileset3DLayerDefinition[] = [];
   private syncOptions: Tileset3DOverlaySyncOptions | null = null;
@@ -125,6 +131,15 @@ export class Tileset3DOverlayAdapter {
   }
 
   queryFeatureAtScreen(x: number, y: number, enabledLayerIds: string[]): Tileset3DPickResult | null {
+    const pick = this.queryFeaturePickAtScreen(x, y, enabledLayerIds);
+    if (pick) {
+      this.pickContextByFeatureId.set(pick.featureId, pick);
+    }
+
+    return pick;
+  }
+
+  queryFeaturePickAtScreen(x: number, y: number, enabledLayerIds: string[]): Tileset3DPickResult | null {
     if (!this.map || enabledLayerIds.length === 0) {
       return null;
     }
@@ -169,6 +184,42 @@ export class Tileset3DOverlayAdapter {
     }
 
     return null;
+  }
+
+  async resolveAsyncMeshFeaturePick(
+    pick: Tileset3DPickResult
+  ): Promise<Tileset3DPickResult | null> {
+    const resolved = await resolveAsyncMeshFeaturePick(pick);
+    if (resolved) {
+      this.pickContextByFeatureId.set(resolved.featureId, resolved);
+    }
+
+    return resolved;
+  }
+
+  getFeatureProperties(layerId: string, featureId: string): Record<string, unknown> | null {
+    const parsed = parseTileset3DFeatureId(featureId);
+    if (!parsed || parsed.layerId !== layerId) {
+      return null;
+    }
+
+    const pick = this.pickContextByFeatureId.get(featureId);
+    if (!pick || pick.layerId !== layerId) {
+      return null;
+    }
+
+    return readTilesetFeaturePropertiesSync(parsed.featureKey, pick.intersection);
+  }
+
+  getFeaturePropertiesFromPick(pick: Tileset3DPickResult): Record<string, unknown> | null {
+    return readTilesetFeaturePropertiesSync(pick.featureKey, pick.intersection);
+  }
+
+  async getFeaturePropertiesFromPickAsync(
+    pick: Tileset3DPickResult
+  ): Promise<Record<string, unknown> | null> {
+    const parsed = parseTileset3DFeatureKey(pick.featureKey);
+    return readTilesetFeaturePropertiesForParsedAsync(parsed, pick.intersection);
   }
 
   highlightFeature(featureId: string | null): void {

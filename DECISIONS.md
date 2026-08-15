@@ -1058,6 +1058,12 @@ MapLibre GL JS 5.x has no native 3D Tiles source. Photogrammetry and city mesh o
 
 - Foundation 49: 3D Tiles depth compositing with terrain/basemap, self-hosted Draco/KTX2 paths, path-family easing on legacy rAF fallback, or Studio integration pass for `registerTileset3DLayer` + optional peer install docs.
 
+## 2026-08-15 — FrameCameraOptions duration override
+
+**Decision**
+
+`framePlace` / `frameBounds` accept optional `durationMs` on `FrameCameraOptions`. `0` or less jumps instantly (CUT). Studio SceneRail transition preview uses this with `pathFamily: "straight"` for GLIDE and `pathFamily: "high-arc"` when type is ARC and Arc is `high`.
+
 ## 2026-08-15 — Foundation 49 3D Tiles depth compositing and production hardening
 
 **Decision**
@@ -1139,19 +1145,45 @@ Photogrammetry workflows need stable feature ids across reloads where batch tabl
 
 **Next**
 
-- Foundation 52: Studio Director wiring for 3D Tiles enable + hover readout, async mesh-feature pick, or structural-metadata property readout on pick.
+- Foundation 52: async mesh-feature pick and structural-metadata property readout on pick.
 
+## 2026-08-15 — Foundation 52 async mesh-feature picks and structural metadata
 
 **Decision**
 
-Two manual camera path families are live samplers under `src/camera/paths/`: `straight` (geodesic A→B, no altitude flourish) and `high-arc` (geodesic A→B with a single sine altitude peak at mid-flight). They are not auto-selected. Products and Lab request them with `framePlace(place, { pathFamily })` / `frameBounds(bounds, { pathFamily })`. Distance auto-select still chooses only `local-glide`, `orbit-reveal`, or `departure-arrival-arc`. A catalog in `paths/catalog.ts` (re-exported for Lab at `lab/presets/cameraPathTests.ts`) is the hook for upcoming buttons — buttons target ids, not markdown.
+Foundation 51’s tileset pick pipeline gains async `EXT_mesh_features` texture reads and structural-metadata property readout. When sync mesh-feature id resolution misses (texture-backed feature ids), `AtlasEngine.updateGeoHover` / `selectGeoAt` queue `MeshFeatures.getFeaturesAsync`, re-emit hover/select when the id resolves, and upgrade highlight to the semantic key. Batch-table properties (`getDataFromId`) and `EXT_structural_metadata` property tables / property textures are read via `tileset3DFeatureProperties.ts` (internal). Public API: `getTilesetFeatureProperties(layerId, featureId)` plus optional `tilesetFeatureProperties` on `GeoHoverEvent` / `GeoSelectEvent` (backward compatible — field omitted for non-tileset picks). Lab `MarkerHoverProbe` shows tileset property summary on hover.
 
 **Reason**
 
-The first isolated motion test needs two contrasting shapes that can be requested on the same place pair, without changing default city-button behavior.
+Photogrammetry tilesets often store feature ids in textures; sync reads miss on first pick. Studio and Lab need building attributes (names, heights, categories) without importing `3d-tiles-renderer` metadata classes.
 
 **Consequences**
 
-- `CameraPathFamily` widens additively with `straight` and `high-arc`.
-- `CameraTransitionRunner` now samples the requested family instead of re-running auto-select every frame.
-- Lab path-family UI is not built in this pass.
+- Pick pipeline: sync raycast → provisional feature key → async mesh-feature upgrade → property readout; documented in `pickTileset3DFeature.ts` and `INTEGRATION.md`.
+- Property helpers remain internal; `getTilesetFeatureProperties` and event fields are on the public contract.
+- Lab labels advance to Foundation 52.
+
+**Limitations**
+
+- Properties require a recent pick context cached on the adapter — `getTilesetFeatureProperties` returns null without a prior hover/select on that feature id.
+- Property texture reads may still require async pass; batch-table-only tilesets without structural metadata expose batch properties only.
+- Batched-mesh highlight tints the whole batched object, not a single instance material.
+
+**Next**
+
+- Foundation 53: Studio Director wiring for 3D Tiles enable + hover property readout, or next Atlas gap (view-mode transition polish, atmosphere/lab parity).
+
+## 2026-08-15 — Studio transition preview uses Atlas straight and high-arc
+
+**Decision**
+
+`FrameCameraOptions` accepts optional `durationMs` (`0` or less jumps instantly). Studio SceneRail transition Preview plays Atlas path families: GLIDE → `straight`, ARC + Arc `high` → `high-arc`. Preview jumps to the from Place, then animates to the to Place with the popover duration. Spatial remains a fallback only when Atlas is not mounted.
+
+**Reason**
+
+Director already renders through Atlas. The transition popover was still calling Spatial `previewPlaceTransition`, so GLIDE/ARC did not exercise the new samplers.
+
+**Consequences**
+
+- Studio shim exposes `CameraPathFamily`, `FrameCameraOptions`, and `framePlace(place, options?)`.
+- Feel is still UI-only for Atlas playback; easing stays on the path family.

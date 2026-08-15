@@ -180,6 +180,7 @@ export interface AtlasEngineContract {
   flyToTilesetBounds(layerId: string): Promise<void>;
   frameTilesetOnReady(layerId: string): Promise<void>;
   frameTilesetFeature(layerId: string, featureId: string): Promise<void>;
+  getTilesetFeatureProperties(layerId: string, featureId: string): Record<string, unknown> | null;
   getTransitionPathFamily(to: import("../types/place").AtlasPlace): CameraPathFamily;
   isMapReady(): boolean;
   onMapReady(listener: import("../types/mapReady").MapReadyListener): () => void;

@@ -140,6 +140,8 @@ export class AtlasEngine implements AtlasEngineContract {
   private readonly cameraChangeListeners = new Set<CameraChangeListener>();
   private lastGeoHoverKey = "";
   private hoverFeatureId: string | null = null;
+  private pendingTilesetHoverToken = 0;
+  private lastHoverScreen: { x: number; y: number } | null = null;
   private selectedFeatureId: string | null = null;
   private explicitHighlightId: string | null = null;
   private activeTransition: { pathFamily: CameraPathFamily; from: CameraState; to: CameraState } | null =
@@ -358,7 +360,7 @@ export class AtlasEngine implements AtlasEngineContract {
       return;
     }
 
-    await this.animateCameraTo(target, options?.pathFamily);
+    await this.animateCameraTo(target, options);
   }
 
   async frameBounds(bounds: GeographicBounds, options?: FrameCameraOptions): Promise<void> {
@@ -370,7 +372,7 @@ export class AtlasEngine implements AtlasEngineContract {
       return;
     }
 
-    await this.animateCameraTo(target, options?.pathFamily);
+    await this.animateCameraTo(target, options);
   }
 
   getTransitionPathFamily(place: AtlasPlace): CameraPathFamily {
@@ -393,31 +395,49 @@ export class AtlasEngine implements AtlasEngineContract {
 
   updateGeoHover(screenX: number, screenY: number, thresholdPx?: number): void {
     const geo = this.unproject(screenX, screenY);
+    this.lastHoverScreen = { x: screenX, y: screenY };
+
+    const tilesetPick = this.mapAdapter.queryTileset3DFeaturePickAtScreen(screenX, screenY);
     this.hoverFeatureId =
       this.findInteractiveMarkupAtScreen(screenX, screenY, thresholdPx) ??
       this.mapAdapter.queryPoiFeatureAtScreen(screenX, screenY) ??
-      this.mapAdapter.queryTileset3DFeatureAtScreen(screenX, screenY) ??
+      tilesetPick?.featureId ??
       this.mapAdapter.queryLabelFeatureAtScreen(screenX, screenY) ??
       this.mapAdapter.queryRoadFeatureAtScreen(screenX, screenY) ??
       this.mapAdapter.queryBuildingFeatureAtScreen(screenX, screenY) ??
       this.mapAdapter.queryAreaFeatureAtScreen(screenX, screenY) ??
       this.mapAdapter.queryBoundaryFeatureAtScreen(screenX, screenY);
+
+    const tilesetFeatureProperties =
+      tilesetPick && this.hoverFeatureId === tilesetPick.featureId
+        ? this.mapAdapter.getTilesetFeaturePropertiesFromPick(tilesetPick)
+        : null;
+
     this.syncFeatureHighlight();
     this.emitGeoHover({
       featureId: this.hoverFeatureId,
       screen: { x: screenX, y: screenY },
-      geo
+      geo,
+      tilesetFeatureProperties
     });
+
+    if (tilesetPick?.pendingAsyncMeshFeature && this.hoverFeatureId === tilesetPick.featureId) {
+      const token = ++this.pendingTilesetHoverToken;
+      void this.resolveTilesetHoverPick(token, screenX, screenY, geo, tilesetPick);
+    }
   }
 
   clearGeoHover(): void {
     this.hoverFeatureId = null;
     this.lastGeoHoverKey = "";
+    this.lastHoverScreen = null;
+    this.pendingTilesetHoverToken += 1;
     this.syncFeatureHighlight();
     this.emitGeoHover({
       featureId: null,
       screen: null,
-      geo: null
+      geo: null,
+      tilesetFeatureProperties: null
     });
   }
 
@@ -434,10 +454,11 @@ export class AtlasEngine implements AtlasEngineContract {
 
   selectGeoAt(screenX: number, screenY: number): void {
     const geo = this.unproject(screenX, screenY);
+    const tilesetPick = this.mapAdapter.queryTileset3DFeaturePickAtScreen(screenX, screenY);
     this.selectedFeatureId =
       this.findInteractiveMarkupAtScreen(screenX, screenY) ??
       this.mapAdapter.queryPoiFeatureAtScreen(screenX, screenY) ??
-      this.mapAdapter.queryTileset3DFeatureAtScreen(screenX, screenY) ??
+      tilesetPick?.featureId ??
       this.mapAdapter.queryLabelFeatureAtScreen(screenX, screenY) ??
       this.mapAdapter.queryRoadFeatureAtScreen(screenX, screenY) ??
       this.mapAdapter.queryBuildingFeatureAtScreen(screenX, screenY) ??
@@ -451,12 +472,22 @@ export class AtlasEngine implements AtlasEngineContract {
       }
     }
 
+    const tilesetFeatureProperties =
+      tilesetPick && this.selectedFeatureId === tilesetPick.featureId
+        ? this.mapAdapter.getTilesetFeaturePropertiesFromPick(tilesetPick)
+        : null;
+
     this.syncFeatureHighlight();
     this.emitGeoSelect({
       featureId: this.selectedFeatureId,
       screen: { x: screenX, y: screenY },
-      geo
+      geo,
+      tilesetFeatureProperties
     });
+
+    if (tilesetPick?.pendingAsyncMeshFeature && this.selectedFeatureId === tilesetPick.featureId) {
+      void this.resolveTilesetSelectPick(screenX, screenY, geo, tilesetPick);
+    }
   }
 
   clearGeoSelection(): void {
@@ -465,7 +496,8 @@ export class AtlasEngine implements AtlasEngineContract {
     this.emitGeoSelect({
       featureId: null,
       screen: null,
-      geo: null
+      geo: null,
+      tilesetFeatureProperties: null
     });
   }
 
@@ -709,6 +741,10 @@ export class AtlasEngine implements AtlasEngineContract {
     }
 
     await this.frameBounds(bounds);
+  }
+
+  getTilesetFeatureProperties(layerId: string, featureId: string): Record<string, unknown> | null {
+    return this.mapAdapter.getTilesetFeatureProperties(layerId, featureId);
   }
 
   async flyToTilesetBounds(layerId: string): Promise<void> {
@@ -1031,7 +1067,10 @@ export class AtlasEngine implements AtlasEngineContract {
   }
 
   private emitGeoHover(event: GeoHoverEvent): void {
-    const key = `${event.featureId ?? "none"}:${event.geo?.lng ?? "x"}:${event.geo?.lat ?? "y"}`;
+    const propsKey = event.tilesetFeatureProperties
+      ? JSON.stringify(event.tilesetFeatureProperties)
+      : "";
+    const key = `${event.featureId ?? "none"}:${event.geo?.lng ?? "x"}:${event.geo?.lat ?? "y"}:${propsKey}`;
     if (key === this.lastGeoHoverKey) {
       return;
     }
@@ -1040,6 +1079,67 @@ export class AtlasEngine implements AtlasEngineContract {
     for (const listener of this.geoHoverListeners) {
       listener(event);
     }
+  }
+
+  private async resolveTilesetHoverPick(
+    token: number,
+    screenX: number,
+    screenY: number,
+    geo: ReturnType<AtlasEngine["unproject"]>,
+    pick: import("../rendering/three/pickTileset3DFeature").Tileset3DPickResult
+  ): Promise<void> {
+    const resolved = await this.mapAdapter.resolveAsyncTilesetMeshFeaturePick(pick);
+    if (token !== this.pendingTilesetHoverToken) {
+      return;
+    }
+
+    if (
+      !this.lastHoverScreen ||
+      this.lastHoverScreen.x !== screenX ||
+      this.lastHoverScreen.y !== screenY
+    ) {
+      return;
+    }
+
+    if (!resolved) {
+      return;
+    }
+
+    this.hoverFeatureId = resolved.featureId;
+    const tilesetFeatureProperties =
+      await this.mapAdapter.getTilesetFeaturePropertiesFromPickAsync(resolved);
+
+    this.syncFeatureHighlight();
+    this.emitGeoHover({
+      featureId: resolved.featureId,
+      screen: { x: screenX, y: screenY },
+      geo,
+      tilesetFeatureProperties
+    });
+  }
+
+  private async resolveTilesetSelectPick(
+    screenX: number,
+    screenY: number,
+    geo: ReturnType<AtlasEngine["unproject"]>,
+    pick: import("../rendering/three/pickTileset3DFeature").Tileset3DPickResult
+  ): Promise<void> {
+    const resolved = await this.mapAdapter.resolveAsyncTilesetMeshFeaturePick(pick);
+    if (!resolved || this.selectedFeatureId !== pick.featureId) {
+      return;
+    }
+
+    this.selectedFeatureId = resolved.featureId;
+    const tilesetFeatureProperties =
+      await this.mapAdapter.getTilesetFeaturePropertiesFromPickAsync(resolved);
+
+    this.syncFeatureHighlight();
+    this.emitGeoSelect({
+      featureId: resolved.featureId,
+      screen: { x: screenX, y: screenY },
+      geo,
+      tilesetFeatureProperties
+    });
   }
 
   private emitMapReady(event: MapReadyEvent): void {
@@ -1154,11 +1254,22 @@ export class AtlasEngine implements AtlasEngineContract {
     });
   }
 
-  private async animateCameraTo(to: CameraState, pathFamilyOverride?: CameraPathFamily): Promise<void> {
+  private async animateCameraTo(to: CameraState, options?: FrameCameraOptions): Promise<void> {
     this.cancelActiveTransition("cancelled");
 
     const from = this.camera.getState();
-    const pathFamily = pathFamilyOverride ?? selectPathFamily(from, to);
+    const pathFamily = options?.pathFamily ?? selectPathFamily(from, to);
+    const durationMs = options?.durationMs ?? computeTransitionDurationMs(from, to, pathFamily);
+
+    if (durationMs <= 0) {
+      const settled = this.settleCameraState(to);
+      this.camera.setState(settled);
+      if (this.attached) {
+        this.mapAdapter.applyCameraInstant(settled);
+      }
+      this.emitCameraChange({ state: settled, reason: "programmatic" });
+      return;
+    }
 
     await this.mapAdapter.waitForReady();
 
@@ -1173,7 +1284,7 @@ export class AtlasEngine implements AtlasEngineContract {
         from,
         to,
         pathFamily,
-        durationMs: computeTransitionDurationMs(from, to, pathFamily),
+        durationMs,
         onFrame: (state) => {
           const snapped = snapCameraStateForMapLibre(state);
           this.camera.setState(snapped);

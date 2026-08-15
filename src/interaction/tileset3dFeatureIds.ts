@@ -83,26 +83,63 @@ export function parseTileset3DFeatureKey(featureKey: string): ParsedTileset3DFea
   return { kind: "uuid", objectUuid: featureKey };
 }
 
-interface MeshFeaturesReader {
-  getFeatures(triangle: number, barycoord: { x: number; y: number; z: number }): Array<number | null>;
+interface MeshFeatureInfo {
+  propertyTable?: number | null;
+  texture?: unknown;
 }
 
-interface TilesetPickObject {
+export interface MeshFeaturesReader {
+  getFeatureInfo(): MeshFeatureInfo[];
+  getFeatures(
+    triangle: number,
+    barycoord: { x: number; y: number; z: number }
+  ): Array<number | null>;
+  getFeaturesAsync?(
+    triangle: number,
+    barycoord: { x: number; y: number; z: number }
+  ): Promise<Array<number | null>>;
+}
+
+export interface TilesetPickObject {
   uuid: string;
   geometry?: {
     attributes?: Record<string, { getX(index: number): number }>;
   };
   userData?: {
     meshFeatures?: MeshFeaturesReader;
+    structuralMetadata?: StructuralMetadataReader;
   };
+  parent?: TilesetPickObject | null;
 }
 
-interface TilesetPickIntersection {
+export interface TilesetPickIntersection {
   object: TilesetPickObject;
   face?: { a: number; b: number; c: number };
   faceIndex?: number | null;
   point?: { x: number; y: number; z: number };
   batchId?: number;
+}
+
+export interface StructuralMetadataReader {
+  getPropertyTableData(
+    tableIndex: number,
+    rowId: number,
+    target?: Record<string, unknown>
+  ): Record<string, unknown>;
+  getPropertyTextureData?(
+    triangle: number,
+    barycoord: { x: number; y: number; z: number },
+    target?: unknown[]
+  ): unknown[];
+  getPropertyTextureDataAsync?(
+    triangle: number,
+    barycoord: { x: number; y: number; z: number },
+    target?: unknown[]
+  ): Promise<unknown[]>;
+}
+
+export interface BatchTableReader {
+  getDataFromId(id: number, target?: Record<string, unknown>): Record<string, unknown>;
 }
 
 function readBatchIdFromGeometry(object: TilesetPickObject, face?: { a: number }): number | null {
@@ -113,6 +150,61 @@ function readBatchIdFromGeometry(object: TilesetPickObject, face?: { a: number }
 
   const value = batchAttribute.getX(face.a);
   return Number.isFinite(value) ? value : null;
+}
+
+function hasTextureBasedMeshFeatures(meshFeatures: MeshFeaturesReader): boolean {
+  return meshFeatures.getFeatureInfo().some((info) => info.texture !== undefined);
+}
+
+/** True when mesh-feature ids require an async texture read (sync pick missed). */
+export function meshFeaturePickNeedsAsync(intersection: TilesetPickIntersection): boolean {
+  const meshFeatures = intersection.object.userData?.meshFeatures;
+  if (
+    !meshFeatures ||
+    intersection.faceIndex === undefined ||
+    intersection.faceIndex === null ||
+    !intersection.point ||
+    !hasTextureBasedMeshFeatures(meshFeatures)
+  ) {
+    return false;
+  }
+
+  return readMeshFeatureId(intersection) === null;
+}
+
+/** Resolve mesh-feature id via async texture read; returns null when unavailable. */
+export async function resolveMeshFeatureIdAsync(
+  intersection: TilesetPickIntersection
+): Promise<number | null> {
+  const meshFeatures = intersection.object.userData?.meshFeatures;
+  if (
+    !meshFeatures?.getFeaturesAsync ||
+    intersection.faceIndex === undefined ||
+    intersection.faceIndex === null ||
+    !intersection.point
+  ) {
+    return null;
+  }
+
+  const barycoord = computeBarycentricCoordinate(intersection);
+  if (!barycoord) {
+    return null;
+  }
+
+  const features = await meshFeatures.getFeaturesAsync(intersection.faceIndex, barycoord);
+  for (const featureId of features) {
+    if (featureId !== null && featureId !== undefined) {
+      return featureId;
+    }
+  }
+
+  return null;
+}
+
+export function computeBarycentricCoordinateForPick(
+  intersection: TilesetPickIntersection
+): { x: number; y: number; z: number } | null {
+  return computeBarycentricCoordinate(intersection);
 }
 
 function readMeshFeatureId(intersection: TilesetPickIntersection): number | null {

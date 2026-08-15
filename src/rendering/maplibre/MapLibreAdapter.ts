@@ -703,13 +703,40 @@ export class MapLibreAdapter {
   }
 
   queryTileset3DFeatureAtScreen(x: number, y: number): string | null {
-    const pick = this.tileset3DOverlay.queryFeatureAtScreen(
+    return this.queryTileset3DFeaturePickAtScreen(x, y)?.featureId ?? null;
+  }
+
+  queryTileset3DFeaturePickAtScreen(
+    x: number,
+    y: number
+  ): import("../three/pickTileset3DFeature").Tileset3DPickResult | null {
+    return this.tileset3DOverlay.queryFeatureAtScreen(
       x,
       y,
       this.getEnabledTileset3DLayerIds()
     );
+  }
 
-    return pick?.featureId ?? null;
+  resolveAsyncTilesetMeshFeaturePick(
+    pick: import("../three/pickTileset3DFeature").Tileset3DPickResult
+  ): Promise<import("../three/pickTileset3DFeature").Tileset3DPickResult | null> {
+    return this.tileset3DOverlay.resolveAsyncMeshFeaturePick(pick);
+  }
+
+  getTilesetFeatureProperties(layerId: string, featureId: string): Record<string, unknown> | null {
+    return this.tileset3DOverlay.getFeatureProperties(layerId, featureId);
+  }
+
+  getTilesetFeaturePropertiesFromPick(
+    pick: import("../three/pickTileset3DFeature").Tileset3DPickResult
+  ): Record<string, unknown> | null {
+    return this.tileset3DOverlay.getFeaturePropertiesFromPick(pick);
+  }
+
+  getTilesetFeaturePropertiesFromPickAsync(
+    pick: import("../three/pickTileset3DFeature").Tileset3DPickResult
+  ): Promise<Record<string, unknown> | null> {
+    return this.tileset3DOverlay.getFeaturePropertiesFromPickAsync(pick);
   }
 
   highlightTileset3DFeature(featureId: string | null): void {

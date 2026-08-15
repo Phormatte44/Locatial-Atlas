@@ -176,8 +176,26 @@ function describeFeatureId(featureId: string | null): string {
   return featureId;
 }
 
+function formatTilesetProperties(properties: Record<string, unknown> | null | undefined): string {
+  if (!properties || Object.keys(properties).length === 0) {
+    return "none";
+  }
+
+  const entries = Object.entries(properties).slice(0, 4);
+  const summary = entries
+    .map(([key, value]) => `${key}=${String(value)}`)
+    .join(", ");
+
+  if (Object.keys(properties).length > entries.length) {
+    return `${summary}, …`;
+  }
+
+  return summary;
+}
+
 export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
   const [hoveredMarkerId, setHoveredMarkerId] = useState<string | null>(null);
+  const [hoveredTilesetProperties, setHoveredTilesetProperties] = useState<string>("none");
   const [selectedFeatureId, setSelectedFeatureId] = useState<string | null>(null);
   const [cursorGeo, setCursorGeo] = useState<{
     lng: number;
@@ -202,6 +220,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
   useEffect(() => {
     return engine.onGeoHover((event) => {
       setHoveredMarkerId(event.featureId);
+      setHoveredTilesetProperties(formatTilesetProperties(event.tilesetFeatureProperties));
       setCursorGeo(
         event.geo
           ? { lng: event.geo.lng, lat: event.geo.lat, altitudeMeters: event.geo.altitudeMeters }
@@ -331,7 +350,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
 
   return (
     <div style={readoutStyle}>
-      <div>Foundation 51 — stable pick keys + path motion</div>
+      <div>Foundation 52 — async mesh picks + metadata</div>
       <div>
         View: {viewMode}
         {viewMode === "globe" || viewModeBlend !== "settled"
@@ -349,6 +368,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
       <div>Layer load: {layerLoadSummary}</div>
       <div>Error: {mapError}</div>
       <div>Hover: {describeFeatureId(hoveredMarkerId)}</div>
+      <div>Tileset props: {hoveredTilesetProperties}</div>
       <div>Selected: {describeFeatureId(selectedFeatureId)}</div>
       <div>
         Cursor:{" "}

@@ -1,9 +1,22 @@
 import * as THREE from "three";
 import {
   featureKeyFromTilesetPickObject,
-  formatTileset3DFeatureId
+  formatTileset3DFeatureId,
+  meshFeaturePickNeedsAsync,
+  resolveMeshFeatureIdAsync,
+  TILESET3D_MESH_FEATURE_PREFIX,
+  type TilesetPickIntersection
 } from "../../interaction/tileset3dFeatureIds";
 import type { AtlasTilesRenderer } from "./tilesRendererLoader";
+
+/**
+ * Tileset 3D pick pipeline (Foundation 52):
+ * 1. Raycast loaded tile geometry with render-pass camera matrices.
+ * 2. Sync resolve feature key (mesh-feature attribute, batch id, or mesh uuid).
+ * 3. When mesh-feature textures miss sync, mark pendingAsyncMeshFeature; AtlasEngine
+ *    queues getFeaturesAsync and re-emits hover/select with mf:{id}@uuid when ready.
+ * 4. Structural metadata / batch-table properties attach via tileset3DFeatureProperties.
+ */
 
 export interface Tileset3DPickCamera {
   projectionMatrix: THREE.Matrix4;
@@ -14,6 +27,9 @@ export interface Tileset3DPickResult {
   featureId: string;
   layerId: string;
   featureKey: string;
+  /** When true, featureKey may upgrade after async EXT_mesh_features texture read. */
+  pendingAsyncMeshFeature: boolean;
+  intersection: TilesetPickIntersection;
 }
 
 export function pickTileset3DFeatureAtScreen(
@@ -55,14 +71,40 @@ export function pickTileset3DFeatureAtScreen(
     return null;
   }
 
-  const featureKey = featureKeyFromTilesetPickObject(
-    hitObject,
-    intersection as Parameters<typeof featureKeyFromTilesetPickObject>[1]
-  );
+  const pickIntersection = intersection as TilesetPickIntersection;
+  const featureKey = featureKeyFromTilesetPickObject(hitObject, pickIntersection);
+  const pendingAsyncMeshFeature = meshFeaturePickNeedsAsync(pickIntersection);
 
   return {
     layerId,
     featureKey,
-    featureId: formatTileset3DFeatureId(layerId, featureKey)
+    featureId: formatTileset3DFeatureId(layerId, featureKey),
+    pendingAsyncMeshFeature,
+    intersection: pickIntersection
+  };
+}
+
+/** Upgrade a provisional pick after async EXT_mesh_features texture read completes. */
+export async function resolveAsyncMeshFeaturePick(
+  pick: Tileset3DPickResult
+): Promise<Tileset3DPickResult | null> {
+  if (!pick.pendingAsyncMeshFeature) {
+    return pick;
+  }
+
+  const meshFeatureId = await resolveMeshFeatureIdAsync(pick.intersection);
+  if (meshFeatureId === null) {
+    return null;
+  }
+
+  const objectUuid = pick.intersection.object.uuid;
+  const featureKey = `${TILESET3D_MESH_FEATURE_PREFIX}${meshFeatureId}@${objectUuid}`;
+
+  return {
+    layerId: pick.layerId,
+    featureKey,
+    featureId: formatTileset3DFeatureId(pick.layerId, featureKey),
+    pendingAsyncMeshFeature: false,
+    intersection: pick.intersection
   };
 }

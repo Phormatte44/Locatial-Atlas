@@ -146,9 +146,9 @@ export function Tileset3DLayerToggle({ engine }: Tileset3DLayerToggleProps) {
         ))}
       </select>
       <span style={noteStyle}>
-        Foundation 51 picks stable feature keys (EXT_mesh_features / batch table when present,
-        mesh uuid fallback). Click a building to frame its mesh bounds. Hover highlights via the
-        shared tileset3d: pipeline after markup/POI.
+        Foundation 52 resolves EXT_mesh_features texture ids asynchronously and surfaces
+        batch-table / EXT_structural_metadata properties on hover. Click a building to frame
+        its mesh bounds. Hover highlights via the shared tileset3d: pipeline after markup/POI.
       </span>
       {enabled ? (
         <span style={statusStyle}>
