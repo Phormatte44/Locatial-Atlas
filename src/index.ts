@@ -42,11 +42,13 @@ export {
   createGlobeAwareEllipseShapeGeometry,
   createGlobeAwareLineGeometry,
   createGlobeAwarePolygonShapeGeometry,
+  createStableFillGeometry,
   DOUGLAS_PEUCKER_TOLERANCE_METERS,
   douglasPeuckerGeoRing,
   MAX_LINE_VERTICES,
   MAX_POLYGON_VERTICES,
-  simplifyGeoRing
+  simplifyGeoRing,
+  triangulateRingLocalPositions
 } from "./geometry/globeMarkupGeometry";
 export {
   CAMERA_SIGNATURE_THRESHOLDS,

@@ -5,7 +5,8 @@ import {
   computeMercatorLocalVertices,
   lerpMarkupLocalVertices,
   markupGeometrySignature,
-  resolveSourceRingForMarkup
+  resolveSourceRingForMarkup,
+  triangulateRingLocalPositions
 } from "./globeMarkupGeometry";
 
 /** Per-markup cached mercator/globe local vertices for projection-blend lerp. */
@@ -19,6 +20,8 @@ export interface MarkupVertexCacheEntry {
   globeGeneration: number;
   mercatorLocal: Float32Array;
   globeLocal: Float32Array;
+  /** Earcut indices for fill markups; computed once from mercator-local outline. */
+  fillIndices: Uint32Array | null;
 }
 
 /**
@@ -92,6 +95,16 @@ export class MarkupVertexCache {
         ? computeGlobeLocalVertices(ring, map, markup.lng, markup.lat, altitudeMeters)
         : new Float32Array(ring.length * 3);
 
+    const fillIndices =
+      markup.kind === "line"
+        ? null
+        : existing &&
+            existing.signature === signature &&
+            existing.fillIndices !== null &&
+            existing.vertexCount === ring.length
+          ? existing.fillIndices
+          : triangulateRingLocalPositions(mercatorLocal, ring.length);
+
     const entry: MarkupVertexCacheEntry = {
       signature,
       ring,
@@ -101,7 +114,8 @@ export class MarkupVertexCache {
       altitudeMeters,
       globeGeneration: this.globeGeneration,
       mercatorLocal,
-      globeLocal
+      globeLocal,
+      fillIndices
     };
 
     this.entries.set(markup.id, entry);

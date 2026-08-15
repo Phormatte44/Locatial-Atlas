@@ -1384,6 +1384,32 @@ Foundation 57–59 recomputed full geodesic rings and per-vertex globe matrices 
 
 - Foundation 61: TBD — candidate: earcut-stable fill mesh with in-place position updates during blend, Studio ellipse area-authoring integration, or overlay spatial index for pick performance.
 
+## 2026-08-15 — Foundation 61 earcut-stable fill mesh with in-place position updates
+
+**Decision**
+
+Filled markup (polygon, circle, ellipse) uses topology-stable `BufferGeometry` built once via earcut triangulation on cache entry creation. During projection blend, `ThreeOverlayAdapter` writes lerped mercator/globe positions directly into the existing position attribute instead of rebuilding `ShapeGeometry` each frame. `MarkupVertexCacheEntry` stores `fillIndices` alongside F60 vertex endpoints.
+
+**Reason**
+
+Foundation 60 eliminated per-frame ring resampling and matrix work but still paid earcut/`ShapeGeometry` reconstruction on every blend frame for area fills.
+
+**Consequences**
+
+- `createStableFillGeometry`, `triangulateRingLocalPositions`, and `effectiveRingVertexCount` export from `src/index.ts`.
+- `createGlobeAwarePolygonShapeGeometry`, `createGlobeAwareCircleShapeGeometry`, and `createGlobeAwareEllipseShapeGeometry` return stable `BufferGeometry` instead of `ShapeGeometry`.
+- Lines continue to refresh `BufferGeometry` positions in place (unchanged from F60).
+- Lab labels read Foundation 61.
+
+**Limitations**
+
+- Fill triangulation is computed from mercator-local outline topology at cache build; extreme self-intersection during blend is not retriangulated.
+- Flat `(0,0,1)` normals match prior `ShapeGeometry` fill behavior rather than recomputing from deformed vertices each frame.
+
+**Next**
+
+- Foundation 62: TBD — candidate: Studio ellipse area-authoring integration, overlay spatial index for pick performance, or line topology cache mirroring fill stability if profiling warrants it.
+
 ## 2026-08-15 — Studio transition preview uses Atlas straight and high-arc
 
 **Decision**

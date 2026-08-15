@@ -350,7 +350,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
 
   return (
     <div style={readoutStyle}>
-      <div>Foundation 60 — DP simplification + vertex cache</div>
+      <div>Foundation 61 — earcut-stable fill mesh + in-place blend updates</div>
       <div>
         View: {viewMode}
         {viewMode === "globe" || viewModeBlend !== "settled"

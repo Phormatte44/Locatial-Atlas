@@ -6,8 +6,9 @@ import {
   createGlobeAwareEllipseShapeGeometry,
   createGlobeAwareLineGeometry,
   createGlobeAwarePolygonShapeGeometry,
-  lineLegibilityForGlobeness,
-  shapeFromLocalPositions
+  createStableFillGeometry,
+  effectiveRingVertexCount,
+  lineLegibilityForGlobeness
 } from "../../geometry/globeMarkupGeometry";
 import {
   hasSignificantCameraMove,
@@ -72,6 +73,12 @@ function isLitMeshKind(kind: WorldMarkup["kind"]): kind is LitMarkupKind {
   return kind === "sphere" || kind === "polygon" || kind === "circle" || kind === "ellipse";
 }
 
+function isFillGeometryKind(
+  kind: WorldMarkup["kind"]
+): kind is "polygon" | "circle" | "ellipse" {
+  return kind === "polygon" || kind === "circle" || kind === "ellipse";
+}
+
 interface MarkupEntry {
   id: string;
   kind: WorldMarkup["kind"];
@@ -85,6 +92,7 @@ interface MarkupEntry {
   labelHighlighted?: boolean;
   linePolygonGlobeness?: number;
   cachedVertexCount?: number;
+  fillIndices?: Uint32Array | null;
 }
 
 function isGlobeAwareGeometryKind(
@@ -603,12 +611,29 @@ export class ThreeOverlayAdapter {
       return;
     }
 
-    if (entry.object instanceof THREE.Mesh) {
-      const shape = shapeFromLocalPositions(positions, cacheEntry.vertexCount);
-      const nextGeometry = new THREE.ShapeGeometry(shape);
-      entry.object.geometry.dispose();
-      entry.object.geometry = nextGeometry;
-      entry.cachedVertexCount = cacheEntry.vertexCount;
+    if (isFillGeometryKind(markup.kind) && entry.object instanceof THREE.Mesh) {
+      const effectiveCount = effectiveRingVertexCount(positions, cacheEntry.vertexCount);
+      const fillPositions =
+        effectiveCount === cacheEntry.vertexCount
+          ? positions
+          : positions.subarray(0, effectiveCount * 3);
+
+      const needsTopologyRebuild =
+        entry.cachedVertexCount !== cacheEntry.vertexCount ||
+        entry.fillIndices !== cacheEntry.fillIndices;
+
+      if (needsTopologyRebuild) {
+        entry.object.geometry.dispose();
+        entry.object.geometry = createStableFillGeometry(
+          fillPositions,
+          effectiveCount,
+          cacheEntry.fillIndices
+        );
+        entry.cachedVertexCount = cacheEntry.vertexCount;
+        entry.fillIndices = cacheEntry.fillIndices;
+      } else {
+        applyLocalVertexPositions(entry.object.geometry, fillPositions);
+      }
     }
   }
 

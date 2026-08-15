@@ -1,6 +1,7 @@
 import type { Map as MapLibreMap } from "maplibre-gl";
 import maplibregl from "maplibre-gl";
 import * as THREE from "three";
+import { ShapeUtils, Vector2 } from "three";
 import { lerp } from "../camera/easing";
 import { resolveLabelGlobeness } from "./labelGlobeAlignment";
 import { sampleGeodesicCircleRing } from "./circleMarkup";
@@ -410,11 +411,109 @@ export function applyLocalVertexPositions(
   if (attribute instanceof THREE.BufferAttribute && attribute.array.length === positions.length) {
     attribute.array.set(positions);
     attribute.needsUpdate = true;
+    geometry.computeBoundingSphere();
     return;
   }
 
   geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
   geometry.computeBoundingSphere();
+}
+
+export function effectiveRingVertexCount(positions: Float32Array, vertexCount: number): number {
+  if (vertexCount <= 2) {
+    return vertexCount;
+  }
+
+  const firstX = positions[0];
+  const firstY = positions[1];
+  const lastX = positions[(vertexCount - 1) * 3];
+  const lastY = positions[(vertexCount - 1) * 3 + 1];
+
+  if (firstX === lastX && firstY === lastY) {
+    return vertexCount - 1;
+  }
+
+  return vertexCount;
+}
+
+function ringContourFromLocalPositions(
+  positions: Float32Array,
+  vertexCount: number
+): Vector2[] {
+  const effectiveCount = effectiveRingVertexCount(positions, vertexCount);
+  const contour: Vector2[] = [];
+
+  for (let index = 0; index < effectiveCount; index += 1) {
+    contour.push(new Vector2(positions[index * 3], positions[index * 3 + 1]));
+  }
+
+  return contour;
+}
+
+/** Earcut triangulation indices for a closed ring outline in local XY space. */
+export function triangulateRingLocalPositions(
+  positions: Float32Array,
+  vertexCount: number
+): Uint32Array {
+  let contour = ringContourFromLocalPositions(positions, vertexCount);
+
+  if (contour.length < 3) {
+    return new Uint32Array(0);
+  }
+
+  if (!ShapeUtils.isClockWise(contour)) {
+    contour = contour.reverse();
+  }
+
+  const faces = ShapeUtils.triangulateShape(contour, []);
+  const indices = new Uint32Array(faces.length * 3);
+  let offset = 0;
+
+  for (const face of faces) {
+    indices[offset] = face[0];
+    indices[offset + 1] = face[1];
+    indices[offset + 2] = face[2];
+    offset += 3;
+  }
+
+  return indices;
+}
+
+function setFlatFillNormals(geometry: THREE.BufferGeometry, vertexCount: number): void {
+  const normals = new Float32Array(vertexCount * 3);
+
+  for (let index = 0; index < vertexCount; index += 1) {
+    normals[index * 3 + 2] = 1;
+  }
+
+  geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+}
+
+/**
+ * Build a topology-stable fill mesh for polygon/circle/ellipse outlines.
+ * Triangulation runs once; callers update positions in place during projection blend.
+ */
+export function createStableFillGeometry(
+  positions: Float32Array,
+  vertexCount: number,
+  indices?: Uint32Array | null
+): THREE.BufferGeometry {
+  const effectiveCount = effectiveRingVertexCount(positions, vertexCount);
+  const fillIndices = indices ?? triangulateRingLocalPositions(positions, vertexCount);
+  const vertexPositions = new Float32Array(effectiveCount * 3);
+
+  for (let index = 0; index < effectiveCount; index += 1) {
+    vertexPositions[index * 3] = positions[index * 3];
+    vertexPositions[index * 3 + 1] = positions[index * 3 + 1];
+    vertexPositions[index * 3 + 2] = positions[index * 3 + 2];
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertexPositions, 3));
+  geometry.setIndex(Array.from(fillIndices));
+  setFlatFillNormals(geometry, effectiveCount);
+  geometry.computeBoundingSphere();
+  return geometry;
 }
 
 /** Build line geometry with mercator↔globe vertex blend for the active projection context. */
@@ -431,14 +530,14 @@ export function createGlobeAwareLineGeometry(
   return geometry;
 }
 
-/** Build a local shape for polygon markup with mercator↔globe vertex blend. */
-export function ringToGlobeAwareLocalShape(
+/** Build polygon fill geometry with mercator↔globe vertex blend. */
+export function createGlobeAwarePolygonShapeGeometry(
   ring: GeoRing,
   anchorLng: number,
   anchorLat: number,
   altitudeMeters: number,
   context: OverlayTransformContext
-): THREE.Shape {
+): THREE.BufferGeometry {
   const simplified = simplifyGeoRing(ring, MAX_POLYGON_VERTICES, DOUGLAS_PEUCKER_TOLERANCE_METERS, true);
   const positions = resolveMarkupLocalVertices(
     simplified,
@@ -447,35 +546,7 @@ export function ringToGlobeAwareLocalShape(
     altitudeMeters,
     context
   );
-  const shape = new THREE.Shape();
-
-  for (let index = 0; index < simplified.length; index += 1) {
-    const x = positions[index * 3];
-    const y = positions[index * 3 + 1];
-
-    if (index === 0) {
-      shape.moveTo(x, y);
-      continue;
-    }
-
-    shape.lineTo(x, y);
-  }
-
-  shape.closePath();
-  return shape;
-}
-
-/** Build polygon shape geometry with mercator↔globe vertex blend. */
-export function createGlobeAwarePolygonShapeGeometry(
-  ring: GeoRing,
-  anchorLng: number,
-  anchorLat: number,
-  altitudeMeters: number,
-  context: OverlayTransformContext
-): THREE.ShapeGeometry {
-  return new THREE.ShapeGeometry(
-    ringToGlobeAwareLocalShape(ring, anchorLng, anchorLat, altitudeMeters, context)
-  );
+  return createStableFillGeometry(positions, simplified.length);
 }
 
 /** Build circle fill geometry from a geodesic ring with mercator↔globe vertex blend. */
@@ -487,11 +558,21 @@ export function createGlobeAwareCircleShapeGeometry(
   anchorLat: number,
   altitudeMeters: number,
   context: OverlayTransformContext
-): THREE.ShapeGeometry {
-  const ring = sampleGeodesicCircleRing(centerLng, centerLat, radiusMeters);
-  return new THREE.ShapeGeometry(
-    ringToGlobeAwareLocalShape(ring, anchorLng, anchorLat, altitudeMeters, context)
+): THREE.BufferGeometry {
+  const ring = simplifyGeoRing(
+    sampleGeodesicCircleRing(centerLng, centerLat, radiusMeters),
+    MAX_POLYGON_VERTICES,
+    DOUGLAS_PEUCKER_TOLERANCE_METERS,
+    true
   );
+  const positions = resolveMarkupLocalVertices(
+    ring,
+    anchorLng,
+    anchorLat,
+    altitudeMeters,
+    context
+  );
+  return createStableFillGeometry(positions, ring.length);
 }
 
 /** Build ellipse fill geometry from a geodesic ring with mercator↔globe vertex blend. */
@@ -505,37 +586,27 @@ export function createGlobeAwareEllipseShapeGeometry(
   anchorLat: number,
   altitudeMeters: number,
   context: OverlayTransformContext
-): THREE.ShapeGeometry {
-  const ring = sampleGeodesicEllipseRing(
-    centerLng,
-    centerLat,
-    radiusXMeters,
-    radiusYMeters,
-    bearingDegrees
+): THREE.BufferGeometry {
+  const ring = simplifyGeoRing(
+    sampleGeodesicEllipseRing(
+      centerLng,
+      centerLat,
+      radiusXMeters,
+      radiusYMeters,
+      bearingDegrees
+    ),
+    MAX_POLYGON_VERTICES,
+    DOUGLAS_PEUCKER_TOLERANCE_METERS,
+    true
   );
-  return new THREE.ShapeGeometry(
-    ringToGlobeAwareLocalShape(ring, anchorLng, anchorLat, altitudeMeters, context)
+  const positions = resolveMarkupLocalVertices(
+    ring,
+    anchorLng,
+    anchorLat,
+    altitudeMeters,
+    context
   );
-}
-
-/** Build a local THREE.Shape from a flat XY vertex buffer (ring outline). */
-export function shapeFromLocalPositions(positions: Float32Array, vertexCount: number): THREE.Shape {
-  const shape = new THREE.Shape();
-
-  for (let index = 0; index < vertexCount; index += 1) {
-    const x = positions[index * 3];
-    const y = positions[index * 3 + 1];
-
-    if (index === 0) {
-      shape.moveTo(x, y);
-      continue;
-    }
-
-    shape.lineTo(x, y);
-  }
-
-  shape.closePath();
-  return shape;
+  return createStableFillGeometry(positions, ring.length);
 }
 
 /** Opacity tweak for wide-span lines during globe blend (mirrors label legibility). */
