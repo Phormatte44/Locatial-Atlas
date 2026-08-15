@@ -2599,7 +2599,26 @@ Studio D-084 (Foundation 137) gives screen-reader authors passive snooze expiry 
 
 **Next**
 
-- Foundation 138: candidate — paste-preview re-copy loop polish, or validation snooze expiry toast when countdown reaches zero on selected row.
+- Foundation 138: validation snooze expiry toast on selected row (see Studio D-085).
+
+## 2026-08-15 — Foundation 138 validation snooze expiry toast on selected row stays Studio-side
+
+**Decision**
+
+When a Build Order / Motion Sequence row is **selected** and its F136 snooze expires naturally (24h timer; detected on the 60s panel tick), Creator Studio shows inline feedback above the sequence table: **Validation warnings restored** when warnings reappear, or **Snooze expired** when issues were fixed while snoozed. Feedback uses `role="status"` / `aria-live="polite"`. Manual ⌥⌘R restore does not duplicate the toast.
+
+**Reason**
+
+Studio D-085 (Foundation 138) closes the snooze lifecycle loop for the selected row — parity with F133 manual-restore feedback when the timer elapses without author action.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-085 for `didSelectedElementSnoozeExpireNaturally`, `validationSnoozeExpiryFeedbackLabel`, `MarkupSequencePanel` tick wiring, and `DirectorMarkupPanel` toast feedback.
+
+**Next**
+
+- Foundation 139: candidate — paste-preview re-copy loop polish, or validation snooze summary polish.
 
 ## 2026-08-15 — Foundation 136 validation snooze expiry countdown on sequence-row badge stays Studio-side
 
