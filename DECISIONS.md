@@ -2922,7 +2922,26 @@ Studio D-106 (Foundation 159) closes the F156 follow-up gap — copy-focus routi
 
 **Next**
 
-- Foundation 160: candidate — validation snooze keyboard restore extensions, or paste-preview re-copy loop Enter commit feedback polish.
+- Foundation 161: candidate — validation snooze keyboard restore extensions, or paste-preview keyboard loop polish.
+
+## 2026-08-15 — Foundation 160 paste-preview re-copy Enter commit feedback polish stays Studio-side
+
+**Decision**
+
+After **re-copy → re-pin → Enter/Space** (F125), Creator Studio paste-preview ghost commit feedback distinguishes **updated-pattern success** from generic first-paste copy and **updated-pattern bounds rejection** from generic F125 bounds guidance. A lightweight session flag set on F156 re-copy tracks whether the next F125 Enter paste follows re-copy. Success uses **"Pasted updated timing pattern"** / **"Pasted updated move timing pattern"** variants; bounds failure uses **"Updated preview would exceed bounds"**. Toolbar paste and F148 post-paste hint merge unchanged.
+
+**Reason**
+
+Studio D-107 (Foundation 160) closes the feedback gap left by F157/F158 live-preview math — authors need copy that confirms Enter committed the refreshed clipboard pattern or rejected the updated preview specifically.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-107 for `timingPasteRecopyLoop.ts` Enter-paste feedback helpers and F160 Vitest cases.
+
+**Next**
+
+- Foundation 161: candidate — validation snooze keyboard restore extensions, or paste-preview keyboard loop polish.
 
 ## 2026-08-15 — Foundation 154 keyboard-first snooze badge activation audit stays Studio-side
 
