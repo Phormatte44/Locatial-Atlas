@@ -2371,7 +2371,26 @@ Studio D-069 (Foundation 122) extends F121 panel-header temporal context to vali
 
 **Next**
 
-- Foundation 123: candidate — paste-preview keyboard focus ring on pinned ghosts, or validation snooze per-element expiry in sequence list badges.
+- Foundation 123: validation snooze per-element expiry in sequence list badges (see Studio D-070).
+
+## 2026-08-15 — Foundation 123 validation snooze per-element expiry in sequence list badges stays Studio-side
+
+**Decision**
+
+When a markup element in Build Order / Motion Sequence has one or more active snoozed warning fingerprints, its sequence row shows a compact muted badge (e.g. `Snoozed · 18h`) beside the timing column — element-scope temporal context without opening the validation summary. Tooltip shows the exact earliest expiry datetime for that element. When an element has both visible and snoozed warnings, the row shows both the active `!` warning indicator and the snoozed badge.
+
+**Reason**
+
+Studio D-070 (Foundation 123) extends F121/F122 aggregate temporal context to sequence list rows so authors scanning Build Order see when snoozed warnings on a specific shape will return.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-070 for `getEarliestSnoozeExpiryForElement`, `formatElementSnoozeBadgeLabel`, `useMarkupValidationSnooze.getElementSnoozeExpiresAt`, and `MarkupSequencePanel` row badge wiring.
+
+**Next**
+
+- Foundation 124: candidate — paste-preview keyboard focus ring on pinned ghosts, or validation snooze keyboard shortcuts for row restore.
 
 ## 2026-08-15 — Foundation 119 validation snooze bulk-snooze by group stays Studio-side
 
