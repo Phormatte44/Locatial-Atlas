@@ -44,6 +44,7 @@ export { registerAreaLayer } from "./data/providers/area/resolveAreaLayer";
 export { registerBuildingLayer } from "./data/providers/building/resolveBuildingLayer";
 export { registerPoiLayer } from "./data/providers/poi/resolvePoiLayer";
 export { registerRasterLayer } from "./data/providers/raster/resolveRasterLayer";
+export { registerTileset3DLayer } from "./data/providers/tileset3d/resolveTileset3DLayer";
 export type { GeographicPoint, ScreenPoint } from "./types/projection";
 export type { MapStyleDefinition } from "./types/mapStyle";
 export type { TerrainSourceDefinition } from "./types/terrain";
@@ -96,6 +97,12 @@ export type {
   RasterStyleTokens,
   RasterTileSource
 } from "./types/rasterLayer";
+export type {
+  Tileset3DLayerDefinition,
+  Tileset3DSemanticType,
+  Tileset3DStyleTokens,
+  Tileset3DTransform
+} from "./types/tileset3DLayer";
 export type {
   CameraPathFamily,
   CameraTransitionEvent,

@@ -6,6 +6,7 @@ import type { AreaLayerDefinition } from "../../types/areaLayer";
 import type { BuildingLayerDefinition } from "../../types/buildingLayer";
 import type { PoiLayerDefinition } from "../../types/poiLayer";
 import type { RasterLayerDefinition } from "../../types/rasterLayer";
+import type { Tileset3DLayerDefinition } from "../../types/tileset3DLayer";
 import type { TerrainSourceDefinition } from "../../types/terrain";
 import type { CameraState } from "../../types/camera";
 import { markupsFromMarkers } from "../../geometry/worldMarkup";
@@ -82,6 +83,12 @@ import { parseBuildingFeatureId } from "../../interaction/buildingFeatureIds";
 import { parsePoiFeatureId } from "../../interaction/poiFeatureIds";
 import { LayerSourceLoader } from "../../data/layerSourceLoader";
 import { RasterSourceLoadTracker } from "../../data/rasterSourceLoadTracker";
+import { Tileset3DSourceLoadTracker } from "../../data/tileset3DSourceLoadTracker";
+import {
+  cancelAllTileset3DLoads,
+  retryTileset3DLayer,
+  syncTileset3DLayers
+} from "../three/tileset3DSetup";
 import type { LayerFamily, LayerLoadChangeListener, LayerLoadState } from "../../types/layerLoadState";
 import {
   applyGeoJsonToLayerSource,
@@ -117,6 +124,7 @@ export class MapLibreAdapter {
   private buildingLayers: BuildingLayerDefinition[] = [];
   private poiLayers: PoiLayerDefinition[] = [];
   private rasterLayers: RasterLayerDefinition[] = [];
+  private tileset3DLayers: Tileset3DLayerDefinition[] = [];
   private highlightedBoundary: { layerId: string; featureKey: string } | null = null;
   private highlightedLabel: { layerId: string; featureKey: string } | null = null;
   private highlightedRoad: { layerId: string; featureKey: string } | null = null;
@@ -125,6 +133,8 @@ export class MapLibreAdapter {
   private highlightedPoi: { layerId: string; featureKey: string } | null = null;
   private readonly layerSourceLoader = new LayerSourceLoader();
   private readonly rasterLoadTracker = new RasterSourceLoadTracker();
+  private readonly tileset3DLoadTracker = new Tileset3DSourceLoadTracker();
+  private readonly tileset3DAbortControllers = new Map<string, AbortController>();
   private readonly layerLoadChangeListeners = new Set<LayerLoadChangeListener>();
 
   create(container: HTMLElement, initialCamera: CameraState, styleUrl: string): void {
@@ -183,6 +193,20 @@ export class MapLibreAdapter {
           recoverable: true,
           layerId: state.layerId,
           layerFamily: "raster"
+        });
+      }
+    });
+
+    this.tileset3DLoadTracker.onChange(({ state }) => {
+      this.emitLayerLoadChange(state);
+
+      if (state.status === "error" && state.error) {
+        this.emitLayerLoadError({
+          kind: "layer-load",
+          message: state.error,
+          recoverable: true,
+          layerId: state.layerId,
+          layerFamily: "tiles3d"
         });
       }
     });
@@ -247,11 +271,14 @@ export class MapLibreAdapter {
     this.roadLayers = [];
     this.poiLayers = [];
     this.rasterLayers = [];
+    this.tileset3DLayers = [];
     this.highlightedBoundary = null;
     this.highlightedLabel = null;
     this.highlightedRoad = null;
     this.layerSourceLoader.cancelAll();
     this.rasterLoadTracker.cancelAll();
+    cancelAllTileset3DLoads(this.tileset3DAbortControllers);
+    this.tileset3DLoadTracker.cancelAll();
   }
 
   configureTerrain(enabled: boolean, source: TerrainSourceDefinition | null): void {
@@ -362,6 +389,8 @@ export class MapLibreAdapter {
     this.threeLayerAdded = false;
     this.layerSourceLoader.invalidateAll();
     this.rasterLoadTracker.cancelAll();
+    cancelAllTileset3DLoads(this.tileset3DAbortControllers);
+    this.tileset3DLoadTracker.cancelAll();
 
     await new Promise<void>((resolve, reject) => {
       const onIdle = () => {
@@ -624,6 +653,33 @@ export class MapLibreAdapter {
     return this.rasterLayers.map((layer) => layer.id);
   }
 
+  setTileset3DLayers(definitions: Tileset3DLayerDefinition[]): void {
+    const previousIds = new Set(this.tileset3DLayers.map((layer) => layer.id));
+    const nextIds = new Set(definitions.map((layer) => layer.id));
+
+    for (const layerId of previousIds) {
+      if (!nextIds.has(layerId)) {
+        const controller = this.tileset3DAbortControllers.get(layerId);
+        controller?.abort();
+        this.tileset3DAbortControllers.delete(layerId);
+        this.tileset3DLoadTracker.markIdle(layerId);
+      }
+    }
+
+    this.tileset3DLayers = definitions;
+
+    if (!this.map?.loaded()) {
+      return;
+    }
+
+    this.syncTileset3DLoadStates();
+    this.moveThreeLayerToTop();
+  }
+
+  getEnabledTileset3DLayerIds(): string[] {
+    return this.tileset3DLayers.map((layer) => layer.id);
+  }
+
   getEnabledPoiLayerIds(): string[] {
     return this.poiLayers.map((layer) => layer.id);
   }
@@ -859,15 +915,31 @@ export class MapLibreAdapter {
 
   getLayerLoadState(layerId: string): LayerLoadState | undefined {
     return (
-      this.layerSourceLoader.findState(layerId) ?? this.rasterLoadTracker.findState(layerId)
+      this.layerSourceLoader.findState(layerId) ??
+      this.rasterLoadTracker.findState(layerId) ??
+      this.tileset3DLoadTracker.findState(layerId)
     );
   }
 
   getLayerLoadStates(): LayerLoadState[] {
-    return [...this.layerSourceLoader.getStates(), ...this.rasterLoadTracker.getStates()];
+    return [
+      ...this.layerSourceLoader.getStates(),
+      ...this.rasterLoadTracker.getStates(),
+      ...this.tileset3DLoadTracker.getStates()
+    ];
   }
 
   retryLayerLoad(layerId: string, family?: LayerFamily): boolean {
+    if (family === "tiles3d" || (!family && this.tileset3DLoadTracker.getState(layerId))) {
+      const definition = this.tileset3DLayers.find((layer) => layer.id === layerId);
+      if (!definition) {
+        return false;
+      }
+
+      void retryTileset3DLayer(definition, this.tileset3DSyncOptions());
+      return true;
+    }
+
     if (family === "raster" || (!family && this.rasterLoadTracker.getState(layerId))) {
       const definition = this.rasterLayers.find((layer) => layer.id === layerId);
       if (!definition || !this.map?.loaded()) {
@@ -898,6 +970,10 @@ export class MapLibreAdapter {
       syncRasterLayersOnMap(this.map!, this.rasterLayers);
       this.moveThreeLayerToTop();
       this.syncRasterLoadStates();
+    }
+    if (this.tileset3DLayers.length > 0) {
+      this.syncTileset3DLoadStates();
+      this.moveThreeLayerToTop();
     }
     if (this.boundaryLayers.length > 0) {
       syncBoundaryLayersOnMap(this.map!, this.boundaryLayers);
@@ -1048,6 +1124,36 @@ export class MapLibreAdapter {
         this.rasterLoadTracker.markLoading(definition.id, url);
       }
     }
+  }
+
+  private syncTileset3DLoadStates(): void {
+    const enabledIds = new Set(this.tileset3DLayers.map((layer) => layer.id));
+
+    for (const state of this.tileset3DLoadTracker.getStates()) {
+      if (!enabledIds.has(state.layerId)) {
+        this.tileset3DLoadTracker.markIdle(state.layerId);
+      }
+    }
+
+    syncTileset3DLayers(this.tileset3DSyncOptions());
+  }
+
+  private tileset3DSyncOptions() {
+    return {
+      definitions: this.tileset3DLayers,
+      loadTracker: this.tileset3DLoadTracker,
+      abortControllers: this.tileset3DAbortControllers,
+      onRendererUnavailable: (layerId: string, message: string, url: string) => {
+        this.emitLayerLoadError({
+          kind: "layer-load",
+          message,
+          recoverable: true,
+          layerId,
+          layerFamily: "tiles3d"
+        });
+        void url;
+      }
+    };
   }
 
   private currentEnabledLayerFamilies(): Set<LayerFamily> {

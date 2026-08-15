@@ -13,6 +13,7 @@ import type { AreaLayerDefinition } from "../types/areaLayer";
 import type { BuildingLayerDefinition } from "../types/buildingLayer";
 import type { PoiLayerDefinition } from "../types/poiLayer";
 import type { RasterLayerDefinition } from "../types/rasterLayer";
+import type { Tileset3DLayerDefinition } from "../types/tileset3DLayer";
 import { markupsFromMarkers } from "../geometry/worldMarkup";
 import type { WorldMarker } from "../types/worldMarker";
 import { getMarkupAnchor, type WorldMarkup } from "../types/worldMarkup";
@@ -67,6 +68,11 @@ import {
   registerRasterLayer as registerRasterLayerDefinition,
   resolveRasterLayers
 } from "../data/providers/raster/resolveRasterLayer";
+import {
+  listAvailableTileset3DLayers,
+  registerTileset3DLayer as registerTileset3DLayerDefinition,
+  resolveTileset3DLayers
+} from "../data/providers/tileset3d/resolveTileset3DLayer";
 import { isBoundaryFeatureId } from "../interaction/boundaryFeatureIds";
 import { isLabelFeatureId } from "../interaction/labelFeatureIds";
 import { isRoadFeatureId } from "../interaction/roadFeatureIds";
@@ -152,6 +158,7 @@ export class AtlasEngine implements AtlasEngineContract {
   private enabledBuildingLayerIds: string[] = [];
   private enabledPoiLayerIds: string[] = [];
   private enabledRasterLayerIds: string[] = [];
+  private enabledTileset3DLayerIds: string[] = [];
 
   constructor(options: AtlasEngineOptions = {}) {
     this.mapStyleId = options.mapStyleId ?? DEFAULT_MAP_STYLE_ID;
@@ -664,6 +671,24 @@ export class AtlasEngine implements AtlasEngineContract {
     const definitions = resolveRasterLayers(layerIds);
     this.enabledRasterLayerIds = definitions.map((layer) => layer.id);
     this.mapAdapter.setRasterLayers(definitions);
+  }
+
+  listTileset3DLayers(): Tileset3DLayerDefinition[] {
+    return listAvailableTileset3DLayers();
+  }
+
+  registerTileset3DLayer(def: Tileset3DLayerDefinition): void {
+    registerTileset3DLayerDefinition(def);
+  }
+
+  getEnabledTileset3DLayerIds(): string[] {
+    return [...this.enabledTileset3DLayerIds];
+  }
+
+  setTileset3DLayers(layerIds: string[]): void {
+    const definitions = resolveTileset3DLayers(layerIds);
+    this.enabledTileset3DLayerIds = definitions.map((layer) => layer.id);
+    this.mapAdapter.setTileset3DLayers(definitions);
   }
 
   async expandClusterAt(screenX: number, screenY: number): Promise<boolean> {

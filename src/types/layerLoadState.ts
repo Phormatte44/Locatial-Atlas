@@ -1,5 +1,13 @@
 /** Registered layer family that supports load lifecycle tracking. */
-export type LayerFamily = "boundary" | "label" | "road" | "area" | "building" | "poi" | "raster";
+export type LayerFamily =
+  | "boundary"
+  | "label"
+  | "road"
+  | "area"
+  | "building"
+  | "poi"
+  | "raster"
+  | "tiles3d";
 
 /** Lifecycle state for a GeoJSON layer source. */
 export type LayerLoadStatus = "idle" | "loading" | "ready" | "error";

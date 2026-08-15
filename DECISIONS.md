@@ -995,3 +995,34 @@ Cinematic camera motion is core Atlas product value. GSAP is already declared as
 **Next**
 
 - Foundation 47: 3D Tiles overlay registry, path-family easing on legacy fallback, or `setTransitionEasing` on the public contract if Studio needs it.
+
+## 2026-08-15 — Foundation 47 3D Tiles overlay registry
+
+**Decision**
+
+3D Tiles overlays use a provider-agnostic registry in `src/data/tilesets3d`. Applications register `Tileset3DLayerDefinition` entries (tileset root URL, semantic type, opacity tokens, optional georeferenced transform) via `registerTileset3DLayer()` or `AtlasEngine.registerTileset3DLayer()`, then enable layers with `setTileset3DLayers(ids[])`. MapLibre GL JS **5.6.x has no native 3D Tiles / batched-model source** (unlike Mapbox GL JS v3). Atlas therefore ships registry + async tileset validation + a **stub adapter** in `src/rendering/three/tileset3DSetup.ts` that never silently no-ops: enabling a layer fetches and validates `tileset.json`, then reports a clear renderer-unavailable error until live rendering lands.
+
+**Reason**
+
+Studio and future products need photogrammetry, city mesh, and point-cloud overlays composited with the editorial basemap without hard-coded tileset URLs in `src` or direct MapLibre coupling. The registry mirrors raster (F45) and async GeoJSON (F43) patterns while documenting the correct rendering path: **Three.js custom layer + `3d-tiles-renderer`** (MapLibre’s own example), not a MapLibre raster/vector source.
+
+**Consequences**
+
+- Public contract: `listTileset3DLayers`, `registerTileset3DLayer`, `getEnabledTileset3DLayerIds`, `setTileset3DLayers`.
+- Load lifecycle family: `tiles3d` — `loading | error` today (renderer stub); `ready` reserved for when the Three.js adapter mounts tile content.
+- Tileset validation uses fetch + minimal root JSON shape check; abort on disable or style swap.
+- Failures emit recoverable `onMapError` with kind `layer-load` and `layerFamily: "tiles3d"`. Retry via `retryLayerLoad(layerId, "tiles3d")`.
+- No built-in 3D Tiles layers ship in `src`; Lab registers the Re:Earth Buildings public tileset at runtime.
+- Style swaps cancel in-flight tileset loads and re-sync enabled layers after basemap reload.
+
+**Limitations**
+
+- **No live rendering in F47** — validated tilesets still error with `TILESET3D_RENDERER_UNAVAILABLE_MESSAGE`.
+- Opacity/transform tokens are stored on the definition but not applied until the Three.js adapter exists.
+- No hover, selection, or feature ids on 3D Tiles overlays.
+- Lab demo tileset depends on a third-party endpoint (Re:Earth Buildings); production apps should register their own tilesets with appropriate attribution and access tokens where required.
+- Adding `3d-tiles-renderer` as a dependency is deferred to the rendering adapter milestone (F48 candidate).
+
+**Next**
+
+- Foundation 48: Three.js + `3d-tiles-renderer` custom layer adapter, path-family easing on legacy rAF fallback, or Studio integration documentation update.

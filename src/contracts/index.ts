@@ -77,6 +77,12 @@ export type {
   RasterStyleTokens,
   RasterTileSource
 } from "../types/rasterLayer";
+export type {
+  Tileset3DLayerDefinition,
+  Tileset3DSemanticType,
+  Tileset3DStyleTokens,
+  Tileset3DTransform
+} from "../types/tileset3DLayer";
 export type { CameraTransitionEvent, CameraTransitionListener } from "../types/cameraTransition";
 export type { CameraPathFamily } from "../types/cameraTransition";
 export type { GeoHoverEvent, GeoHoverListener } from "../types/geoHover";
@@ -152,6 +158,10 @@ export interface AtlasEngineContract {
   registerRasterLayer(def: import("../types/rasterLayer").RasterLayerDefinition): void;
   getEnabledRasterLayerIds(): string[];
   setRasterLayers(layerIds: string[]): void;
+  listTileset3DLayers(): import("../types/tileset3DLayer").Tileset3DLayerDefinition[];
+  registerTileset3DLayer(def: import("../types/tileset3DLayer").Tileset3DLayerDefinition): void;
+  getEnabledTileset3DLayerIds(): string[];
+  setTileset3DLayers(layerIds: string[]): void;
   getTransitionPathFamily(to: import("../types/place").AtlasPlace): CameraPathFamily;
   isMapReady(): boolean;
   onMapReady(listener: import("../types/mapReady").MapReadyListener): () => void;

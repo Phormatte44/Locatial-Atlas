@@ -10,6 +10,7 @@ import { AreaLayerToggle } from "./AreaLayerToggle";
 import { BuildingLayerToggle } from "./BuildingLayerToggle";
 import { PoiLayerToggle } from "./PoiLayerToggle";
 import { RasterLayerToggle } from "./RasterLayerToggle";
+import { Tileset3DLayerToggle } from "./Tileset3DLayerToggle";
 import { ViewModeSelector } from "./ViewModeSelector";
 import { VisualEnvironmentControls } from "./VisualEnvironmentControls";
 
@@ -83,12 +84,13 @@ export function PlaceSelector({ engine, places }: PlaceSelectorProps) {
 
   return (
     <div style={panelStyle}>
-      <strong style={{ fontSize: 14 }}>Atlas Lab — Foundation 46</strong>
+      <strong style={{ fontSize: 14 }}>Atlas Lab — Foundation 47</strong>
       <span style={{ fontSize: 12, color: "#555" }}>
         City buttons frame the center point via GSAP camera paths (local-glide within a city,
         orbit-reveal for regional hops, departure-arrival-arc for London ↔ Dubai). Area buttons frame
-        metro bounds with local-glide. Enable raster imagery for satellite overlays; toggle POI layers
-        for clustered landmarks — click a cluster to expand.
+        metro bounds with local-glide. Enable raster imagery for satellite overlays; toggle 3D Tiles
+        to exercise async tileset validation (rendering stubbed in F47). Toggle POI layers for
+        clustered landmarks — click a cluster to expand.
       </span>
       <ViewModeSelector engine={engine} />
       <VisualEnvironmentControls engine={engine} />
@@ -96,6 +98,7 @@ export function PlaceSelector({ engine, places }: PlaceSelectorProps) {
       <TerrainSourceSelector engine={engine} />
       <TerrainToggle engine={engine} />
       <RasterLayerToggle engine={engine} />
+      <Tileset3DLayerToggle engine={engine} />
       <BoundaryLayerToggle engine={engine} />
       <LabelLayerToggle engine={engine} />
       <RoadLayerToggle engine={engine} />
