@@ -1535,6 +1535,26 @@ F67 preview worked but motion lived in ephemeral hook state and was lost on relo
 
 - Foundation 69: TBD — candidate: rectangle/polygon drag handles, storyline cue integration, or motion validation UX.
 
+## 2026-08-15 — Foundation 69 Studio rectangle/polygon drag handles on map
+
+**Decision**
+
+Rectangle and polygon on-map editing (corner resize and vertex move) lives in Creator Studio as a screen-space overlay using Atlas public `project` / `unproject`. No Atlas draw or edit API; geometry patches flow through existing `MarkupElement.points` state and `markupDraft` localStorage.
+
+**Reason**
+
+F66 established the ellipse overlay pattern. Authors need the same direct manipulation for axis-aligned rectangles and freeform polygons without coupling Terra Draw or renderer internals into Director.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Studio adds `AreaEditOverlay` and `areaHandleGeometry.ts`; mirrors F66 `EllipseEditOverlay` pattern.
+- Line/route vertex editing remains a future overlay (Foundation 70 candidate).
+
+**Next**
+
+- Foundation 70: TBD — candidate: line/route vertex drag handles, storyline cue integration, or motion validation UX.
+
 ## 2026-08-15 — Studio transition preview uses Atlas straight and high-arc
 
 **Decision**
