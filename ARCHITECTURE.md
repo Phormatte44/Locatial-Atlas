@@ -10,6 +10,9 @@ Public interfaces exposed to applications using Atlas.
 ### `src/camera`
 Camera state, path solving, framing, orientation, lens behavior, transition planning, and interpolation.
 
+- Governing brief: `src/camera/CAMERA-SYSTEM.md`
+- Path families: `src/camera/paths/` — one sampler and one markdown brief per live family; planned families are signpost briefs only
+
 ### `src/world`
 Geographic world model, coordinate transforms, projection helpers, terrain alignment, and world-level utilities.
 

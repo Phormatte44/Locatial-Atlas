@@ -60,7 +60,7 @@ The library build externalizes renderer and framework packages (see `vite.config
 | `maplibre-gl` | `^5.0.0` | Atlas targets MapLibre 5 today; Studio may pin MapLibre 6 and rewrite imports at build time |
 | `three` | `^0.179.0` | World markup overlay |
 | `@turf/turf` | `^7.0.0` | Geographic geometry helpers |
-| `gsap` | `^3.0.0` | Optional (`peerDependenciesMeta.optional`); reserved for future camera motion |
+| `gsap` | `^3.0.0` | Optional (`peerDependenciesMeta.optional`); powers cinematic camera transitions via GSAP timelines. Without it, Atlas falls back to `requestAnimationFrame` playback. |
 
 Atlas keeps the same packages in `devDependencies` for Lab and local `npm run dev`. Consumers must not rely on Atlas installing these transitively.
 

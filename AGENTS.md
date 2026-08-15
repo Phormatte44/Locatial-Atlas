@@ -36,6 +36,7 @@ Read:
 - `SPATIAL-CONTRACT.md`
 - the nearest folder-specific `AGENTS.md`
 - `DECISIONS.md`
+- Camera work: `src/camera/CAMERA-SYSTEM.md` and `src/camera/paths/`
 
 ## Definition of done
 

@@ -924,6 +924,22 @@ Studio and future products need interactive landmark and amenity markers with op
 
 - Foundation 45: raster / imagery overlay registry with tile URL sources, opacity tokens, and z-order relative to vector layers.
 
+## 2026-08-15 — Camera path family modules
+
+**Decision**
+
+Live camera path families live under `src/camera/paths/`, each as a TypeScript sampler plus a markdown brief. `src/camera/CAMERA-SYSTEM.md` is the governing file. Root `CAMERA-SYSTEM.md` is a pointer. Planned families (`linear`, `high-arc`, `low-arc`, `route`) are signpost markdown only — they do not have `CameraPathFamily` ids and must not be auto-selected or parsed at runtime. Lab buttons, when added, target a live family id.
+
+**Reason**
+
+Path shape should be isolatable so each move can be aged without turning `sampleTransitionPath.ts` into a switchboard of unrelated animation. The public camera contract is unchanged: distance still auto-selects `local-glide`, `orbit-reveal`, or `departure-arrival-arc`, and products still call `framePlace` / `frameBounds` / `setCamera`.
+
+**Consequences**
+
+- `CameraTransitionRunner` still owns progress and easing. Samplers only emit `CameraState`.
+- Foundation 45 remains raster / imagery overlays.
+- Promoting a planned family requires a sampler, a contract id, a dispatcher branch, and a decision note.
+
 ## 2026-08-15 — Foundation 45 raster / imagery overlay registry
 
 **Decision**
@@ -952,4 +968,31 @@ Studio and future products need satellite, hillshade, and thematic imagery overl
 
 **Next**
 
-- Foundation 46: GSAP camera path integration, 3D Tiles overlay registry, or Studio integration documentation update.
+- Foundation 47: 3D Tiles overlay registry, Studio integration documentation update, or additional camera path families.
+
+## 2026-08-15 — Foundation 46 GSAP camera path integration
+
+**Decision**
+
+`CameraTransitionRunner` advances transition progress through an internal GSAP timeline adapter (`src/camera/gsapPlayback.ts`) when the host installs the optional `gsap` peer dependency. Path-family easing tokens live in `transitionEasing.ts` (`power2.inOut` for `local-glide`, `power3.inOut` for `orbit-reveal`, `power4.inOut` for `departure-arrival-arc`). GSAP types and timeline objects never cross the public API. All three live path families share the same GSAP playback path; spatial shape remains in `sampleTransitionPath.ts` / `paths/`.
+
+**Reason**
+
+Cinematic camera motion is core Atlas product value. GSAP is already declared as an optional peer dependency and externalized in the library build. Wiring the runner to GSAP timelines replaces hand-rolled rAF easing with production-grade playback while preserving the existing contract: `onCameraTransition`, throttled `onCameraChange` with `transitionProgress`, `isTransitionRunning()`, and `getCameraState().transitionProgress` during active transitions.
+
+**Consequences**
+
+- **GSAP playback:** all live path families (`local-glide`, `orbit-reveal`, `departure-arrival-arc`) when `gsap` is installed.
+- **Legacy fallback:** `requestAnimationFrame` + cubic ease-in-out when `gsap` is absent (unchanged behavior for hosts that skip the peer).
+- Lab PlaceSelector and readout label Foundation 46; London ↔ Dubai visibly exercises `departure-arrival-arc` GSAP easing.
+- `INTEGRATION.md` updated: `gsap` peer now powers camera transitions.
+
+**Limitations**
+
+- No public `setTransitionEasing` API yet; ease override is an internal runner option only.
+- Legacy rAF fallback does not use path-family-specific easing tokens.
+- GSAP is still optional; hosts wanting cinematic motion should install `gsap@^3`.
+
+**Next**
+
+- Foundation 47: 3D Tiles overlay registry, path-family easing on legacy fallback, or `setTransitionEasing` on the public contract if Studio needs it.

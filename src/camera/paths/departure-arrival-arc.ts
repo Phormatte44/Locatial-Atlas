@@ -1,12 +1,17 @@
-import type { CameraState } from "../types/camera";
-import { easeInOutCubic, lerp } from "./easing";
-import { headingToward } from "./geodesicInterpolation";
+import { haversineDistanceMeters } from "../../world/distance";
+import type { CameraState } from "../../types/camera";
+import { easeInOutCubic, lerp } from "../easing";
+import { headingToward, interpolateGeodesic } from "../geodesicInterpolation";
+import { completeCameraSample } from "./completeSample";
+import type { CameraPathSampler } from "./types";
 
 /** Normalized progress where departure climb finishes. */
 export const DEPARTURE_PHASE_END = 0.22;
 
 /** Normalized progress where arrival descent begins. */
 export const ARRIVAL_PHASE_START = 0.78;
+
+export const DEPARTURE_ARRIVAL_ARC_DURATION_MS = 5_500;
 
 const CRUISE_PITCH_DEGREES = 32;
 
@@ -38,6 +43,16 @@ function sampleArrivalAltitude(
 ): number {
   const arrivalProgress = phaseProgress(progress, ARRIVAL_PHASE_START, 1);
   return lerp(apexAltitudeMeters, toAltitudeMeters, easeInOutCubic(arrivalProgress));
+}
+
+export function computeApexAltitudeMeters(
+  from: CameraState,
+  to: CameraState,
+  distanceMeters: number
+): number {
+  const baseAltitude = Math.max(from.altitudeMeters, to.altitudeMeters);
+  const distanceLift = Math.min(distanceMeters * 0.35, 8_000_000);
+  return baseAltitude + distanceLift;
 }
 
 export function sampleDepartureArrivalAltitudeMeters(
@@ -94,3 +109,28 @@ export function sampleDepartureArrivalHeadingDegrees(
 
   return routeHeading;
 }
+
+/** Long-range climb, cruise, and descent. See `departure-arrival-arc.md`. */
+export const sampleDepartureArrivalArcCameraState: CameraPathSampler = (from, to, progress) => {
+  const distanceMeters = haversineDistanceMeters(from.lng, from.lat, to.lng, to.lat);
+  const apexAltitudeMeters = computeApexAltitudeMeters(from, to, distanceMeters);
+  const position = interpolateGeodesic(from.lng, from.lat, to.lng, to.lat, progress);
+
+  return completeCameraSample(
+    {
+      lng: position.lng,
+      lat: position.lat,
+      altitudeMeters: sampleDepartureArrivalAltitudeMeters(
+        progress,
+        from,
+        to,
+        apexAltitudeMeters
+      ),
+      headingDegrees: sampleDepartureArrivalHeadingDegrees(progress, from, to),
+      pitchDegrees: sampleDepartureArrivalPitchDegrees(progress, from, to)
+    },
+    from,
+    to,
+    progress
+  );
+};

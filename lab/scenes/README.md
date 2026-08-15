@@ -2,6 +2,8 @@
 
 Scenes bundle the geographic content a Lab run exercises: places, world markup, and (later) camera or lighting presets. They sit above `lab/presets/`, which holds reusable building blocks.
 
+Camera path families live in `src/camera/paths/`. Future Lab buttons should target a live path family id (`local-glide`, `orbit-reveal`, `departure-arrival-arc`), not a markdown file.
+
 ## Pattern
 
 Each scene file exports:

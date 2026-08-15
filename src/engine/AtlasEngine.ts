@@ -18,7 +18,7 @@ import type { WorldMarker } from "../types/worldMarker";
 import { getMarkupAnchor, type WorldMarkup } from "../types/worldMarkup";
 import { CameraController } from "../camera/CameraController";
 import { CameraTransitionRunner } from "../camera/CameraTransitionRunner";
-import { selectPathFamily } from "../camera/pathFamilies";
+import { selectPathFamily } from "../camera/paths";
 import { computeTransitionDurationMs } from "../camera/transitionDuration";
 import {
   getMapStyleDefinition,
