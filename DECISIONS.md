@@ -2352,7 +2352,26 @@ Studio D-068 (Foundation 121) extends F117 temporal context to the summary heade
 
 **Next**
 
-- Foundation 122: candidate — paste-preview keyboard focus ring on pinned ghosts, or validation snooze per-group expiry countdown in group headers.
+- Foundation 122: validation snooze per-group expiry countdown in group headers (see Studio D-069).
+
+## 2026-08-15 — Foundation 122 validation snooze per-group expiry countdown in group headers stays Studio-side
+
+**Decision**
+
+When a F97 validation issue-type group has one or more active snoozed warning fingerprints, the group header shows a muted aggregate expiry label (e.g. `Snoozed · earliest expires in 12h`) beside the group title — group-scope temporal context without expanding snoozed rows. Tooltip shows the exact earliest expiry datetime for that group. 24h snooze duration unchanged.
+
+**Reason**
+
+Studio D-069 (Foundation 122) extends F121 panel-header temporal context to validation group headers so authors see when the next snoozed warning in a specific issue type will return without toggling Show snoozed or expanding the group.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-069 for `getEarliestSnoozeExpiryInGroup`, `formatEarliestSnoozeHeaderLabel`, `useMarkupValidationSnooze.getGroupSnoozeExpiresAt`, and `MarkupMotionValidationSummary` group header expiry wiring.
+
+**Next**
+
+- Foundation 123: candidate — paste-preview keyboard focus ring on pinned ghosts, or validation snooze per-element expiry in sequence list badges.
 
 ## 2026-08-15 — Foundation 119 validation snooze bulk-snooze by group stays Studio-side
 
