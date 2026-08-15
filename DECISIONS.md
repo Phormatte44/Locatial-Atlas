@@ -2865,7 +2865,7 @@ Studio D-103 (Foundation 156) closes the re-copy + pin interaction gap — keybo
 
 **Next**
 
-- Foundation 158: candidate — validation snooze keyboard restore extensions, or paste-preview re-copy loop move-context parity audit.
+- Foundation 157: paste-preview Enter paste after re-copy pattern validation (see Studio D-104).
 
 ## 2026-08-15 — Foundation 157 paste-preview Enter paste after re-copy pattern validation stays Studio-side
 
@@ -2884,7 +2884,26 @@ Studio D-104 (Foundation 157) closes the re-copy + Enter paste validation gap �
 
 **Next**
 
-- Foundation 158: candidate — validation snooze keyboard restore extensions, or paste-preview re-copy loop move-context parity audit.
+- Foundation 158: paste-preview re-copy loop move-context parity audit (see Studio D-105).
+
+## 2026-08-15 — Foundation 158 paste-preview move-context re-copy parity audit stays Studio-side
+
+**Decision**
+
+F158 audits **move** paste-preview connector ghosts for parity with F157 keyframe guards: after **re-copy → re-pin → Enter/Space** (F125), move ghost DOM attrs must stay aligned with **`previewMoveTimingPasteModes`** math from the current clipboard. F125 Enter commit re-validates the focused ghost's **`valid` flag against live move preview math** before resolving the paste action so stale DOM attrs from a pre-recopy pin session cannot block a valid post-recopy paste.
+
+**Reason**
+
+Studio D-105 (Foundation 158) closes the move-context test and documentation gap — F157 wired the live-preview guard for both keyframe and move paths in `DirectorMarkupPanel`, but centralized validation and Vitest coverage were keyframe-only until F158.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-105 for `timingPasteRecopyPatternValidation.ts` move helpers and F158 Vitest move-context cases.
+
+**Next**
+
+- Foundation 159: candidate — validation snooze keyboard restore extensions, or paste-preview re-copy loop keyboard focus polish.
 
 ## 2026-08-15 — Foundation 154 keyboard-first snooze badge activation audit stays Studio-side
 
