@@ -2656,26 +2656,26 @@ Studio D-087 (Foundation 140) closes the expiry feedback loop for authors who sn
 
 **Next**
 
-- Foundation 141: candidate — paste-preview re-copy loop polish, or validation snooze multi-section expiry coordination.
+- Foundation 141: validation snooze multi-section expiry coordination (see Studio D-088).
 
-## 2026-08-15 — Foundation 136 validation snooze expiry countdown on sequence-row badge stays Studio-side
+## 2026-08-15 — Foundation 141 validation snooze multi-section expiry coordination stays Studio-side
 
 **Decision**
 
-F123 per-element snooze badges on Build Order / Motion Sequence rows show a **live relative expiry countdown** in the badge label (e.g. `Snoozed · 23m left`) — reusing F117 `formatSnoozeRemaining` with the F123 60s panel tick. Badge tooltip shows exact earliest expiry datetime plus compact keyboard hints (`⌥⌘S · ⌥⌘R · ⌥⌘W toggles`) for F133–F135 snooze/restore/toggle on the selected row. Muted styling unchanged.
+Snooze fingerprints remain global (no `sectionId` in F111 keys). Cross-section awareness validates each section's place-scoped markup against that section's cues and matches the shared localStorage store. Inactive sections with active snoozes show compact **Other sections** chips above Build Order / Motion Sequence with snoozed count and F121-style remaining time on the 60s tick. When snoozes expire naturally in a non-active section, inline feedback shows **Snoozes expired in {section}** or **Snoozes expired in another section** when multiple expire on one tick. F138/F140 active-section expiry toasts dedupe within the tick.
 
 **Reason**
 
-Studio D-083 (Foundation 136) enhances F123 static-duration badges so authors see when snoozed warnings return and discover keyboard shortcuts without opening the validation summary.
+Studio D-088 (Foundation 141) closes the gap when authors switch sections — F111–F140 snooze UX was scoped to the active section only.
 
 **Consequences**
 
 - No Atlas engine changes required.
-- Cross-reference Studio D-083 for `formatElementSnoozeBadgeLabel`, `VALIDATION_SNOOZE_KEYBOARD_SHORTCUT_HINT_COMPACT`, `formatElementSnoozeBadgeTooltip`, and `MarkupSequencePanel` row badge wiring.
+- Cross-reference Studio D-088 for `markupMotionValidationCrossSectionSnooze.ts`, `DirectorMarkupPanel` tick wiring, and `MarkupSequencePanel` inactive-section chips.
 
 **Next**
 
-- Foundation 137: validation snooze badge aria-live expiry announcements (see Studio D-084).
+- Foundation 142: candidate — StructureTree section-header snooze badges, or paste-preview re-copy loop polish.
 
 ## 2026-08-15 — Foundation 134 validation snooze keyboard snooze on selected sequence row stays Studio-side
 
