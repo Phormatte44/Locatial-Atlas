@@ -1671,6 +1671,25 @@ Studio D-023 (Foundation 76) extends the F67–F75 override path. Atlas already 
 
 - Foundation 77: TBD — candidate: focus-cue rail items or title cues.
 
+## 2026-08-15 — Foundation 77 focus spotlight overlay stays Studio-side
+
+**Decision**
+
+Focus-cue viewport dim and spotlight during storyline scrub/playback are rendered in Creator Studio as a DOM/CSS SVG mask overlay on the map panel (`FocusSpotlightOverlay`). Atlas projects geo bounds to screen via the existing public `project()` API; Studio owns cue timing, target resolution, and overlay composition. No Atlas engine draw API or timeline hook.
+
+**Reason**
+
+Studio D-024 (Foundation 77) adds authored `focus-cue` StorylineItems (FOCUS-001–003). Spotlight is a rendering-layer concern per INTERACTION-PRD R7 — one overlay applied to whatever target is active, not per-shape Atlas markup styling.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-024 for `storylineDraft`, `focusCuePlayback`, and rail authoring.
+
+**Next**
+
+- Foundation 78: TBD — candidate: title-cue rail items or focus-cue end/duration editing.
+
 ## 2026-08-15 — Foundation 74 camera transition sampling on public API
 
 **Decision**
