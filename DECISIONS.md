@@ -2029,7 +2029,26 @@ Studio D-050 (Foundation 103) extends F102 with playhead-anchored paste so autho
 
 **Next**
 
-- Foundation 104: TBD — candidate: multi-move batch retime, validation dismiss/snooze, or cross-element timing paste preview.
+- Foundation 104: cross-element timing paste preview (see D-051).
+
+## 2026-08-15 — Foundation 104 timing paste preview stays Studio-side
+
+**Decision**
+
+**Ghost preview** for keyframe timing paste on the Storyline rail (proposed diamond positions for ⌘V and ⇧⌘V before commit; F102/F103 math reuse; bounds-invalid error styling; Escape/paste lifecycle) lives in Creator Studio. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-051 (Foundation 104) extends F102–F103 so authors see where a copied timing pattern would land on another element—or at the playhead—without committing or leaving the rail.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-051 for `previewKeyframeTimingPasteModes`, `StorylineKeyframeMarkers` ghost diamonds, and `DirectorMarkupPanel` preview visibility.
+
+**Next**
+
+- Foundation 105: TBD — candidate: paste-preview mode toggle, multi-move batch retime, or validation dismiss/snooze.
 
 ## 2026-08-15 — Foundation 95 keyframe drag on Storyline rail stays Studio-side
 
