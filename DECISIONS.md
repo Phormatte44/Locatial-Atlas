@@ -2618,7 +2618,26 @@ Studio D-085 (Foundation 138) closes the snooze lifecycle loop for the selected 
 
 **Next**
 
-- Foundation 139: candidate — paste-preview re-copy loop polish, or validation snooze summary polish.
+- Foundation 139: validation snooze summary header live expiry tick (see Studio D-086).
+
+## 2026-08-15 — Foundation 139 validation snooze summary header live expiry tick stays Studio-side
+
+**Decision**
+
+F121 panel-header and F122 group-header snooze expiry labels in the validation summary (`Snoozed · earliest expires in 18h`) refresh on the shared 60s countdown tick when snoozed issues exist — minutes and hours update without opening groups. When the summary panel is expanded, a visually hidden `role="status"` region announces panel-header countdown changes on hour/minute boundaries (same change-only contract as F137). Expired snoozes prune from localStorage on tick so counts stay accurate.
+
+**Reason**
+
+Studio D-086 (Foundation 139) closes the live countdown loop for validation summary headers — parity with F137/F138 sequence-row countdown and expiry feedback.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-086 for `useSnoozeCountdownTick`, `formatValidationSummarySnoozeHeaderAriaLabel`, `MarkupMotionValidationSummary` tick wiring, and `useMarkupValidationSnooze` expiry pruning.
+
+**Next**
+
+- Foundation 140: candidate — paste-preview re-copy loop polish, or validation summary panel-level expiry toast.
 
 ## 2026-08-15 — Foundation 136 validation snooze expiry countdown on sequence-row badge stays Studio-side
 
