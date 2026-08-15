@@ -1747,6 +1747,25 @@ Studio D-027 (Foundation 80) implements INTERACTION-PRD R10 — keyframed shapes
 
 - Foundation 83: TBD — candidate: keyframe geometry capture at playhead, markup motion validation UX, or structure-level move duration editing.
 
+## 2026-08-15 — Foundation 83 keyframe geometry capture stays Studio-side
+
+**Decision**
+
+Keyframe geometry samples (points, circle radius, ellipse radii/bearing) are authored and sampled in Creator Studio at storyline `elapsedMs`, then applied through existing `setWorldMarkup` overrides via `markupMotionOverrides` and `worldMarkupFromStudio`. No Atlas engine timeline or draw API.
+
+**Reason**
+
+Studio D-030 (Foundation 83) extends F76 style keyframes with seekable shape motion on the shared playhead. Atlas already accepts world-space markup geometry on the public contract; a renderer-side keyframe system would duplicate Studio storyline ownership.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-030 for `markupKeyframeSampling`, geometry capture in `MarkupPropertiesPanel`, and extended `MarkupMotionOverride`.
+
+**Next**
+
+- Foundation 84: TBD — candidate: markup motion validation UX, structure-level move duration editing, or keyframe easing curves.
+
 ## 2026-08-15 — Foundation 82 edit relative cue placement stays Studio-side
 
 **Decision**
