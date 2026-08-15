@@ -2789,7 +2789,7 @@ Studio D-094 (Foundation 147) closes the gap after F146 unified draft — defaul
 
 **Next**
 
-- Foundation 148: candidate — paste-preview re-copy loop polish, or consolidate duplicate snooze surfaces if author testing shows redundancy.
+- Foundation 149: candidate — consolidate duplicate snooze surfaces if author testing shows redundancy, or StructureTree validation-summary jump from section badge.
 
 ## 2026-08-15 — Foundation 134 validation snooze keyboard snooze on selected sequence row stays Studio-side
 
@@ -2808,13 +2808,28 @@ Studio D-080 (Foundation 133) closes the keyboard gap between F123 sequence-row 
 
 **Next**
 
-- Foundation 134: validation snooze keyboard snooze on selected sequence row (see Studio D-081).
+- Foundation 149: candidate — consolidate duplicate snooze surfaces if author testing shows redundancy, or StructureTree validation-summary jump from section badge.
 
-## 2026-08-15 — Foundation 132 paste-preview focus after successful paste commit stays Studio-side
+## 2026-08-15 — Foundation 148 paste-preview re-copy loop polish stays Studio-side
 
 **Decision**
 
-After **every successful timing paste commit** (preview cleared, pin cleared) — ⌘V, ⇧⌘V, toolbar paste, F125 Enter on pinned ghost, F112 second-click unpin+paste — focus routes to **Storyline playhead scrub** first, then first keyframe marker or move item on the rail, then **Copy timing** / **Copy move timing**. Double `requestAnimationFrame` scheduling via `scheduleFocusAfterPasteCommit`. Skip on paste failure; toolbar paste skips when focus is already on playhead or Storyline rail.
+After **every successful timing paste commit**, the F102/F108 clipboard **remains valid**. When the current target is still compatible, paste-preview **ghosts reappear** immediately. Success feedback appends **Pattern ready — select another shape and paste.** via `KeyframeTimingFeedback`. **Keyboard paste** routes focus to **Copy timing** / **Copy move timing**; **toolbar paste** keeps F132 playhead-first focus with the hint.
+
+**Reason**
+
+Studio D-095 (Foundation 148) closes the re-copy loop deferred since F132 — authors can paste the same timing pattern onto multiple shapes without re-copying or changing selection to refresh ghosts.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-095 for `timingPasteRecopyLoop.ts`, F132 keyboard Copy focus, and `DirectorMarkupPanel` `finishKeyframePasteCommit` / `finishMovePasteCommit`.
+
+**Next**
+
+- Foundation 149: candidate — consolidate duplicate snooze surfaces if author testing shows redundancy, or StructureTree validation-summary jump from section badge.
+
+## 2026-08-15 — Foundation 132 paste-preview focus after successful paste commit stays Studio-side
 
 **Reason**
 
