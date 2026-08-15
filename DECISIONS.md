@@ -2827,7 +2827,26 @@ Studio D-097 (Foundation 150) closes the gap after F145 show-snoozed expansion �
 
 **Next**
 
-- Foundation 151: candidate — default layout StructureTree badges on unified draft, or paste-preview re-copy loop polish.
+- Foundation 152: candidate — hybrid layout `navigateToSectionSnooze` unification with default, or paste-preview re-copy loop polish.
+
+## 2026-08-15 — Foundation 151 unified StructureTree snooze badges on default layout stays Studio-side
+
+**Decision**
+
+The default Creator Studio shell (`WorkspaceLayoutDirectorContent`) replaces F147 SceneRail first-card snooze badges with **StructureTree-style section-header badges** on `StructureSectionSnoozeHeaderRail` — a compact horizontal section-header strip above the SceneRail filmstrip. SceneRail remains place-card authoring only. Badge clicks share the F150 loop: `navigateToSectionSnooze` + `DirectorMarkupPanel.expandShowSnoozedWithValidationSummaryJump`. F149 chip suppression unchanged.
+
+**Reason**
+
+Studio D-098 (Foundation 151) unifies snooze badge mounting with original/hybrid StructureTree section headers — one `SectionSnoozeHeaderBadge` component and navigation contract across default, original, and hybrid layouts.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-098 for `StructureSectionSnoozeHeaderRail`, F147 removal from `SceneRail`, default-layout wiring, and migrated Vitest.
+
+**Next**
+
+- Foundation 152: candidate — hybrid layout `navigateToSectionSnooze` unification with default, or paste-preview re-copy loop polish.
 
 ## 2026-08-15 — Foundation 134 validation snooze keyboard snooze on selected sequence row stays Studio-side
 
