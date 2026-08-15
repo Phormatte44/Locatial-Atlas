@@ -2696,6 +2696,25 @@ Studio D-089 (Foundation 142) closes the cross-section snooze awareness gap for 
 
 - Foundation 143: candidate — paste-preview re-copy loop polish, or StructureTree badge click-to-switch-section.
 
+## 2026-08-15 — Foundation 143 StructureTree snooze badge click-to-switch-section stays Studio-side
+
+**Decision**
+
+StructureTree section-header snooze badges (F142) are **clickable buttons** that switch the author to the target section and its first place. Badge rollup reuses F141 cross-section helpers and the global snooze store; button semantics include `aria-label` and native keyboard activation. **Show snoozed** expansion in the validation summary is not wired from badge clicks in `?layoutTest=original` or bottom-structure layouts because those shells do not expose `DirectorMarkupPanel`.
+
+**Reason**
+
+Studio D-090 (Foundation 143) closes the navigation gap after F142 — authors can jump directly to a snoozed section from the Structure side rail.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-090 for `resolveSnoozedSectionNavigationTarget`, `SectionSnoozeHeaderBadge` button wiring, and `StructurePanel` navigation handler.
+
+**Next**
+
+- Foundation 144: candidate — paste-preview re-copy loop polish, or F141 inactive-section chip click-to-switch-section parity.
+
 ## 2026-08-15 — Foundation 134 validation snooze keyboard snooze on selected sequence row stays Studio-side
 
 **Decision**
