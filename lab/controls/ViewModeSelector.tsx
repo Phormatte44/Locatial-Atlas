@@ -17,6 +17,14 @@ function formatBlendPercent(transition: number): string {
   return `${(transition * 100).toFixed(0)}%`;
 }
 
+function formatAltitudeMeters(altitudeMeters: number): string {
+  if (altitudeMeters >= 1000) {
+    return `${(altitudeMeters / 1000).toFixed(1)} km`;
+  }
+
+  return `${Math.round(altitudeMeters)} m`;
+}
+
 export function ViewModeSelector({ engine }: ViewModeSelectorProps) {
   const [viewMode, setViewMode] = useState<AtlasViewMode>(engine.getViewMode());
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -24,6 +32,7 @@ export function ViewModeSelector({ engine }: ViewModeSelectorProps) {
     const transition = engine.getProjectionTransition();
     return transition > 0.001 && transition < 0.999 ? transition : null;
   });
+  const [cameraChoreo, setCameraChoreo] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubViewMode = engine.onViewModeChange((event) => {
@@ -33,6 +42,7 @@ export function ViewModeSelector({ engine }: ViewModeSelectorProps) {
         setIsTransitioning(true);
       } else {
         setIsTransitioning(false);
+        setCameraChoreo(null);
         const transition = engine.getProjectionTransition();
         setBlendProgress(transition > 0.001 && transition < 0.999 ? transition : null);
       }
@@ -42,9 +52,21 @@ export function ViewModeSelector({ engine }: ViewModeSelectorProps) {
       setBlendProgress(transition > 0.001 && transition < 0.999 ? transition : null);
     });
 
+    const unsubCamera = engine.onCameraChange((event) => {
+      if (event.reason !== "view-mode-transition") {
+        return;
+      }
+
+      const { pitchDegrees, altitudeMeters } = event.state;
+      setCameraChoreo(
+        `pitch ${pitchDegrees.toFixed(0)}° · alt ${formatAltitudeMeters(altitudeMeters)}`
+      );
+    });
+
     return () => {
       unsubViewMode();
       unsubBlend();
+      unsubCamera();
     };
   }, [engine]);
 
@@ -55,6 +77,7 @@ export function ViewModeSelector({ engine }: ViewModeSelectorProps) {
         <span style={{ color: "#666" }}>
           Globeness / projection blend: {formatBlendPercent(blendProgress)}
           {isTransitioning ? " · transitioning" : ""}
+          {cameraChoreo ? ` · camera choreo: ${cameraChoreo}` : ""}
         </span>
       ) : null}
       <select
@@ -65,7 +88,7 @@ export function ViewModeSelector({ engine }: ViewModeSelectorProps) {
           const nextMode = event.target.value as AtlasViewMode;
           setViewMode(nextMode);
           setIsTransitioning(true);
-          void engine.transitionViewMode(nextMode).finally(() => {
+          void engine.transitionViewMode(nextMode, { preserveFraming: true }).finally(() => {
             setIsTransitioning(false);
           });
         }}

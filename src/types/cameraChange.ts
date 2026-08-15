@@ -1,7 +1,12 @@
 import type { CameraState } from "./camera";
 
 /** Why Atlas reported a camera state update. */
-export type CameraChangeReason = "user-interaction" | "programmatic" | "transition" | "sync";
+export type CameraChangeReason =
+  | "user-interaction"
+  | "programmatic"
+  | "transition"
+  | "view-mode-transition"
+  | "sync";
 
 export interface CameraChangeEvent {
   state: CameraState;

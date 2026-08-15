@@ -19,4 +19,9 @@ export const ATLAS_VIEW_MODES: readonly AtlasViewMode[] = ["globe", "map", "merc
 export interface ViewModeTransitionOptions {
   /** Transition duration in milliseconds; `0` or less jumps instantly. */
   durationMs?: number;
+  /**
+   * When true (default), interpolate pitch and altitude with projection globeness so
+   * editorial framing intent is preserved across globe↔map entry and exit.
+   */
+  preserveFraming?: boolean;
 }

@@ -350,7 +350,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
 
   return (
     <div style={readoutStyle}>
-      <div>Foundation 55 — label globe alignment</div>
+      <div>Foundation 56 — view-mode camera choreography</div>
       <div>
         View: {viewMode}
         {viewMode === "globe" || viewModeBlend !== "settled"

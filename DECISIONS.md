@@ -1220,7 +1220,7 @@ Foundation 37 and 53 aligned overlays and atmosphere during MapLibre's default p
 
 - Zoom-driven globe↔mercator blends (view mode unchanged) still follow MapLibre internal timing; only programmatic `transitionViewMode()` uses Atlas duration.
 - Line/polygon geometry remains single-anchor mercator meters (Foundation 36 limitation).
-- No coordinated camera motion during view-mode transition yet; camera state is preserved.
+- No coordinated camera motion during view-mode transition yet (addressed in Foundation 56).
 
 **Next**
 
@@ -1248,11 +1248,37 @@ Foundation 36 aligned overlay anchors to the globe but left label sprites as scr
 - Label picking still uses mercator meter bounds without globe legibility scale.
 - Line/polygon geometry remains single-anchor mercator meters (Foundation 36 limitation).
 - Zoom-driven projection blends (view mode unchanged) still follow MapLibre timing; label blend follows the same globeness signal without Atlas duration control.
-- No coordinated camera motion during view-mode transition yet.
+- No coordinated camera motion during view-mode transition yet (addressed in Foundation 56).
 
 **Next**
 
 - Foundation 56: view-mode transition camera choreography (preserve framing intent across globe entry/exit).
+
+## 2026-08-15 — Foundation 56 view-mode transition camera choreography
+
+**Decision**
+
+`transitionViewMode(mode, options?)` accepts `preserveFraming?: boolean` (default `true`). When enabled for globe↔map switches, Atlas interpolates camera pitch and altitude alongside MapLibre projection globeness using `viewModeCameraChoreography.ts`. Entering globe scales pitch down (`×0.72`) and altitude up (`×1.38`) so the look-at target keeps similar screen coverage; exiting globe applies the inverse. Interpolation follows normalized globeness (already eased by F54 `viewModeTransition.ts`), sharing the same progress signal as F53 `interpolateVisualEnvironment`. Camera updates emit `onCameraChange` with reason `view-mode-transition`; MapLibre camera sync is suppressed for the blend duration. `preserveFraming: false` preserves F54 behavior (camera unchanged). Lab `ViewModeSelector` shows live pitch/altitude during choreographed transitions.
+
+**Reason**
+
+Foundation 54 established Atlas-owned projection timing but left camera pitch/altitude fixed, so globe entry/exit shifted editorial framing even when center and bearing were unchanged. Products need predictable framing continuity when toggling globe presentation.
+
+**Consequences**
+
+- New module `src/camera/viewModeCameraChoreography.ts` documents and implements the compensation algorithm.
+- `ViewModeTransitionOptions.preserveFraming` and `CameraChangeReason.view-mode-transition` extend the public contract.
+- `AtlasEngine.transitionViewMode()` coordinates camera choreography with atmosphere/lighting blend frames.
+
+**Limitations**
+
+- Compensation uses fixed projection scales, not per-target screen-space fitting.
+- Zoom-driven projection blends (view mode unchanged) still do not choreograph camera.
+- Line/polygon geometry remains single-anchor mercator meters (Foundation 36 limitation).
+
+**Next**
+
+- Foundation 57: line/polygon globe geometry (F36 carryover).
 
 ## 2026-08-15 — Studio transition preview uses Atlas straight and high-arc
 

@@ -124,7 +124,12 @@ import {
   isProjectionBlendActive,
   viewModeSwitchUsesProjectionBlend
 } from "../rendering/maplibre/projectionBlend";
-import { DEFAULT_VIEW_MODE_TRANSITION_MS } from "../rendering/maplibre/viewModeTransition";
+import { DEFAULT_VIEW_MODE_TRANSITION_MS, globenessForViewMode } from "../rendering/maplibre/viewModeTransition";
+import {
+  computeViewModeCameraChoreoPlan,
+  sampleViewModeTransitionCamera,
+  type ViewModeCameraChoreoPlan
+} from "../camera/viewModeCameraChoreography";
 
 export class AtlasEngine implements AtlasEngineContract {
   private readonly camera = new CameraController();
@@ -162,6 +167,8 @@ export class AtlasEngine implements AtlasEngineContract {
   private pendingViewModeChange: ViewModeChangeEvent | null = null;
   private lastViewModeProgressEmit = -1;
   private viewModeTransitionGeneration = 0;
+  private viewModeCameraChoreoActive = false;
+  private lastViewModeCameraProgressEmit = -1;
   private enabledBoundaryLayerIds: string[] = [];
   private enabledLabelLayerIds: string[] = [];
   private enabledRoadLayerIds: string[] = [];
@@ -191,7 +198,7 @@ export class AtlasEngine implements AtlasEngineContract {
     );
 
     this.mapAdapter.onCameraChange((state) => {
-      if (this.transitionRunner.isRunning()) {
+      if (this.transitionRunner.isRunning() || this.viewModeCameraChoreoActive) {
         return;
       }
 
@@ -898,6 +905,7 @@ export class AtlasEngine implements AtlasEngineContract {
     }
 
     const durationMs = options?.durationMs ?? DEFAULT_VIEW_MODE_TRANSITION_MS;
+    const preserveFraming = options?.preserveFraming ?? true;
     const previousViewMode = this.viewMode;
 
     if (
@@ -909,6 +917,7 @@ export class AtlasEngine implements AtlasEngineContract {
       return;
     }
 
+    this.cancelActiveTransition("cancelled");
     this.mapAdapter.cancelActiveViewModeTransition();
     const generation = ++this.viewModeTransitionGeneration;
 
@@ -919,21 +928,51 @@ export class AtlasEngine implements AtlasEngineContract {
     this.pendingViewModeChange = pendingChange;
     this.lastViewModeProgressEmit = -1;
 
-    await this.mapAdapter.transitionViewMode(mode, durationMs, (globeness) => {
+    const startCamera = this.camera.getState();
+    const startGlobeness = this.mapAdapter.readProjectionTransition();
+    const targetGlobeness = globenessForViewMode(mode);
+    const choreoPlan =
+      preserveFraming && this.attached
+        ? computeViewModeCameraChoreoPlan(startCamera, startGlobeness, targetGlobeness)
+        : null;
+
+    if (choreoPlan) {
+      this.viewModeCameraChoreoActive = true;
+      this.lastViewModeCameraProgressEmit = -1;
+      this.mapAdapter.setCameraSyncSuppressed(true);
+    }
+
+    try {
+      await this.mapAdapter.transitionViewMode(mode, durationMs, (globeness) => {
+        if (generation !== this.viewModeTransitionGeneration) {
+          return;
+        }
+
+        this.handleProjectionBlendProgress(globeness);
+        this.emitProjectionBlendProgress(globeness);
+
+        if (choreoPlan) {
+          this.applyViewModeCameraChoreo(startCamera, choreoPlan, globeness);
+        }
+      });
+
       if (generation !== this.viewModeTransitionGeneration) {
         return;
       }
 
-      this.handleProjectionBlendProgress(globeness);
-      this.emitProjectionBlendProgress(globeness);
-    });
+      if (choreoPlan) {
+        this.applyViewModeCameraChoreo(startCamera, choreoPlan, targetGlobeness, true);
+      }
 
-    if (generation !== this.viewModeTransitionGeneration) {
-      return;
-    }
-
-    if (this.pendingViewModeChange?.viewMode === mode) {
-      this.completePendingViewModeChange();
+      if (this.pendingViewModeChange?.viewMode === mode) {
+        this.completePendingViewModeChange();
+      }
+    } finally {
+      if (choreoPlan) {
+        this.viewModeCameraChoreoActive = false;
+        this.lastViewModeCameraProgressEmit = -1;
+        this.mapAdapter.setCameraSyncSuppressed(false);
+      }
     }
   }
 
@@ -1303,6 +1342,45 @@ export class AtlasEngine implements AtlasEngineContract {
     this.pendingViewModeChange = null;
     this.lastViewModeProgressEmit = -1;
     this.emitViewModeChange(settled);
+  }
+
+  private applyViewModeCameraChoreo(
+    baseCamera: CameraState,
+    plan: ViewModeCameraChoreoPlan,
+    globeness: number,
+    settled = false
+  ): void {
+    const choreoState = sampleViewModeTransitionCamera(baseCamera, plan, globeness);
+    const snapped = snapCameraStateForMapLibre(
+      settled ? this.settleCameraState(choreoState) : choreoState
+    );
+
+    this.camera.setState(snapped);
+    this.mapAdapter.applyCameraInstant(snapped);
+
+    if (settled) {
+      this.emitCameraChange({
+        state: snapped,
+        reason: "view-mode-transition"
+      });
+      return;
+    }
+
+    const progress = choreoState.transitionProgress;
+    if (progress === undefined) {
+      return;
+    }
+
+    const progressBucket = Math.min(1, Math.floor(progress * 20) / 20);
+    if (progressBucket === this.lastViewModeCameraProgressEmit) {
+      return;
+    }
+
+    this.lastViewModeCameraProgressEmit = progressBucket;
+    this.emitCameraChange({
+      state: snapped,
+      reason: "view-mode-transition"
+    });
   }
 
   private emitAtmosphereChange(event: AtmosphereChangeEvent): void {
