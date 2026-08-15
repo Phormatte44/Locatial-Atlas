@@ -1709,6 +1709,25 @@ Studio D-025 (Foundation 78) adds authored `title-cue` StorylineItems with optio
 
 - Foundation 79: TBD — candidate: title-cue duration editing, keyframe vs Terra Draw conflict UX, or relative storyline authoring.
 
+## 2026-08-15 — Foundation 79 title-cue editing and rail selection stay Studio-side
+
+**Decision**
+
+Title-cue duration, start time, copy, and viewport position editing after placement, plus rail chip seek/select for title and focus cues, are Creator Studio concerns on the existing `storylineDraft` / `updateCue` path. No Atlas engine draw API or timeline hook.
+
+**Reason**
+
+Studio D-026 (Foundation 79) extends F78 title-card authoring with post-placement property editing and clickable `TitleCueItem` / `FocusCueItem` rail chips. Cue timing and overlay content remain Studio-owned per INTERACTION-PRD R8.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-026 for `TitleCueControls` edit mode, rail selection, and `updateCue` persistence.
+
+**Next**
+
+- Foundation 80: TBD — candidate: keyframe vs Terra Draw conflict UX, relative `afterItemId` authoring, or markup-cue rail selection.
+
 ## 2026-08-15 — Foundation 74 camera transition sampling on public API
 
 **Decision**
