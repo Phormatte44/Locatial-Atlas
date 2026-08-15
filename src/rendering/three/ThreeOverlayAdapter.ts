@@ -2,6 +2,7 @@ import type { CustomLayerInterface, CustomRenderMethodInput, Map as MapLibreMap 
 import * as THREE from "three";
 import {
   applyMarkupLocalVertices,
+  createGlobeAwareCircleShapeGeometry,
   createGlobeAwareLineGeometry,
   createGlobeAwarePolygonShapeGeometry,
   lineLegibilityForGlobeness
@@ -74,6 +75,12 @@ interface MarkupEntry {
   labelUsesTangent?: boolean;
   labelHighlighted?: boolean;
   linePolygonGlobeness?: number;
+}
+
+function isGlobeAwareGeometryKind(
+  kind: WorldMarkup["kind"]
+): kind is "line" | "polygon" | "circle" {
+  return kind === "line" || kind === "polygon" || kind === "circle";
 }
 
 export class ThreeOverlayAdapter {
@@ -224,7 +231,7 @@ export class ThreeOverlayAdapter {
 
     if (isProjectionBlendActive(this.projectionTransition)) {
       this.refreshMarkupMatrices();
-      this.refreshLinePolygonGeometry();
+      this.refreshGlobeAwareGeometry();
     }
 
     const mapMatrix = new THREE.Matrix4().fromArray(options.defaultProjectionData.mainMatrix);
@@ -304,10 +311,9 @@ export class ThreeOverlayAdapter {
         groundReceiver,
         baseMatrix,
         modelMatrix: baseMatrix.clone(),
-        linePolygonGlobeness:
-          markup.kind === "line" || markup.kind === "polygon"
-            ? resolveLabelGlobeness(this.getOverlayTransformContext())
-            : undefined
+        linePolygonGlobeness: isGlobeAwareGeometryKind(markup.kind)
+          ? resolveLabelGlobeness(this.getOverlayTransformContext())
+          : undefined
       });
     }
 
@@ -367,7 +373,15 @@ export class ThreeOverlayAdapter {
 
     if (markup.kind === "circle") {
       const mesh = new THREE.Mesh(
-        new THREE.CircleGeometry(1, 64),
+        createGlobeAwareCircleShapeGeometry(
+          markup.lng,
+          markup.lat,
+          markup.radiusMeters,
+          markup.lng,
+          markup.lat,
+          altitudeMeters,
+          context
+        ),
         createMarkupMaterial({
           kind: "circle",
           color,
@@ -471,9 +485,9 @@ export class ThreeOverlayAdapter {
     }
   }
 
-  private syncLinePolygonGeometry(entry: MarkupEntry): void {
+  private syncGlobeAwareGeometry(entry: MarkupEntry): void {
     const markup = this.markups.find((candidate) => candidate.id === entry.id);
-    if (!markup || (markup.kind !== "line" && markup.kind !== "polygon")) {
+    if (!markup || !isGlobeAwareGeometryKind(markup.kind)) {
       return;
     }
 
@@ -523,14 +537,29 @@ export class ThreeOverlayAdapter {
       );
       entry.object.geometry.dispose();
       entry.object.geometry = nextGeometry;
+      return;
+    }
+
+    if (markup.kind === "circle" && entry.object instanceof THREE.Mesh) {
+      const nextGeometry = createGlobeAwareCircleShapeGeometry(
+        markup.lng,
+        markup.lat,
+        markup.radiusMeters,
+        markup.lng,
+        markup.lat,
+        altitudeMeters,
+        context
+      );
+      entry.object.geometry.dispose();
+      entry.object.geometry = nextGeometry;
     }
   }
 
-  private refreshLinePolygonGeometry(): void {
+  private refreshGlobeAwareGeometry(): void {
     for (const entry of this.markupEntries) {
-      if (entry.kind === "line" || entry.kind === "polygon") {
+      if (isGlobeAwareGeometryKind(entry.kind)) {
         entry.linePolygonGlobeness = undefined;
-        this.syncLinePolygonGeometry(entry);
+        this.syncGlobeAwareGeometry(entry);
       }
     }
   }
@@ -568,8 +597,8 @@ export class ThreeOverlayAdapter {
         continue;
       }
 
-      if (entry.kind === "line" || entry.kind === "polygon") {
-        this.syncLinePolygonGeometry(entry);
+      if (isGlobeAwareGeometryKind(entry.kind)) {
+        this.syncGlobeAwareGeometry(entry);
       }
 
       const material = getTintableMarkupMaterial(entry.object);

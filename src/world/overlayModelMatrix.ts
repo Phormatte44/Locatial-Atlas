@@ -154,8 +154,8 @@ function createGlobeMatrixForMarkup(
   );
 }
 
-function createLinePolygonOverlayMatrix(
-  markup: Extract<WorldMarkup, { kind: "line" | "polygon" }>,
+function createGroundOverlayMatrix(
+  markup: Extract<WorldMarkup, { kind: "line" | "polygon" | "circle" }>,
   altitudeMeters: number,
   context: OverlayTransformContext
 ): THREE.Matrix4 {
@@ -190,8 +190,8 @@ export function createOverlayMatrixForMarkup(
     return createLabelOverlayMatrix(markup, altitudeMeters, context);
   }
 
-  if (markup.kind === "line" || markup.kind === "polygon") {
-    return createLinePolygonOverlayMatrix(markup, altitudeMeters, context);
+  if (markup.kind === "line" || markup.kind === "polygon" || markup.kind === "circle") {
+    return createGroundOverlayMatrix(markup, altitudeMeters, context);
   }
 
   if (usesGlobeOverlayProjection(context) && context.map) {

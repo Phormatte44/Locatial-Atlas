@@ -350,12 +350,12 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
 
   return (
     <div style={readoutStyle}>
-      <div>Foundation 57 — line/polygon globe geometry</div>
+      <div>Foundation 58 — circle globe geometry</div>
       <div>
         View: {viewMode}
         {viewMode === "globe" || viewModeBlend !== "settled"
-          ? " · globe matrices · tangent labels · geodesic lines/areas"
-          : " · mercator matrices · billboard labels · flat lines/areas"}
+          ? " · globe matrices · tangent labels · geodesic lines/areas/circles"
+          : " · mercator matrices · billboard labels · flat lines/areas/circles"}
       </div>
       <div>Projection blend: {viewModeBlend}</div>
       <div>Atmosphere: {atmosphereEnabled ? "on" : "off"}</div>

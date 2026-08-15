@@ -1304,7 +1304,33 @@ Foundation 36 placed overlay anchors on the globe but left line/polygon vertices
 
 **Next**
 
-- Foundation 58: TBD — candidate: circle/ellipse globe primitives, or overlay geometry simplification upgrade.
+- Foundation 58: circle/ellipse globe primitives.
+
+## 2026-08-15 — Foundation 58 circle globe geometry
+
+**Decision**
+
+`WorldCircleMarkup` overlay geometry uses a geodesic ring sampled around the center at `radiusMeters` (turf `destination`), with per-vertex placement in the anchor’s local frame via MapLibre `getMatrixForModel` and mercator meter positions blended during `projectionTransition` (same globeness signal as Foundation 55–57). Circle anchors use the ground matrix path (no unit-disc scale); only vertex generation defines the fill. Ring segments are capped between 64 and 128 via `resolveCircleSegmentCount`.
+
+**Reason**
+
+Foundation 57 fixed line/polygon misalignment on the sphere but left circles as scaled unit discs in mercator space, so ~3 km core circles flattened and drifted during globe projection blend.
+
+**Consequences**
+
+- `sampleGeodesicCircleRing`, `resolveCircleSegmentCount`, `MIN_CIRCLE_SEGMENTS`, `MAX_CIRCLE_SEGMENTS`, and `createGlobeAwareCircleShapeGeometry` export from `src/index.ts`.
+- `ThreeOverlayAdapter` refreshes circle geometry each projection-blend frame alongside lines and polygons.
+- `createOverlayMatrixForMarkup` treats circles like line/polygon ground anchors.
+
+**Limitations**
+
+- Circles are geodesic rings only; ellipses and rotated ellipses are not modeled yet.
+- Segment count scales with radius but stays within 64–128; very large radii may look faceted.
+- Pick/hit testing still uses center + radius mercator approximation.
+
+**Next**
+
+- Foundation 59: TBD — candidate: ellipse globe primitives, overlay geometry simplification (Douglas–Peucker), or spatial vertex cache during projection blend.
 
 ## 2026-08-15 — Studio transition preview uses Atlas straight and high-arc
 

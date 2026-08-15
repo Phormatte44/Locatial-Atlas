@@ -3,6 +3,7 @@ import maplibregl from "maplibre-gl";
 import * as THREE from "three";
 import { lerp } from "../camera/easing";
 import { resolveLabelGlobeness } from "./labelGlobeAlignment";
+import { sampleGeodesicCircleRing } from "./circleMarkup";
 import type { GeoRing } from "../types/worldMarkup";
 import type { OverlayTransformContext } from "../world/overlayModelMatrix";
 
@@ -218,6 +219,22 @@ export function createGlobeAwarePolygonShapeGeometry(
   altitudeMeters: number,
   context: OverlayTransformContext
 ): THREE.ShapeGeometry {
+  return new THREE.ShapeGeometry(
+    ringToGlobeAwareLocalShape(ring, anchorLng, anchorLat, altitudeMeters, context)
+  );
+}
+
+/** Build circle fill geometry from a geodesic ring with mercator↔globe vertex blend. */
+export function createGlobeAwareCircleShapeGeometry(
+  centerLng: number,
+  centerLat: number,
+  radiusMeters: number,
+  anchorLng: number,
+  anchorLat: number,
+  altitudeMeters: number,
+  context: OverlayTransformContext
+): THREE.ShapeGeometry {
+  const ring = sampleGeodesicCircleRing(centerLng, centerLat, radiusMeters);
   return new THREE.ShapeGeometry(
     ringToGlobeAwareLocalShape(ring, anchorLng, anchorLat, altitudeMeters, context)
   );

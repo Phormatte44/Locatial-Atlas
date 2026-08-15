@@ -22,7 +22,7 @@ export {
   polygonMarkupFromRing
 } from "./geometry/polygonMarkup";
 export { labelMarkupFromPlace } from "./geometry/labelMarkup";
-export { circleMarkupFromCenter } from "./geometry/circleMarkup";
+export { circleMarkupFromCenter, MAX_CIRCLE_SEGMENTS, MIN_CIRCLE_SEGMENTS, resolveCircleSegmentCount, sampleGeodesicCircleRing } from "./geometry/circleMarkup";
 export {
   createLineGeometry,
   lineMarkupFromPath,
@@ -30,6 +30,7 @@ export {
   sampleGeodesicPath
 } from "./geometry/lineMarkup";
 export {
+  createGlobeAwareCircleShapeGeometry,
   createGlobeAwareLineGeometry,
   createGlobeAwarePolygonShapeGeometry,
   MAX_LINE_VERTICES,
