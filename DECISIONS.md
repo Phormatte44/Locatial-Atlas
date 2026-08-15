@@ -2200,7 +2200,26 @@ Studio D-059 (Foundation 112) fixes hover-isolated previews resetting on pointer
 
 **Next**
 
-- Foundation 113: TBD — candidate: paste-preview keyboard focus ring, properties-panel snooze parity, or paste-preview pin keyboard shortcut.
+- Foundation 113: paste-preview focus ring on pinned rail ghosts (see Studio D-060).
+
+## 2026-08-15 — Foundation 113 paste-preview focus ring on pinned rail ghosts stays Studio-side
+
+**Decision**
+
+When F112 pin-on-click is active, matching Storyline rail ghost markers (F104 keyframe diamonds and F109 move connectors) show a visible focus ring or glow so authors know which paste anchor is locked without reading the toolbar. Ring applies only to the pinned anchor's ghosts — not hover-only isolation. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-060 (Foundation 113) closes the feedback loop between toolbar pin state and rail ghosts during scrub comparison — visual polish only; no paste math changes.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-060 for `shouldShowTimingPastePreviewPinnedRing`, `StorylineKeyframeMarkers`, and `MoveItem` pinned ghost ring styling.
+
+**Next**
+
+- Foundation 114: candidate — ⌥⌘L keyboard toggle pin on last hovered paste anchor, or properties-panel snooze parity.
 
 ## 2026-08-15 — Foundation 111 validation dismiss/snooze stays Studio-side
 
