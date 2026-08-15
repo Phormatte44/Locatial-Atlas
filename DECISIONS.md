@@ -1495,6 +1495,26 @@ Authors need direct manipulation on the Director map. Keeping edit UX in Studio 
 
 - Foundation 67: TBD — candidate: markup motion playback on Atlas overlay, rectangle/polygon drag handles, or line topology cache if profiling warrants it.
 
+## 2026-08-15 — Foundation 67 markup motion playback (Studio-only)
+
+**Decision**
+
+Creator Studio markup sequence Preview animates authored shapes on the Atlas Director map via timed `setWorldMarkup` updates. Motion timeline, easing, and geometry sampling live in Studio (`markupMotionPlayback.ts`, `markupMotionGeometry.ts`). Atlas public API is unchanged — preview uses existing `WorldMarkup.style.opacity`, radius/path transforms, and `highlightFeature` from Foundation 65.
+
+**Reason**
+
+F65–F66 closed style passthrough and ellipse edit on Atlas. The sequence panel could preview timing in-table only. F67 completes the author preview loop on the live map without a draw API or persisted cue contract.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Studio `worldMarkupFromStudio` accepts optional motion overrides during playback.
+- Full storyline cue/keyframe persistence remains out of scope (Studio D-018).
+
+**Next**
+
+- Foundation 68: TBD — candidate: persist `MotionSpec` on `MarkupElement`, rectangle/polygon drag handles, or line topology cache if profiling warrants it.
+
 ## 2026-08-15 — Studio transition preview uses Atlas straight and high-arc
 
 **Decision**
