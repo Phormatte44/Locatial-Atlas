@@ -7,6 +7,7 @@ const libraryExternals = [
   "react/jsx-runtime",
   "maplibre-gl",
   "three",
+  "3d-tiles-renderer",
   "gsap",
   "@turf/turf"
 ];

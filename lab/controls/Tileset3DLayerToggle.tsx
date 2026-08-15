@@ -117,8 +117,9 @@ export function Tileset3DLayerToggle({ engine }: Tileset3DLayerToggleProps) {
         ))}
       </select>
       <span style={noteStyle}>
-        Foundation 47 validates tileset.json asynchronously. Rendering is stubbed until a Three.js +
-        3d-tiles-renderer adapter lands; expect a clear renderer-unavailable error after load.
+        Foundation 48 renders enabled tilesets through a MapLibre custom layer with 3d-tiles-renderer.
+        Expect `ready` after tileset.json validates and root tiles load; fly to a city with buildings
+        (e.g. Tokyo) to see the Re:Earth sample.
       </span>
       {enabled ? (
         <span style={statusStyle}>

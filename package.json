@@ -27,6 +27,7 @@
   },
   "peerDependencies": {
     "@turf/turf": "^7.0.0",
+    "3d-tiles-renderer": "^0.5.0",
     "gsap": "^3.0.0",
     "maplibre-gl": "^5.0.0",
     "react": "^19.0.0",
@@ -34,6 +35,9 @@
     "three": "^0.179.0"
   },
   "peerDependenciesMeta": {
+    "3d-tiles-renderer": {
+      "optional": true
+    },
     "gsap": {
       "optional": true
     }
@@ -41,6 +45,7 @@
   "devDependencies": {
     "@eslint/js": "^9.33.0",
     "@turf/turf": "^7.2.0",
+    "3d-tiles-renderer": "^0.5.1",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@types/three": "^0.179.0",

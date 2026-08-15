@@ -17,7 +17,7 @@ Applications register provider-agnostic layer definitions at runtime and enable 
 | Raster imagery | `registerRasterLayer()` | `setRasterLayers(ids[])` | — |
 | 3D Tiles | `registerTileset3DLayer()` | `setTileset3DLayers(ids[])` | — |
 
-**Render order (bottom → top):** raster imagery → boundaries → areas → buildings → roads → POIs → labels → Three overlay (world markup) → 3D Tiles overlays (when renderer lands).
+**Render order (bottom → top):** raster imagery → boundaries → areas → buildings → roads → POIs → labels → 3D Tiles overlays → Three overlay (world markup).
 
 **Pick order (first match wins):** world markup → POIs → labels → roads → buildings → areas → boundaries.
 
@@ -29,4 +29,4 @@ POI layers support optional MapLibre clustering (`clusterRadius`, `clusterMaxZoo
 
 **Raster tile loading (Foundation 45):** raster imagery layers track tile source lifecycle via `sourcedata` events; tile failures emit `onMapError` with kind `tile-load` and `layerFamily: "raster"`. Retry with `retryLayerLoad(layerId, "raster")`.
 
-**3D Tiles loading (Foundation 47):** 3D Tiles overlays validate `tileset.json` asynchronously via fetch; query lifecycle via `getLayerLoadState` / `onLayerLoadChange` with family `tiles3d`. MapLibre GL JS 5.x has no native 3D Tiles source — F47 ships registry + validation + a stub adapter that emits a clear renderer-unavailable error on enable (never silent no-op). Retry with `retryLayerLoad(layerId, "tiles3d")`. Live rendering will use a Three.js custom layer with `3d-tiles-renderer`.
+**3D Tiles loading (Foundation 48):** 3D Tiles overlays validate `tileset.json` asynchronously, then mount a per-layer MapLibre custom layer backed by `3d-tiles-renderer` when the optional peer is installed. Query lifecycle via `getLayerLoadState` / `onLayerLoadChange` with family `tiles3d` (`loading | ready | error`). Globe placement uses the same overlay matrix path as world markup. Opacity and georeferenced transform tokens on `Tileset3DLayerDefinition` apply at render time. Without `3d-tiles-renderer`, enable emits a clear install hint — never a silent no-op. Retry with `retryLayerLoad(layerId, "tiles3d")`.

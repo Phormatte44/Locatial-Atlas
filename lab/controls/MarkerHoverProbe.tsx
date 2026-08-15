@@ -318,7 +318,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
 
   return (
     <div style={readoutStyle}>
-      <div>Foundation 47 — 3D Tiles registry</div>
+      <div>Foundation 48 — 3D Tiles renderer</div>
       <div>
         View: {viewMode}
         {viewMode === "globe" || viewModeBlend !== "settled"

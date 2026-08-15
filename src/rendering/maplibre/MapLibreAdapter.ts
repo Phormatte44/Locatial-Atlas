@@ -21,6 +21,7 @@ import {
   removeTerrainFromMap
 } from "./terrainSetup";
 import { LAYER_ID, ThreeOverlayAdapter } from "../three/ThreeOverlayAdapter";
+import { Tileset3DOverlayAdapter } from "../three/Tileset3DOverlayAdapter";
 import type { MapReadyReason } from "../../types/mapReady";
 import type { ClassifiedMapError } from "./classifyMapError";
 import { classifyMapLibreError } from "./classifyMapError";
@@ -87,7 +88,8 @@ import { Tileset3DSourceLoadTracker } from "../../data/tileset3DSourceLoadTracke
 import {
   cancelAllTileset3DLoads,
   retryTileset3DLayer,
-  syncTileset3DLayers
+  syncTileset3DLayers,
+  tileset3DCustomLayerId
 } from "../three/tileset3DSetup";
 import type { LayerFamily, LayerLoadChangeListener, LayerLoadState } from "../../types/layerLoadState";
 import {
@@ -108,6 +110,7 @@ export class MapLibreAdapter {
   private errorListeners = new Set<MapErrorListener>();
   private suppressSync = false;
   private readonly threeOverlay = new ThreeOverlayAdapter();
+  private readonly tileset3DOverlay = new Tileset3DOverlayAdapter();
   private pendingMarkups: WorldMarkup[] | null = null;
   private threeLayerAdded = false;
   private styleUrl = "";
@@ -279,6 +282,7 @@ export class MapLibreAdapter {
     this.rasterLoadTracker.cancelAll();
     cancelAllTileset3DLoads(this.tileset3DAbortControllers);
     this.tileset3DLoadTracker.cancelAll();
+    this.tileset3DOverlay.destroy();
   }
 
   configureTerrain(enabled: boolean, source: TerrainSourceDefinition | null): void {
@@ -289,6 +293,7 @@ export class MapLibreAdapter {
   configureViewMode(mode: AtlasViewMode): void {
     this.viewMode = mode;
     this.threeOverlay.setViewMode(mode);
+    this.tileset3DOverlay.setViewMode(mode);
   }
 
   configureAtmosphere(settings: AtmosphereSettings): void {
@@ -303,6 +308,7 @@ export class MapLibreAdapter {
   setViewMode(mode: AtlasViewMode): void {
     this.viewMode = mode;
     this.threeOverlay.setViewMode(mode);
+    this.tileset3DOverlay.setViewMode(mode);
 
     if (!this.map?.loaded()) {
       return;
@@ -391,6 +397,7 @@ export class MapLibreAdapter {
     this.rasterLoadTracker.cancelAll();
     cancelAllTileset3DLoads(this.tileset3DAbortControllers);
     this.tileset3DLoadTracker.cancelAll();
+    this.tileset3DOverlay.destroy();
 
     await new Promise<void>((resolve, reject) => {
       const onIdle = () => {
@@ -963,7 +970,9 @@ export class MapLibreAdapter {
   }
 
   private async onMapStyleReady(reason: MapReadyReason): Promise<void> {
+    this.tileset3DOverlay.setMap(this.map);
     this.addThreeLayer();
+    this.tileset3DOverlay.flushPendingLayers();
     this.applyVisualEnvironment();
     await this.applyTerrainState();
     if (this.rasterLayers.length > 0) {
@@ -1140,19 +1149,10 @@ export class MapLibreAdapter {
 
   private tileset3DSyncOptions() {
     return {
+      adapter: this.tileset3DOverlay,
       definitions: this.tileset3DLayers,
       loadTracker: this.tileset3DLoadTracker,
-      abortControllers: this.tileset3DAbortControllers,
-      onRendererUnavailable: (layerId: string, message: string, url: string) => {
-        this.emitLayerLoadError({
-          kind: "layer-load",
-          message,
-          recoverable: true,
-          layerId,
-          layerFamily: "tiles3d"
-        });
-        void url;
-      }
+      abortControllers: this.tileset3DAbortControllers
     };
   }
 
@@ -1262,11 +1262,20 @@ export class MapLibreAdapter {
   }
 
   private moveThreeLayerToTop(): void {
-    if (!this.map?.getLayer(LAYER_ID)) {
+    if (!this.map) {
       return;
     }
 
-    this.map.moveLayer(LAYER_ID);
+    for (const layerId of this.tileset3DOverlay.getLayerIds()) {
+      const customLayerId = tileset3DCustomLayerId(layerId);
+      if (this.map.getLayer(customLayerId)) {
+        this.map.moveLayer(customLayerId);
+      }
+    }
+
+    if (this.map.getLayer(LAYER_ID)) {
+      this.map.moveLayer(LAYER_ID);
+    }
   }
 }
 

@@ -59,6 +59,7 @@ The library build externalizes renderer and framework packages (see `vite.config
 | `react`, `react-dom` | `^19.0.0` | Required for `AtlasMapView` |
 | `maplibre-gl` | `^5.0.0` | Atlas targets MapLibre 5 today; Studio may pin MapLibre 6 and rewrite imports at build time |
 | `three` | `^0.179.0` | World markup overlay |
+| `3d-tiles-renderer` | `^0.5.0` | Optional (`peerDependenciesMeta.optional`); renders registered 3D Tiles overlays via a MapLibre custom layer. Without it, enabling a 3D Tiles layer emits a clear install hint (registry + validation still work). |
 | `@turf/turf` | `^7.0.0` | Geographic geometry helpers |
 | `gsap` | `^3.0.0` | Optional (`peerDependenciesMeta.optional`); powers cinematic camera transitions via GSAP timelines. Without it, Atlas falls back to `requestAnimationFrame` playback. |
 
@@ -74,6 +75,7 @@ Example consumer `package.json` fragment:
     "react-dom": "^19.1.0",
     "maplibre-gl": "^5.6.0",
     "three": "^0.179.0",
+    "3d-tiles-renderer": "^0.5.0",
     "@turf/turf": "^7.2.0"
   }
 }

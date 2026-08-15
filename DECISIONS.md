@@ -1026,3 +1026,34 @@ Studio and future products need photogrammetry, city mesh, and point-cloud overl
 **Next**
 
 - Foundation 48: Three.js + `3d-tiles-renderer` custom layer adapter, path-family easing on legacy rAF fallback, or Studio integration documentation update.
+
+## 2026-08-15 — Foundation 48 3D Tiles Three.js renderer adapter
+
+**Decision**
+
+Foundation 47’s stub is replaced by `Tileset3DOverlayAdapter` in `src/rendering/three/Tileset3DOverlayAdapter.ts`. Each enabled `Tileset3DLayerDefinition` mounts a dedicated MapLibre custom layer (`renderingMode: "3d"`) with one `TilesRenderer` instance from the optional peer `3d-tiles-renderer`. The adapter validates `tileset.json`, dynamically imports the renderer module (mirroring the GSAP optional-peer pattern in `tilesRendererLoader.ts`), syncs the MapLibre and Three.js cameras each frame (MapLibre’s official 3D Tiles example), and routes globe placement through `createTileset3DPlacementMatrix` / `overlayModelMatrix` conventions. Opacity and georeferenced transform tokens on the layer definition apply at render time. Load lifecycle family `tiles3d` reaches `ready` after the tileset root loads — not a renderer-unavailable error.
+
+**Reason**
+
+MapLibre GL JS 5.x has no native 3D Tiles source. Photogrammetry and city mesh overlays must render through a Three.js custom layer while staying behind Atlas’s provider-agnostic registry and load-state contract. Keeping `3d-tiles-renderer` optional avoids forcing every consumer to ship Draco/KTX2 tile pipelines when they only need markup overlays.
+
+**Consequences**
+
+- Optional peer: `3d-tiles-renderer@^0.5.0` (documented in `INTEGRATION.md`; externalized in the library build).
+- Internal modules only: `Tileset3DOverlayAdapter`, `tilesRendererLoader`, `tileset3DPlacement` — no Three.js or `3d-tiles-renderer` types in `src/index.ts`.
+- Without the peer installed, `setTileset3DLayers` still validates registry entries but emits a clear install hint via `tiles3d` load state / `onMapError`.
+- Custom layers render below the world-markup Three overlay; `moveThreeLayerToTop` keeps markup above tilesets.
+- Style swaps destroy and re-sync tileset layers; in-flight loads abort on disable.
+- Lab registers Re:Earth Buildings and renders when enabled (fly to a covered city to inspect).
+
+**Limitations**
+
+- No hover, selection, or per-feature ids on 3D Tiles content.
+- Draco/KTX2 decoders load from public CDN paths pinned to Atlas’s Three version — self-hosted decoder paths are not yet configurable.
+- Tilesets without an explicit `transform` anchor from bounding-sphere center; explicit `Tileset3DTransform` recommended for production georeferencing.
+- Re:Earth Buildings lab tileset depends on a third-party endpoint and global coverage varies by city.
+- Multiple simultaneous 3D Tiles layers each own a custom layer and WebGL renderer context share (one `TilesRenderer` per layer).
+
+**Next**
+
+- Foundation 49: 3D Tiles depth compositing with terrain/basemap, self-hosted Draco/KTX2 paths, path-family easing on legacy rAF fallback, or Studio integration pass for `registerTileset3DLayer` + optional peer install docs.
