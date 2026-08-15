@@ -1764,28 +1764,28 @@ Studio D-030 (Foundation 83) extends F76 style keyframes with seekable shape mot
 
 **Next**
 
-- Foundation 84: TBD — candidate: markup motion validation UX, structure-level move duration editing, or keyframe easing curves.
+- Foundation 85: TBD — candidate: structure-level move duration editing, keyframe easing curves, or validation auto-fix actions.
 
-## 2026-08-15 — Foundation 82 edit relative cue placement stays Studio-side
+## 2026-08-15 — Foundation 84 markup motion validation stays Studio-side
 
 **Decision**
 
-Editing relative placement on existing storyline cues (toggle absolute/relative, offset slider, rail re-anchor) lives in Creator Studio. Atlas engine and public API are unchanged.
+Inline markup motion validation warnings (overlapping keyframes/motion/draw-on, geometry point-count mismatches, preview-vs-authored divergence under draw lock) live in Creator Studio. Atlas engine and public API are unchanged.
 
 **Reason**
 
-Studio D-029 (Foundation 82) extends F81 relative authoring to existing cues. Resolution still happens at merge time in Studio; Atlas has no storyline cue model.
+Studio D-031 (Foundation 84) extends F76–F83 authoring with visible conflict detection at the properties panel and sequence table. Playback merge order and override application remain Studio-owned; Atlas has no storyline or validation model.
 
 **Consequences**
 
 - No Atlas engine changes required.
-- Cross-reference Studio D-029 for `StorylineCueEditPlacement`, placement patch helpers, and rail anchor reassignment.
+- Cross-reference Studio D-031 for `markupMotionValidation.ts`, `MarkupMotionValidationWarnings`, and section-scoped inline banners in `MarkupPropertiesPanel`.
 
 **Next**
 
-- Foundation 83: TBD — candidate: keyframe geometry capture at playhead, markup motion validation UX, or structure-level move duration editing.
+- Foundation 85: TBD — candidate: structure-level move duration editing, keyframe easing curves, or validation auto-fix actions.
 
-## 2026-08-15 — Foundation 81 relative afterItemId stays Studio-side
+## 2026-08-15 — Foundation 82 edit relative cue placement stays Studio-side
 
 **Decision**
 
