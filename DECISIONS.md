@@ -1916,7 +1916,26 @@ Studio D-044 (Foundation 97) closes the diagnostic loop opened by F84–F93: aut
 
 **Next**
 
-- Foundation 98: TBD — candidate: keyframe multi-select retime, move feel/arc drag on rail, or validation summary autofix shortcuts per group.
+- Foundation 98: keyframe multi-select retime (see Studio D-045).
+
+## 2026-08-15 — Foundation 98 keyframe multi-select retime stays Studio-side
+
+**Decision**
+
+Multi-select (cmd/ctrl-click toggle, shift-click range) and parallel batch drag on Storyline rail keyframe diamond markers — all selected keyframes shift by the same delta with group neighbor clamping, live playhead seek preview, persist via `applyKeyframeTimestampDelta` — lives in Creator Studio. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-045 (Foundation 98) extends F95 single-keyframe drag with batch retime for grouped keyframe edits on the shared storyline clock. Parallel-shift model preserves relative offsets between selected keyframes; group clamp stops when any member hits F91 bounds.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-045 for `clampMultiKeyframeDragDelta`, `resolveMultiKeyframeDragMoves`, multi-select `StorylineKeyframeMarkers`, and `DirectorMarkupPanel` batch preview/persist wiring.
+
+**Next**
+
+- Foundation 99: TBD — candidate: move feel/arc drag on rail, validation summary autofix shortcuts per group, or keyframe copy/paste timing.
 
 ## 2026-08-15 — Foundation 95 keyframe drag on Storyline rail stays Studio-side
 
