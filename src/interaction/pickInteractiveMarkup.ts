@@ -1,6 +1,7 @@
 import { measureLabelSpriteMeters } from "../geometry/labelMarkup";
 import type { ProjectGeoFn, ScreenPoint } from "../types/projection";
-import type { GeoRing, WorldCircleMarkup, WorldLabelMarkup, WorldMarkup } from "../types/worldMarkup";
+import type { GeoRing, WorldCircleMarkup, WorldEllipseMarkup, WorldLabelMarkup, WorldMarkup } from "../types/worldMarkup";
+import { sampleGeodesicEllipseRing } from "../geometry/ellipseMarkup";
 
 const DEFAULT_POINT_PICK_RADIUS_PX = 36;
 const DEFAULT_LINE_PICK_RADIUS_PX = 14;
@@ -9,6 +10,7 @@ const PICK_PRIORITY = {
   label: 0,
   sphere: 1,
   circle: 2,
+  ellipse: 2,
   line: 3,
   polygon: 4
 } as const;
@@ -156,6 +158,37 @@ function pickCircleCandidate(
   };
 }
 
+function pickEllipseCandidate(
+  markup: WorldEllipseMarkup,
+  screenX: number,
+  screenY: number,
+  project: ProjectGeoFn
+): PickCandidate | null {
+  const altitudeMeters = markup.altitudeMeters ?? 0;
+  const ring = sampleGeodesicEllipseRing(
+    markup.lng,
+    markup.lat,
+    markup.radiusXMeters,
+    markup.radiusYMeters,
+    markup.bearingDegrees ?? 0
+  );
+
+  if (!isPointInScreenPolygon(screenX, screenY, ring, project)) {
+    return null;
+  }
+
+  const center = project(markup.lng, markup.lat, altitudeMeters);
+  if (!center) {
+    return null;
+  }
+
+  return {
+    id: markup.id,
+    priority: PICK_PRIORITY.ellipse,
+    distanceSquared: distanceSquared(screenX, screenY, center.x, center.y)
+  };
+}
+
 function pickLabelCandidate(
   markup: WorldLabelMarkup,
   screenX: number,
@@ -230,7 +263,7 @@ function nearestDistanceOnPath(
   return nearestDistanceSquared;
 }
 
-/** Find the nearest selectable markup id at a screen point (labels, spheres, circles, lines, polygons). */
+/** Find the nearest selectable markup id at a screen point (labels, spheres, circles, ellipses, lines, polygons). */
 export function findNearestInteractiveMarkup(
   markups: WorldMarkup[],
   screenX: number,
@@ -277,6 +310,13 @@ export function findNearestInteractiveMarkup(
 
     if (markup.kind === "circle") {
       const candidate = pickCircleCandidate(markup, screenX, screenY, project);
+      if (candidate && isBetterCandidate(candidate, nearest)) {
+        nearest = candidate;
+      }
+    }
+
+    if (markup.kind === "ellipse") {
+      const candidate = pickEllipseCandidate(markup, screenX, screenY, project);
       if (candidate && isBetterCandidate(candidate, nearest)) {
         nearest = candidate;
       }

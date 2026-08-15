@@ -3,6 +3,7 @@ import * as THREE from "three";
 import {
   applyMarkupLocalVertices,
   createGlobeAwareCircleShapeGeometry,
+  createGlobeAwareEllipseShapeGeometry,
   createGlobeAwareLineGeometry,
   createGlobeAwarePolygonShapeGeometry,
   lineLegibilityForGlobeness
@@ -51,6 +52,7 @@ function markupRenderPriority(kind: WorldMarkup["kind"]): number {
     case "line":
       return 1;
     case "circle":
+    case "ellipse":
       return 2;
     case "sphere":
       return 3;
@@ -60,7 +62,7 @@ function markupRenderPriority(kind: WorldMarkup["kind"]): number {
 }
 
 function isLitMeshKind(kind: WorldMarkup["kind"]): kind is LitMarkupKind {
-  return kind === "sphere" || kind === "polygon" || kind === "circle";
+  return kind === "sphere" || kind === "polygon" || kind === "circle" || kind === "ellipse";
 }
 
 interface MarkupEntry {
@@ -79,8 +81,8 @@ interface MarkupEntry {
 
 function isGlobeAwareGeometryKind(
   kind: WorldMarkup["kind"]
-): kind is "line" | "polygon" | "circle" {
-  return kind === "line" || kind === "polygon" || kind === "circle";
+): kind is "line" | "polygon" | "circle" | "ellipse" {
+  return kind === "line" || kind === "polygon" || kind === "circle" || kind === "ellipse";
 }
 
 export class ThreeOverlayAdapter {
@@ -394,6 +396,31 @@ export class ThreeOverlayAdapter {
       return mesh;
     }
 
+    if (markup.kind === "ellipse") {
+      const mesh = new THREE.Mesh(
+        createGlobeAwareEllipseShapeGeometry(
+          markup.lng,
+          markup.lat,
+          markup.radiusXMeters,
+          markup.radiusYMeters,
+          markup.bearingDegrees ?? 0,
+          markup.lng,
+          markup.lat,
+          altitudeMeters,
+          context
+        ),
+        createMarkupMaterial({
+          kind: "ellipse",
+          color,
+          opacity: defaultOpacityForMarkup("ellipse", false),
+          lightingEnabled
+        })
+      );
+      applyOverlayShadowFlags(mesh, "ellipse", this.lightingRig.shadowsEnabled());
+      mesh.renderOrder = markupRenderPriority("ellipse");
+      return mesh;
+    }
+
     const mesh = new THREE.Mesh(
       new THREE.SphereGeometry(1, 24, 24),
       createMarkupMaterial({
@@ -545,6 +572,23 @@ export class ThreeOverlayAdapter {
         markup.lng,
         markup.lat,
         markup.radiusMeters,
+        markup.lng,
+        markup.lat,
+        altitudeMeters,
+        context
+      );
+      entry.object.geometry.dispose();
+      entry.object.geometry = nextGeometry;
+      return;
+    }
+
+    if (markup.kind === "ellipse" && entry.object instanceof THREE.Mesh) {
+      const nextGeometry = createGlobeAwareEllipseShapeGeometry(
+        markup.lng,
+        markup.lat,
+        markup.radiusXMeters,
+        markup.radiusYMeters,
+        markup.bearingDegrees ?? 0,
         markup.lng,
         markup.lat,
         altitudeMeters,

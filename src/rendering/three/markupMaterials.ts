@@ -2,7 +2,7 @@ import * as THREE from "three";
 import type { WorldMarkup } from "../../types/worldMarkup";
 
 /** Mesh markup kinds that can use lit PBR materials. */
-export type LitMarkupKind = Extract<WorldMarkup["kind"], "sphere" | "polygon" | "circle">;
+export type LitMarkupKind = Extract<WorldMarkup["kind"], "sphere" | "polygon" | "circle" | "ellipse">;
 
 export interface MarkupMaterialCreateOptions {
   kind: LitMarkupKind | "line";
@@ -26,6 +26,7 @@ export function defaultOpacityForMarkup(kind: WorldMarkup["kind"], highlighted: 
       case "line":
         return 1;
       case "circle":
+      case "ellipse":
         return 0.42;
       case "polygon":
         return 0.38;
@@ -40,6 +41,7 @@ export function defaultOpacityForMarkup(kind: WorldMarkup["kind"], highlighted: 
     case "line":
       return 0.88;
     case "circle":
+    case "ellipse":
       return 0.28;
     case "polygon":
       return 0.24;
@@ -50,7 +52,7 @@ export function defaultOpacityForMarkup(kind: WorldMarkup["kind"], highlighted: 
 
 /** Whether a mesh markup kind should receive directional lighting. */
 export function usesLitMeshMaterial(kind: WorldMarkup["kind"], lightingEnabled: boolean): kind is LitMarkupKind {
-  return lightingEnabled && (kind === "sphere" || kind === "polygon" || kind === "circle");
+  return lightingEnabled && (kind === "sphere" || kind === "polygon" || kind === "circle" || kind === "ellipse");
 }
 
 /** Whether a lit mesh kind participates in overlay shadow casting. */
@@ -60,7 +62,7 @@ export function markupCastsOverlayShadow(kind: LitMarkupKind): boolean {
 
 /** Whether a lit mesh kind participates in overlay shadow receiving. */
 export function markupReceivesOverlayShadow(kind: LitMarkupKind): boolean {
-  return kind === "polygon" || kind === "circle";
+  return kind === "polygon" || kind === "circle" || kind === "ellipse";
 }
 
 /** Apply cast/receive shadow flags for lit mesh markup. */

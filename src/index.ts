@@ -10,6 +10,7 @@ export type {
   GeoAnchoredFeature,
   GeoRing,
   WorldCircleMarkup,
+  WorldEllipseMarkup,
   WorldLabelMarkup,
   WorldLineMarkup,
   WorldMarkup,
@@ -24,6 +25,13 @@ export {
 export { labelMarkupFromPlace } from "./geometry/labelMarkup";
 export { circleMarkupFromCenter, MAX_CIRCLE_SEGMENTS, MIN_CIRCLE_SEGMENTS, resolveCircleSegmentCount, sampleGeodesicCircleRing } from "./geometry/circleMarkup";
 export {
+  ellipseMarkupFromCenter,
+  MAX_ELLIPSE_SEGMENTS,
+  MIN_ELLIPSE_SEGMENTS,
+  resolveEllipseSegmentCount,
+  sampleGeodesicEllipseRing
+} from "./geometry/ellipseMarkup";
+export {
   createLineGeometry,
   lineMarkupFromPath,
   midpointOfPath,
@@ -31,6 +39,7 @@ export {
 } from "./geometry/lineMarkup";
 export {
   createGlobeAwareCircleShapeGeometry,
+  createGlobeAwareEllipseShapeGeometry,
   createGlobeAwareLineGeometry,
   createGlobeAwarePolygonShapeGeometry,
   MAX_LINE_VERTICES,

@@ -1330,7 +1330,33 @@ Foundation 57 fixed line/polygon misalignment on the sphere but left circles as 
 
 **Next**
 
-- Foundation 59: TBD — candidate: ellipse globe primitives, overlay geometry simplification (Douglas–Peucker), or spatial vertex cache during projection blend.
+- Foundation 59: ellipse globe primitives.
+
+## 2026-08-15 — Foundation 59 ellipse globe geometry
+
+**Decision**
+
+`WorldEllipseMarkup` is a distinct ground-plane primitive with `radiusXMeters`, `radiusYMeters`, and optional `bearingDegrees`. Overlay geometry samples a geodesic ellipse ring via turf `destination` on a rotated local ENU parametric loop, with per-vertex placement in the anchor’s local frame via MapLibre `getMatrixForModel` and mercator meter positions blended during `projectionTransition` (same globeness signal and ground-anchor matrix path as Foundation 58 circles).
+
+**Reason**
+
+Foundation 58 fixed geodesic circles on the globe but place-area overlays often need oriented, non-uniform radii. A separate ellipse type keeps `WorldCircleMarkup` simple while enabling rotated metro footprints without polygon authoring.
+
+**Consequences**
+
+- `WorldEllipseMarkup`, `ellipseMarkupFromCenter`, `sampleGeodesicEllipseRing`, `resolveEllipseSegmentCount`, and `createGlobeAwareEllipseShapeGeometry` export from `src/index.ts`.
+- `ThreeOverlayAdapter` refreshes ellipse geometry each projection-blend frame alongside circles, lines, and polygons.
+- Lab area overlays use rotated ellipses per test place; pick/hit testing uses the sampled ring polygon test.
+
+**Limitations**
+
+- Ellipse rings approximate a geodesic ellipse via destination hops on a flat ENU parameterization; extreme axis ratios or very large radii may deviate slightly from true geodesic ellipses.
+- Segment count scales with approximate perimeter but stays within 64–128.
+- No precomputed ring cache during projection blend (same as circles).
+
+**Next**
+
+- Foundation 60: TBD — candidate: overlay geometry simplification (Douglas–Peucker), spatial vertex cache during projection blend, or Studio area-authoring integration for ellipses.
 
 ## 2026-08-15 — Studio transition preview uses Atlas straight and high-arc
 

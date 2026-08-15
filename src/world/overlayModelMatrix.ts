@@ -56,6 +56,10 @@ function createMercatorMatrixForMarkup(markup: WorldMarkup, altitudeMeters: numb
     return createMercatorMatrix(markup.lng, markup.lat, altitudeMeters, markup.radiusMeters);
   }
 
+  if (markup.kind === "ellipse") {
+    return createMercatorGroundMatrix(markup.lng, markup.lat, altitudeMeters);
+  }
+
   if (markup.kind === "polygon" || markup.kind === "line") {
     return createMercatorGroundMatrix(markup.lng, markup.lat, altitudeMeters);
   }
@@ -136,6 +140,10 @@ function createGlobeMatrixForMarkup(
     );
   }
 
+  if (markup.kind === "ellipse") {
+    return matrixFromMapLibreModel(map, markup.lng, markup.lat, altitudeMeters);
+  }
+
   if (markup.kind === "polygon" || markup.kind === "line") {
     return matrixFromMapLibreModel(map, markup.lng, markup.lat, altitudeMeters);
   }
@@ -155,7 +163,7 @@ function createGlobeMatrixForMarkup(
 }
 
 function createGroundOverlayMatrix(
-  markup: Extract<WorldMarkup, { kind: "line" | "polygon" | "circle" }>,
+  markup: Extract<WorldMarkup, { kind: "line" | "polygon" | "circle" | "ellipse" }>,
   altitudeMeters: number,
   context: OverlayTransformContext
 ): THREE.Matrix4 {
@@ -190,7 +198,7 @@ export function createOverlayMatrixForMarkup(
     return createLabelOverlayMatrix(markup, altitudeMeters, context);
   }
 
-  if (markup.kind === "line" || markup.kind === "polygon" || markup.kind === "circle") {
+  if (markup.kind === "line" || markup.kind === "polygon" || markup.kind === "circle" || markup.kind === "ellipse") {
     return createGroundOverlayMatrix(markup, altitudeMeters, context);
   }
 

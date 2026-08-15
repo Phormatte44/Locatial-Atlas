@@ -24,6 +24,7 @@ export type {
   GeoAnchoredFeature,
   GeoRing,
   WorldCircleMarkup,
+  WorldEllipseMarkup,
   WorldLabelMarkup,
   WorldLineMarkup,
   WorldMarkup,

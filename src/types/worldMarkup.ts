@@ -21,6 +21,14 @@ export interface WorldCircleMarkup extends WorldMarkupBase {
   radiusMeters: number;
 }
 
+/** Flat elliptical markup on the ground plane. */
+export interface WorldEllipseMarkup extends WorldMarkupBase {
+  kind: "ellipse";
+  radiusXMeters: number;
+  radiusYMeters: number;
+  bearingDegrees?: number;
+}
+
 /** Flat polygon markup on the ground plane. */
 export interface WorldPolygonMarkup extends WorldMarkupBase {
   kind: "polygon";
@@ -42,6 +50,7 @@ export interface WorldLabelMarkup extends WorldMarkupBase {
 export type WorldMarkup =
   | WorldSphereMarkup
   | WorldCircleMarkup
+  | WorldEllipseMarkup
   | WorldPolygonMarkup
   | WorldLineMarkup
   | WorldLabelMarkup;
