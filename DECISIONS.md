@@ -2580,7 +2580,26 @@ Studio D-082 (Foundation 135) closes the snooze/restore keyboard loop with one t
 
 **Next**
 
-- Foundation 136: candidate — validation snooze expiry countdown on sequence-row badge, or paste-preview re-copy loop polish.
+- Foundation 136: validation snooze expiry countdown on sequence-row badge (see Studio D-083).
+
+## 2026-08-15 — Foundation 136 validation snooze expiry countdown on sequence-row badge stays Studio-side
+
+**Decision**
+
+F123 per-element snooze badges on Build Order / Motion Sequence rows show a **live relative expiry countdown** in the badge label (e.g. `Snoozed · 23m left`) — reusing F117 `formatSnoozeRemaining` with the F123 60s panel tick. Badge tooltip shows exact earliest expiry datetime plus compact keyboard hints (`⌥⌘S · ⌥⌘R · ⌥⌘W toggles`) for F133–F135 snooze/restore/toggle on the selected row. Muted styling unchanged.
+
+**Reason**
+
+Studio D-083 (Foundation 136) enhances F123 static-duration badges so authors see when snoozed warnings return and discover keyboard shortcuts without opening the validation summary.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-083 for `formatElementSnoozeBadgeLabel`, `VALIDATION_SNOOZE_KEYBOARD_SHORTCUT_HINT_COMPACT`, `formatElementSnoozeBadgeTooltip`, and `MarkupSequencePanel` row badge wiring.
+
+**Next**
+
+- Foundation 137: candidate — paste-preview re-copy loop polish, or validation snooze badge aria-live expiry announcements.
 
 ## 2026-08-15 — Foundation 134 validation snooze keyboard snooze on selected sequence row stays Studio-side
 
