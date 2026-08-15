@@ -2219,7 +2219,26 @@ Studio D-060 (Foundation 113) closes the feedback loop between toolbar pin state
 
 **Next**
 
-- Foundation 114: candidate — ⌥⌘L keyboard toggle pin on last hovered paste anchor, or properties-panel snooze parity.
+- Foundation 114: keyboard toggle pin on last hovered paste anchor (see Studio D-061).
+
+## 2026-08-15 — Foundation 114 keyboard toggle pin on last hovered paste anchor stays Studio-side
+
+**Decision**
+
+F112 paste-preview pin-on-click gains **⌥⌘L keyboard toggle** on the last hovered paste anchor in the active timing context (keyframe vs move). Pins when unpinned, unpins when already pinned to that anchor. Fallback target is playhead when paste-at-playhead is available, else first anchor. Context routing mirrors F110 ⌥⌘P. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-061 (Foundation 114) lets authors lock/unlock paste-preview anchors from the keyboard while scrubbing — completing the F112/F113 pin workflow without toolbar pointer travel.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-061 for `timingPastePreviewPinCore.ts` toggle helpers, `timingPastePreviewPinToggleShortcut.ts`, and `DirectorMarkupPanel` last-hovered + ⌥⌘L wiring.
+
+**Next**
+
+- Foundation 115: candidate — paste-preview pin indicator on rail scrub tooltip, or properties-panel snooze parity.
 
 ## 2026-08-15 — Foundation 111 validation dismiss/snooze stays Studio-side
 
