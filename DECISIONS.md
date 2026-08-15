@@ -1549,11 +1549,31 @@ F66 established the ellipse overlay pattern. Authors need the same direct manipu
 
 - No Atlas engine changes required.
 - Studio adds `AreaEditOverlay` and `areaHandleGeometry.ts`; mirrors F66 `EllipseEditOverlay` pattern.
-- Line/route vertex editing remains a future overlay (Foundation 70 candidate).
+- F70 adds line/route vertex editing via `LineEditOverlay` (see Foundation 70 entry below).
 
 **Next**
 
-- Foundation 70: TBD — candidate: line/route vertex drag handles, storyline cue integration, or motion validation UX.
+- Foundation 71: TBD — candidate: storyline cue integration, motion validation UX, or circle radius drag handles.
+
+## 2026-08-15 — Foundation 70 Studio line/route vertex drag handles on map
+
+**Decision**
+
+Line and arrow on-map editing (vertex move and midpoint insert) lives in Creator Studio as a screen-space overlay using Atlas public `project` / `unproject`. No Atlas draw or edit API; geometry patches flow through existing `MarkupElement.points` state and `markupDraft` localStorage.
+
+**Reason**
+
+F66–F69 established ellipse and area overlay patterns. Authors need the same direct manipulation for polylines and routes without coupling Terra Draw or renderer internals into Director.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Studio adds `LineEditOverlay` and `lineHandleGeometry.ts`; mirrors F66/F69 overlay pattern.
+- Midpoint handles insert a vertex on click; vertex handles drag-move waypoints.
+
+**Next**
+
+- Foundation 71: TBD — candidate: storyline cue integration, motion validation UX, or circle radius drag handles.
 
 ## 2026-08-15 — Studio transition preview uses Atlas straight and high-arc
 
