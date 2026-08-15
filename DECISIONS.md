@@ -2846,7 +2846,26 @@ Studio D-102 (Foundation 155) closes the D-080 follow-up keyboard loop — autho
 
 **Next**
 
-- Foundation 156: candidate — paste-preview re-copy loop polish after F128–F132 focus routing.
+- Foundation 157: candidate — paste-preview re-copy loop polish after pin clear, or validation snooze keyboard restore extensions.
+
+## 2026-08-15 — Foundation 156 paste-preview re-copy focus while pin active stays Studio-side
+
+**Decision**
+
+When an author **re-copies timing** while **F112 paste-preview pin** is active, Creator Studio **clears the pin** and routes focus to **Paste timing** / **Paste move timing** (first anchor) via F130/F131 with a **`pinClearedByCopy`** override. Pinned-ghost focus is never skipped on re-copy. Brief feedback when clipboard or pin state changes: **"Copied N keyframes — paste preview updated"**. Move timing follows the same behavior.
+
+**Reason**
+
+Studio D-103 (Foundation 156) closes the re-copy + pin interaction gap — keyboard authors re-copying while pinned no longer land on stale ghost focus and get predictable paste-toolbar entry.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-103 for `timingPasteRecopyLoop.ts`, `timingPastePreviewGhostUnpinFocus.ts`, and `DirectorMarkupPanel` copy handlers.
+
+**Next**
+
+- Foundation 157: candidate — paste-preview Enter paste after re-copy pattern change validation, or validation snooze keyboard restore extensions.
 
 ## 2026-08-15 — Foundation 154 keyboard-first snooze badge activation audit stays Studio-side
 
