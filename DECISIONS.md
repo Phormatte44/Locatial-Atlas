@@ -1113,9 +1113,34 @@ Photogrammetry workflows need hover/select on individual buildings without Studi
 
 **Next**
 
-- Foundation 51: EXT_mesh_features / batch-table feature ids for stable pick keys, tileset click-to-frame single feature, Lab path-family motion buttons, or Studio Director wiring for 3D Tiles enable + hover readout.
+## 2026-08-15 — Foundation 51 stable tileset pick keys and path motion lab
 
-## 2026-08-15 — Manual test path families: straight and high-arc
+**Decision**
+
+Foundation 50’s tileset interaction gains semantic pick keys and per-feature framing. `featureKeyFromTilesetPickObject` prefers `EXT_mesh_features` ids (`mf:{id}@{objectUuid}`), then batch-table / batched-mesh ids (`batch:{id}@{objectUuid}`), then mesh `uuid`. `Tileset3DOverlayAdapter` registers `GLTFExtensionsPlugin` (metadata extensions) when the optional peer is present. Public `frameTilesetFeature(layerId, featureId)` derives geographic bounds from the picked mesh bbox (best-effort) and reuses `frameBounds`. Manual camera path families `straight` and `high-arc` are live samplers with ids in `CameraPathFamily`; Lab exposes all catalog entries via path-family buttons using `framePlace(place, { pathFamily })`. `CameraTransitionRunner` samples the requested family instead of re-running auto-select each frame.
+
+**Reason**
+
+Photogrammetry workflows need stable feature ids across reloads where batch tables or mesh features exist. Click-to-frame individual buildings completes the tileset interaction loop without Studio importing renderer internals. Side-by-side motion testing needs explicit path-family overrides without changing default city-button auto-select.
+
+**Consequences**
+
+- Pick/highlight helpers remain internal; `frameTilesetFeature` and `FrameCameraOptions` are on the public contract.
+- Feature keys may include `@objectUuid` suffix for highlight resolution when semantic ids are used.
+- Lab labels advance to Foundation 51; tileset click selects and frames the picked feature.
+- `INTEGRATION.md` documents stable key formats and Studio wiring gaps.
+
+**Limitations**
+
+- Mesh-feature texture reads are synchronous only; async texture feature ids may miss on first pick.
+- Per-feature framing uses mesh AABB in ECEF — not batch-table property bounds or union of instances.
+- Batched-mesh highlight tints the whole batched object, not a single instance material.
+- `straight` / `high-arc` are manual-only; distance auto-select unchanged.
+
+**Next**
+
+- Foundation 52: Studio Director wiring for 3D Tiles enable + hover readout, async mesh-feature pick, or structural-metadata property readout on pick.
+
 
 **Decision**
 

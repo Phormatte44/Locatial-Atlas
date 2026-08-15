@@ -60,7 +60,9 @@ export class CameraTransitionRunner {
             return;
           }
 
-          options.onFrame(sampleTransitionCameraState(options.from, options.to, easedProgress));
+          options.onFrame(
+            sampleTransitionCameraState(options.from, options.to, easedProgress, options.pathFamily)
+          );
         },
         onComplete: () => {
           this.cancelPlayback = null;
@@ -104,7 +106,9 @@ export class CameraTransitionRunner {
           return;
         }
 
-        options.onFrame(sampleTransitionCameraState(options.from, options.to, easedProgress));
+        options.onFrame(
+          sampleTransitionCameraState(options.from, options.to, easedProgress, options.pathFamily)
+        );
         animationFrameId = requestAnimationFrame(tick);
       };
 

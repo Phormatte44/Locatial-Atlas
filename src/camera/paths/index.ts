@@ -13,3 +13,6 @@ export {
   computeApexAltitudeMeters,
   sampleDepartureArrivalArcCameraState
 } from "./departure-arrival-arc";
+export { STRAIGHT_DURATION_MS, sampleStraightCameraState } from "./straight";
+export { HIGH_ARC_DURATION_MS, sampleHighArcCameraState } from "./high-arc";
+export { CAMERA_PATH_CATALOG, type CameraPathCatalogEntry } from "./catalog";

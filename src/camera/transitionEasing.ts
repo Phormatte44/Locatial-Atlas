@@ -4,7 +4,9 @@ import type { CameraPathFamily } from "../types/cameraTransition";
 export const TRANSITION_EASE_BY_PATH_FAMILY: Record<CameraPathFamily, string> = {
   "local-glide": "power2.inOut",
   "orbit-reveal": "power3.inOut",
-  "departure-arrival-arc": "power4.inOut"
+  "departure-arrival-arc": "power4.inOut",
+  straight: "power2.inOut",
+  "high-arc": "power3.inOut"
 };
 
 export function getTransitionEaseForPathFamily(pathFamily: CameraPathFamily): string {
@@ -31,7 +33,9 @@ export function easeInOutPower(linearProgress: number, power: number): number {
 const LEGACY_EASE_POWER_BY_PATH_FAMILY: Record<CameraPathFamily, number> = {
   "local-glide": 2,
   "orbit-reveal": 3,
-  "departure-arrival-arc": 4
+  "departure-arrival-arc": 4,
+  straight: 2,
+  "high-arc": 3
 };
 
 /** Fallback easing when GSAP is unavailable (legacy rAF playback). */

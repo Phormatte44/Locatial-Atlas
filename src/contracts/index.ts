@@ -88,8 +88,12 @@ export type {
   Tileset3DStyleTokens,
   Tileset3DTransform
 } from "../types/tileset3DLayer";
-export type { CameraTransitionEvent, CameraTransitionListener } from "../types/cameraTransition";
-export type { CameraPathFamily } from "../types/cameraTransition";
+export type { FrameCameraOptions } from "../types/frameCamera";
+export type {
+  CameraTransitionEvent,
+  CameraTransitionListener,
+  CameraPathFamily
+} from "../types/cameraTransition";
 export type { GeoHoverEvent, GeoHoverListener } from "../types/geoHover";
 export type { GeoSelectEvent, GeoSelectListener } from "../types/geoSelect";
 export type { MapReadyEvent, MapReadyListener, MapReadyReason } from "../types/mapReady";
@@ -119,8 +123,14 @@ export interface AtlasEngineContract {
   getCameraState(): import("../types/camera").CameraState;
   isTransitionRunning(): boolean;
   setCamera(state: import("../types/camera").CameraState): void;
-  framePlace(place: import("../types/place").AtlasPlace): Promise<void>;
-  frameBounds(bounds: import("../types/bounds").GeographicBounds): Promise<void>;
+  framePlace(
+    place: import("../types/place").AtlasPlace,
+    options?: import("../types/frameCamera").FrameCameraOptions
+  ): Promise<void>;
+  frameBounds(
+    bounds: import("../types/bounds").GeographicBounds,
+    options?: import("../types/frameCamera").FrameCameraOptions
+  ): Promise<void>;
   setWorldMarkup(markups: import("../types/worldMarkup").WorldMarkup[]): void;
   setWorldMarkers(markers: import("../types/worldMarker").WorldMarker[]): void;
   listMapStyles(): MapStyleDefinition[];
@@ -169,6 +179,7 @@ export interface AtlasEngineContract {
   setTileset3DLayers(layerIds: string[]): void;
   flyToTilesetBounds(layerId: string): Promise<void>;
   frameTilesetOnReady(layerId: string): Promise<void>;
+  frameTilesetFeature(layerId: string, featureId: string): Promise<void>;
   getTransitionPathFamily(to: import("../types/place").AtlasPlace): CameraPathFamily;
   isMapReady(): boolean;
   onMapReady(listener: import("../types/mapReady").MapReadyListener): () => void;

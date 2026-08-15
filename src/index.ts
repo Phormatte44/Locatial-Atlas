@@ -109,6 +109,7 @@ export type {
   CameraTransitionListener,
   CameraTransitionPhase
 } from "./types/cameraTransition";
+export type { FrameCameraOptions } from "./types/frameCamera";
 export type { GeoHoverEvent, GeoHoverListener } from "./types/geoHover";
 export type { GeoSelectEvent, GeoSelectListener } from "./types/geoSelect";
 export type { MapReadyEvent, MapReadyListener, MapReadyReason } from "./types/mapReady";

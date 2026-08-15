@@ -18,7 +18,7 @@ import {
   resolveTileset3DAnchor,
   type Tileset3DAnchor
 } from "./tileset3DPlacement";
-import { applyTileset3DFeatureHighlight } from "./tileset3DHighlight";
+import { applyTileset3DFeatureHighlight, computeFeatureGeographicBounds } from "./tileset3DHighlight";
 import {
   pickTileset3DFeatureAtScreen,
   type Tileset3DPickResult
@@ -107,6 +107,21 @@ export class Tileset3DOverlayAdapter {
 
   getGeographicBounds(layerId: string): GeographicBounds | null {
     return this.layers.get(layerId)?.geographicBounds ?? null;
+  }
+
+  getFeatureGeographicBounds(layerId: string, featureKey: string): GeographicBounds | null {
+    const runtime = this.layers.get(layerId);
+    if (!runtime?.tiles) {
+      return null;
+    }
+
+    runtime.tiles.group.updateMatrixWorld(true);
+    return computeFeatureGeographicBounds(
+      runtime.tiles.group,
+      featureKey,
+      runtime.tiles.group.matrixWorld.clone(),
+      runtime.definition.transform
+    );
   }
 
   queryFeatureAtScreen(x: number, y: number, enabledLayerIds: string[]): Tileset3DPickResult | null {
@@ -364,14 +379,13 @@ export class Tileset3DOverlayAdapter {
         });
         runtime.renderer.autoClear = false;
 
-        const gltfLoader = this.createGltfLoader(runtime.renderer, definition.decoderBaseUrl);
         runtime.tiles = new TilesRenderer(url);
         runtime.tiles.group.name = `atlas-tileset3d-${definition.id}`;
         runtime.tiles.group.renderOrder = renderOrder;
         runtime.scene.add(runtime.tiles.group);
         runtime.tiles.setCamera(runtime.tilesCamera);
         runtime.tiles.setResolutionFromRenderer(runtime.tilesCamera, runtime.renderer);
-        runtime.tiles.manager.addHandler(/\.(gltf|glb)$/g, gltfLoader);
+        void this.registerTilesetGltfExtensions(runtime, definition.decoderBaseUrl);
 
         runtime.onLoadTileset = () => {
           this.handleTilesetLoaded(runtime, options, url);
@@ -488,6 +502,42 @@ export class Tileset3DOverlayAdapter {
       map: this.map,
       projectionTransition: this.projectionTransition
     });
+  }
+
+  private async registerTilesetGltfExtensions(
+    runtime: Tileset3DRuntimeLayer,
+    layerDecoderBaseUrl?: string
+  ): Promise<void> {
+    if (!runtime.tiles || !runtime.renderer) {
+      return;
+    }
+
+    try {
+      const { GLTFExtensionsPlugin } = await import("3d-tiles-renderer/three/plugins");
+      const { dracoDecoderPath, ktx2TranscoderPath } = resolveTileset3DDecoderPaths(
+        layerDecoderBaseUrl ?? this.decoderBaseUrl
+      );
+
+      const dracoLoader = new DRACOLoader();
+      dracoLoader.setDecoderPath(dracoDecoderPath);
+
+      const ktx2Loader = new KTX2Loader();
+      ktx2Loader.setTranscoderPath(ktx2TranscoderPath);
+      ktx2Loader.detectSupport(runtime.renderer);
+
+      runtime.tiles.registerPlugin?.(
+        new GLTFExtensionsPlugin({
+          metadata: true,
+          dracoLoader,
+          ktxLoader: ktx2Loader
+        })
+      );
+    } catch {
+      if (runtime.tiles) {
+        const gltfLoader = this.createGltfLoader(runtime.renderer, layerDecoderBaseUrl);
+        runtime.tiles.manager.addHandler(/\.(gltf|glb)$/g, gltfLoader);
+      }
+    }
   }
 
   private createGltfLoader(renderer: THREE.WebGLRenderer, layerDecoderBaseUrl?: string): GLTFLoader {

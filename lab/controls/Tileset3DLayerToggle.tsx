@@ -5,6 +5,16 @@ import {
   LAB_TILESET3D_LAYERS
 } from "../presets/tileset3DLayers";
 
+function parseTilesetLayerId(featureId: string): string | null {
+  if (!featureId.startsWith("tileset3d:")) {
+    return null;
+  }
+
+  const rest = featureId.slice("tileset3d:".length);
+  const separator = rest.indexOf(":");
+  return separator === -1 ? null : rest.slice(0, separator);
+}
+
 interface Tileset3DLayerToggleProps {
   engine: AtlasEngine;
 }
@@ -94,6 +104,17 @@ export function Tileset3DLayerToggle({ engine }: Tileset3DLayerToggleProps) {
     setLoadState(engine.getLayerLoadState(selectedLayerId));
   }, [engine, selectedLayerId, enabled]);
 
+  useEffect(() => {
+    return engine.onGeoSelect((event) => {
+      const layerId = event.featureId ? parseTilesetLayerId(event.featureId) : null;
+      if (!layerId || !event.featureId) {
+        return;
+      }
+
+      void engine.frameTilesetFeature(layerId, event.featureId);
+    });
+  }, [engine]);
+
   const showRetry = loadState?.status === "error";
   const selectedLayer = LAB_TILESET3D_LAYERS.find((layer) => layer.id === selectedLayerId);
 
@@ -125,9 +146,9 @@ export function Tileset3DLayerToggle({ engine }: Tileset3DLayerToggleProps) {
         ))}
       </select>
       <span style={noteStyle}>
-        Foundation 50 raycast-picks tileset meshes (tileset3d: layer ids) after markup/POI in the hover
-        pipeline. Expect `ready` after tileset.json validates and root tiles load; the camera
-        auto-frames to OBB-derived bounds on ready. Hover a building mesh to highlight it.
+        Foundation 51 picks stable feature keys (EXT_mesh_features / batch table when present,
+        mesh uuid fallback). Click a building to frame its mesh bounds. Hover highlights via the
+        shared tileset3d: pipeline after markup/POI.
       </span>
       {enabled ? (
         <span style={statusStyle}>

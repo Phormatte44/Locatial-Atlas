@@ -176,21 +176,49 @@ Both methods use the tileset root oriented bounding box (OBB) when available, fa
 Raycast picking runs against loaded tile geometry each frame using the same camera matrices as the custom layer render pass. Feature ids use the prefix `tileset3d:`:
 
 ```
-tileset3d:{layerId}:{meshUuid}
+tileset3d:{layerId}:{featureKey}
 ```
 
-The feature key is the hit mesh’s Three.js `uuid` (stable for the loaded session). Use hover/select APIs as usual:
+When available, `featureKey` prefers semantic ids from tile content:
+
+| Source | Key shape | Example |
+| --- | --- | --- |
+| `EXT_mesh_features` | `mf:{featureId}@{objectUuid}` | `mf:42@abc-uuid` |
+| Batch table / batched mesh | `batch:{batchId}@{objectUuid}` | `batch:7@abc-uuid` |
+| Fallback | `{meshUuid}` | `abc-uuid` |
+
+The `@objectUuid` suffix disambiguates highlight targets when semantic ids are used. Use hover/select APIs as usual:
 
 ```ts
 engine.updateGeoHover(screenX, screenY);
 engine.selectGeoAt(screenX, screenY);
 
+// Frame a picked feature (mesh bbox → geographic bounds → frameBounds)
+await engine.frameTilesetFeature("city-mesh", "tileset3d:city-mesh:mf:42@abc-uuid");
+
 // Explicit highlight (same contract as other layer families)
-engine.highlightFeature("tileset3d:city-mesh:abc123-def456-...");
+engine.highlightFeature("tileset3d:city-mesh:mf:42@abc-uuid");
 engine.clearHighlights();
 ```
 
+Request a manual camera path family when framing:
+
+```ts
+await engine.framePlace(place, { pathFamily: "high-arc" });
+await engine.frameBounds(bounds, { pathFamily: "straight" });
+```
+
 Highlight applies an emissive tint on the picked mesh; it does not cross the public API with Three.js types.
+
+### Studio wiring (remaining)
+
+Creator Studio Director still needs to:
+
+1. Register and enable 3D Tiles layers via `registerTileset3DLayer` / `setTileset3DLayers` (optional `3d-tiles-renderer` peer).
+2. Forward map pointer events to `updateGeoHover` / `selectGeoAt` (already done for other layers via `AtlasMapView`).
+3. Surface tileset hover readout in Director UX using `onGeoHover` feature ids (`tileset3d:…` prefix).
+4. Optionally call `frameTilesetFeature` on tileset select for building-centric workflows.
+5. Recopy `public/map-styles/locatial-editorial.json` when that file changes in Atlas.
 
 ### Optional peers summary (Studio)
 

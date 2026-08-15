@@ -49,12 +49,16 @@ export function pickTileset3DFeatureAtScreen(
     return null;
   }
 
-  const hitObject = intersects[0]?.object;
+  const intersection = intersects[0];
+  const hitObject = intersection?.object;
   if (!hitObject) {
     return null;
   }
 
-  const featureKey = featureKeyFromTilesetPickObject(hitObject);
+  const featureKey = featureKeyFromTilesetPickObject(
+    hitObject,
+    intersection as Parameters<typeof featureKeyFromTilesetPickObject>[1]
+  );
 
   return {
     layerId,

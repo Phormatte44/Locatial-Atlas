@@ -11,6 +11,7 @@ export interface AtlasTilesRenderer {
   getBoundingBox(target: THREE.Box3): boolean;
   getOrientedBoundingBox(targetBox: THREE.Box3, targetMatrix: THREE.Matrix4): boolean;
   raycast?(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]): void;
+  registerPlugin?(plugin: unknown): void;
   setCamera(camera: THREE.Camera): void;
   setResolutionFromRenderer(camera: THREE.Camera, renderer: THREE.WebGLRenderer): void;
   update(): void;

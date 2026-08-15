@@ -695,6 +695,13 @@ export class MapLibreAdapter {
     return this.tileset3DOverlay.getGeographicBounds(layerId);
   }
 
+  getTileset3DFeatureGeographicBounds(
+    layerId: string,
+    featureKey: string
+  ): import("../../types/bounds").GeographicBounds | null {
+    return this.tileset3DOverlay.getFeatureGeographicBounds(layerId, featureKey);
+  }
+
   queryTileset3DFeatureAtScreen(x: number, y: number): string | null {
     const pick = this.tileset3DOverlay.queryFeatureAtScreen(
       x,

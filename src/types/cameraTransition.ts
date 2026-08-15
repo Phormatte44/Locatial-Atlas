@@ -1,6 +1,11 @@
 import type { CameraState } from "./camera";
 
-export type CameraPathFamily = "local-glide" | "orbit-reveal" | "departure-arrival-arc";
+export type CameraPathFamily =
+  | "local-glide"
+  | "orbit-reveal"
+  | "departure-arrival-arc"
+  | "straight"
+  | "high-arc";
 
 export type CameraTransitionPhase = "started" | "completed" | "cancelled";
 

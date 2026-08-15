@@ -84,6 +84,13 @@ function describeFeatureId(featureId: string | null): string {
   if (featureId.startsWith("tileset3d:")) {
     const parts = featureId.split(":");
     const layerId = parts[1];
+    const featureKey = parts.slice(2).join(":");
+    if (featureKey.startsWith("mf:")) {
+      return `3D tile feature ${featureKey.slice(3).split("@")[0]} (${layerId})`;
+    }
+    if (featureKey.startsWith("batch:")) {
+      return `3D tile batch ${featureKey.slice(6).split("@")[0]} (${layerId})`;
+    }
     return layerId ? `3D tile mesh (${layerId})` : "3D tile mesh";
   }
 
@@ -324,7 +331,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
 
   return (
     <div style={readoutStyle}>
-      <div>Foundation 50 — 3D Tiles pick + OBB framing</div>
+      <div>Foundation 51 — stable pick keys + path motion</div>
       <div>
         View: {viewMode}
         {viewMode === "globe" || viewModeBlend !== "settled"

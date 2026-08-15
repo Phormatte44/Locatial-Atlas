@@ -79,7 +79,8 @@ import { isRoadFeatureId } from "../interaction/roadFeatureIds";
 import { isAreaFeatureId } from "../interaction/areaFeatureIds";
 import { isBuildingFeatureId } from "../interaction/buildingFeatureIds";
 import { isPoiFeatureId, parsePoiFeatureId } from "../interaction/poiFeatureIds";
-import { isTileset3DFeatureId } from "../interaction/tileset3dFeatureIds";
+import { isTileset3DFeatureId, parseTileset3DFeatureId } from "../interaction/tileset3dFeatureIds";
+import type { FrameCameraOptions } from "../types/frameCamera";
 import { DEFAULT_MAP_STYLE_ID } from "../data/mapStyles/builtinMapStyles";
 import { DEFAULT_TERRAIN_SOURCE_ID } from "../data/terrain/builtinTerrainSources";
 import type { GeoHoverEvent, GeoHoverListener } from "../types/geoHover";
@@ -347,7 +348,7 @@ export class AtlasEngine implements AtlasEngineContract {
     });
   }
 
-  async framePlace(place: AtlasPlace): Promise<void> {
+  async framePlace(place: AtlasPlace, options?: FrameCameraOptions): Promise<void> {
     const target = this.camera.computePlaceTarget(place);
 
     if (!this.attached) {
@@ -357,10 +358,10 @@ export class AtlasEngine implements AtlasEngineContract {
       return;
     }
 
-    await this.animateCameraTo(target);
+    await this.animateCameraTo(target, options?.pathFamily);
   }
 
-  async frameBounds(bounds: GeographicBounds): Promise<void> {
+  async frameBounds(bounds: GeographicBounds, options?: FrameCameraOptions): Promise<void> {
     const target = this.camera.computeBoundsTarget(bounds);
 
     if (!this.attached) {
@@ -369,7 +370,7 @@ export class AtlasEngine implements AtlasEngineContract {
       return;
     }
 
-    await this.animateCameraTo(target);
+    await this.animateCameraTo(target, options?.pathFamily);
   }
 
   getTransitionPathFamily(place: AtlasPlace): CameraPathFamily {
@@ -694,6 +695,20 @@ export class AtlasEngine implements AtlasEngineContract {
     const definitions = resolveTileset3DLayers(layerIds);
     this.enabledTileset3DLayerIds = definitions.map((layer) => layer.id);
     this.mapAdapter.setTileset3DLayers(definitions);
+  }
+
+  async frameTilesetFeature(layerId: string, featureId: string): Promise<void> {
+    const parsed = parseTileset3DFeatureId(featureId);
+    if (!parsed || parsed.layerId !== layerId) {
+      return;
+    }
+
+    const bounds = this.mapAdapter.getTileset3DFeatureGeographicBounds(layerId, parsed.featureKey);
+    if (!bounds) {
+      return;
+    }
+
+    await this.frameBounds(bounds);
   }
 
   async flyToTilesetBounds(layerId: string): Promise<void> {
@@ -1139,11 +1154,11 @@ export class AtlasEngine implements AtlasEngineContract {
     });
   }
 
-  private async animateCameraTo(to: CameraState): Promise<void> {
+  private async animateCameraTo(to: CameraState, pathFamilyOverride?: CameraPathFamily): Promise<void> {
     this.cancelActiveTransition("cancelled");
 
     const from = this.camera.getState();
-    const pathFamily = selectPathFamily(from, to);
+    const pathFamily = pathFamilyOverride ?? selectPathFamily(from, to);
 
     await this.mapAdapter.waitForReady();
 
@@ -1158,7 +1173,7 @@ export class AtlasEngine implements AtlasEngineContract {
         from,
         to,
         pathFamily,
-        durationMs: computeTransitionDurationMs(from, to),
+        durationMs: computeTransitionDurationMs(from, to, pathFamily),
         onFrame: (state) => {
           const snapped = snapCameraStateForMapLibre(state);
           this.camera.setState(snapped);

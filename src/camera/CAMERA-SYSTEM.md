@@ -64,6 +64,8 @@ A transition should separate:
 | `local-glide` | `power2.inOut` | neighborhood glide |
 | `orbit-reveal` | `power3.inOut` | mid-range cinematic sweep |
 | `departure-arrival-arc` | `power4.inOut` | long-range soft arrival |
+| `straight` | `power2.inOut` | manual geodesic A→B |
+| `high-arc` | `power3.inOut` | manual mid-flight peak |
 
 GSAP types and timelines never cross the public API boundary. Without `gsap`, the runner falls back to `requestAnimationFrame` with cubic ease-in-out.
 
@@ -76,11 +78,12 @@ Live ids (`CameraPathFamily`):
 - `local-glide`
 - `orbit-reveal`
 - `departure-arrival-arc`
+- `straight` (manual-only)
+- `high-arc` (manual-only)
 
 Planned briefs (no id yet — do not auto-select or expose on the public contract):
 
-- linear
-- high-arc
+- linear (see `straight` live sampler)
 - low-arc
 - route
 
