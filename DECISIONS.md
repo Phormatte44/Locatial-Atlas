@@ -2314,7 +2314,7 @@ Studio D-066 (Foundation 119) is the symmetric counterpart to F118 bulk restore 
 
 **Next**
 
-- Foundation 121: candidate — paste-preview keyboard focus ring on pinned ghosts, or validation snooze expiry countdown in summary header.
+- Foundation 121: validation snooze expiry countdown in summary header (see Studio D-068).
 
 ## 2026-08-15 — Foundation 120 validation snooze all visible warnings stays Studio-side
 
@@ -2333,7 +2333,26 @@ Studio D-067 (Foundation 120) reduces click cost for cross-group snooze passes d
 
 **Next**
 
-- Foundation 121: candidate — paste-preview keyboard focus ring on pinned ghosts, or validation snooze expiry countdown in summary header.
+- Foundation 121: validation snooze expiry countdown in summary header (see Studio D-068).
+
+## 2026-08-15 — Foundation 121 validation snooze expiry countdown in summary header stays Studio-side
+
+**Decision**
+
+When the F97 validation summary section has one or more active snoozed warning fingerprints, the summary header shows a muted aggregate expiry label (e.g. `Snoozed · earliest expires in 18h`) beside the Show snoozed toggle — panel-scope temporal context without expanding snoozed rows. Tooltip shows the exact earliest expiry datetime. 24h snooze duration unchanged.
+
+**Reason**
+
+Studio D-068 (Foundation 121) extends F117 temporal context to the summary header so authors see when the next snoozed warning will return without toggling Show snoozed.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-068 for `getEarliestSnoozeExpiry`, `formatEarliestSnoozeHeaderLabel`, `useMarkupValidationSnooze.earliestSnoozeExpiresAt`, and `MarkupMotionValidationSummary` header expiry wiring.
+
+**Next**
+
+- Foundation 122: candidate — paste-preview keyboard focus ring on pinned ghosts, or validation snooze per-group expiry countdown in group headers.
 
 ## 2026-08-15 — Foundation 119 validation snooze bulk-snooze by group stays Studio-side
 
