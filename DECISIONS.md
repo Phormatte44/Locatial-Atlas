@@ -2903,7 +2903,26 @@ Studio D-105 (Foundation 158) closes the move-context test and documentation gap
 
 **Next**
 
-- Foundation 159: candidate — validation snooze keyboard restore extensions, or paste-preview re-copy loop keyboard focus polish.
+- Foundation 159: paste-preview re-copy keyboard focus handoff polish (see Studio D-106).
+
+## 2026-08-15 — Foundation 159 paste-preview re-copy keyboard focus handoff polish stays Studio-side
+
+**Decision**
+
+When an author **re-copies timing** while a **pinned paste-preview ghost** holds keyboard focus (F124), Creator Studio **blurs the ghost** before F130/F131 schedules **Paste timing** / **Paste move timing** (first anchor) — completing the F156 re-copy focus handoff so keyboard authors do not remain on a stale target after pin clear removes ghost focusability. Toolbar copy and keyboard ⌘C re-copy share the same path via `scheduleFocusAfterTimingCopy`. Move timing follows the same behavior.
+
+**Reason**
+
+Studio D-106 (Foundation 159) closes the F156 follow-up gap — copy-focus routing was correct but explicit ghost blur prevents dead-target focus and Tab-order traps when re-copy clears pin while the ghost still holds `document.activeElement`.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-106 for `blurFocusedPinnedPastePreviewGhost`, `scheduleFocusAfterTimingCopy`, and F159 Vitest cases.
+
+**Next**
+
+- Foundation 160: candidate — validation snooze keyboard restore extensions, or paste-preview re-copy loop Enter commit feedback polish.
 
 ## 2026-08-15 — Foundation 154 keyboard-first snooze badge activation audit stays Studio-side
 
