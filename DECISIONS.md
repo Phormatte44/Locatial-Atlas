@@ -2542,7 +2542,26 @@ Studio D-078 (Foundation 131) closes the keyboard paste-preview loop for rail-fi
 
 **Next**
 
-- Foundation 133: candidate — validation snooze keyboard restore on selected sequence row, or paste-preview re-copy loop polish.
+- Foundation 134: candidate — validation snooze keyboard snooze on selected row, or paste-preview re-copy loop polish.
+
+## 2026-08-15 — Foundation 133 validation snooze keyboard restore on selected sequence row stays Studio-side
+
+**Decision**
+
+When a markup element is **selected** in Build Order / Motion Sequence and has **one or more** active snoozed warning fingerprints, **⌥⌘R** restores every snoozed warning for that element via the F111 localStorage store. Brief inline feedback shows **Restored N warnings**. Shortcut skips text inputs; no-op when selection has no active snoozes. F123 sequence-row badge tooltips document ⌥⌘R.
+
+**Reason**
+
+Studio D-080 (Foundation 133) closes the keyboard gap between F123 sequence-row snooze badges and F118–F120 summary restore controls — authors restore warnings on the selected shape without opening the validation summary.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-080 for `restoreSnoozedIssuesForElement`, `validationSnoozeRestoreShortcut`, `restoreIssuesForElement`, and `DirectorMarkupPanel` ⌥⌘R wiring.
+
+**Next**
+
+- Foundation 134: candidate — validation snooze keyboard snooze on selected row, or paste-preview re-copy loop polish.
 
 ## 2026-08-15 — Foundation 132 paste-preview focus after successful paste commit stays Studio-side
 
@@ -2561,7 +2580,7 @@ Studio D-079 (Foundation 132) closes the paste-preview keyboard loop exit after 
 
 **Next**
 
-- Foundation 133: candidate — validation snooze keyboard restore on selected sequence row, or paste-preview re-copy loop polish.
+- Foundation 133: validation snooze keyboard restore on selected sequence row (see Studio D-080).
 
 ## 2026-08-15 — Foundation 119 validation snooze bulk-snooze by group stays Studio-side
 
