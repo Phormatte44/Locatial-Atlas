@@ -2447,7 +2447,26 @@ Studio D-073 (Foundation 126) completes keyboard-only anchor comparison during p
 
 **Next**
 
-- Foundation 127: candidate — validation snooze keyboard restore on selected sequence row, or paste-preview ghost Escape-to-unpin while focused.
+- Foundation 127: paste-preview ghost Escape-to-unpin while focused (see Studio D-074).
+
+## 2026-08-15 — Foundation 127 paste-preview ghost Escape-to-unpin while focused stays Studio-side
+
+**Decision**
+
+When a **pinned paste-preview ghost** is keyboard-focused (F124) and pin is active in the winning context, **Escape** unpins without pasting — closing **Tab → focus ghost → Escape unpin** before scrubbing. Brief inline feedback reuses F114 (**Unpinned**). Toolbar pressed state and F113 rail rings clear; preview ghosts remain when timing clipboard is still active. Capture-phase handler takes priority over F98 keyframe multi-select Escape clear. Shortcut skips text inputs and modified keys.
+
+**Reason**
+
+Studio D-074 (Foundation 127) completes the F112–F126 paste-preview pin keyboard workflow with a no-paste exit path from focused ghosts.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-074 for `timingPastePreviewGhostUnpinShortcut`, `DirectorMarkupPanel` capture-phase Escape handler, and updated ghost aria-label.
+
+**Next**
+
+- Foundation 128: candidate — validation snooze keyboard restore on selected sequence row, or paste-preview ghost blur-on-unpin focus management.
 
 ## 2026-08-15 — Foundation 119 validation snooze bulk-snooze by group stays Studio-side
 
