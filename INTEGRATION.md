@@ -50,15 +50,44 @@ In a workspace (npm/pnpm/yarn), add Atlas as a workspace package and depend on `
 import { AtlasEngine, AtlasMapView } from "locational-atlas";
 ```
 
-## Peer/runtime dependencies
+## Peer dependencies
 
-The library build externalizes these packages. The host app must install compatible versions:
+The library build externalizes renderer and framework packages (see `vite.config.ts` `libraryExternals`). They are declared in Atlas `peerDependencies` so npm warns when a consumer is missing a runtime. The host app must install compatible versions:
 
-- `react`, `react-dom`
-- `maplibre-gl`
-- `three`
-- `@turf/turf`
-- `gsap` (reserved for future camera motion; safe to omit until used)
+| Package | Peer range | Notes |
+| --- | --- | --- |
+| `react`, `react-dom` | `^19.0.0` | Required for `AtlasMapView` |
+| `maplibre-gl` | `^5.0.0` | Atlas targets MapLibre 5 today; Studio may pin MapLibre 6 and rewrite imports at build time |
+| `three` | `^0.179.0` | World markup overlay |
+| `@turf/turf` | `^7.0.0` | Geographic geometry helpers |
+| `gsap` | `^3.0.0` | Optional (`peerDependenciesMeta.optional`); reserved for future camera motion |
+
+Atlas keeps the same packages in `devDependencies` for Lab and local `npm run dev`. Consumers must not rely on Atlas installing these transitively.
+
+Example consumer `package.json` fragment:
+
+```json
+{
+  "dependencies": {
+    "locational-atlas": "file:../Locatial-Atlas",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "maplibre-gl": "^5.6.0",
+    "three": "^0.179.0",
+    "@turf/turf": "^7.2.0"
+  }
+}
+```
+
+## Validate before publish or CI
+
+Run the full library gate locally or in CI:
+
+```bash
+npm run validate
+```
+
+This runs `typecheck`, `lint`, and `build`. `prepublishOnly` invokes the same gate when the package is published.
 
 ## MapLibre CSS
 

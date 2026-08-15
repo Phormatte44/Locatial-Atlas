@@ -558,3 +558,21 @@ Studio retired in-repo Spatial (`MapViewport` / `SpatialEngine`) for the Directo
 - `public/map-styles/locatial-editorial.json` is copied into Studio. Editing that file here requires Studio to recopy it.
 - Atlas has no draw API. `setWorldMarkup()` displays geometry Studio already owns. Terra Draw, story globe overlay, aesthetic rail, and Spatial playback remain Studio/Spatial seams until explicitly tasked.
 - Commits do not cross repos. Atlas changes land here; Studio adapters stay in Studio.
+
+---
+
+## 2026-08-15 — Foundation 29 library peer dependency packaging
+
+**Decision**
+
+Runtime packages externalized by the Vite library build (`react`, `react-dom`, `maplibre-gl`, `three`, `@turf/turf`, optional `gsap`) move from `dependencies` to `peerDependencies`. Atlas keeps them in `devDependencies` for Lab. A `validate` script runs `typecheck`, `lint`, and `build`; `prepublishOnly` calls `validate`.
+
+**Reason**
+
+Foundation 28 added the library build and documented host-app runtime requirements in `INTEGRATION.md`, but npm still installed those packages as Atlas dependencies. Peer declarations match the externalized bundle, prevent duplicate React/MapLibre/Three copies in consumers, and surface missing installs at `npm install` time.
+
+**Consequences**
+
+- Creator Studio and other consumers must declare matching runtime deps explicitly (Studio already does).
+- `gsap` remains optional until camera motion uses it.
+- CI or pre-publish checks can use `npm run validate` as a single gate.
