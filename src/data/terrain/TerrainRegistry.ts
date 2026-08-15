@@ -16,6 +16,18 @@ export class TerrainRegistry {
     return this.sources.get(id);
   }
 
+  register(def: TerrainSourceDefinition): void {
+    if (!def.id.trim()) {
+      throw new Error("Terrain source id is required");
+    }
+
+    if (!def.url.trim()) {
+      throw new Error("Terrain source url is required");
+    }
+
+    this.sources.set(def.id, def);
+  }
+
   resolve(id: string = DEFAULT_TERRAIN_SOURCE_ID): TerrainSourceDefinition {
     const source = this.sources.get(id) ?? this.sources.get(DEFAULT_TERRAIN_SOURCE_ID);
     if (!source) {

@@ -23,3 +23,10 @@ export function getTerrainSourceDefinition(
 ): TerrainSourceDefinition | undefined {
   return registry.get(sourceId);
 }
+
+export function registerTerrainSource(
+  def: TerrainSourceDefinition,
+  registry: TerrainRegistry = defaultTerrainRegistry
+): void {
+  registry.register(def);
+}

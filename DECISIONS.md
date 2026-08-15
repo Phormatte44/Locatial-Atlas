@@ -576,3 +576,21 @@ Foundation 28 added the library build and documented host-app runtime requiremen
 - Creator Studio and other consumers must declare matching runtime deps explicitly (Studio already does).
 - `gsap` remains optional until camera motion uses it.
 - CI or pre-publish checks can use `npm run validate` as a single gate.
+
+---
+
+## 2026-08-15 — Foundation 30 runtime terrain source registration
+
+**Decision**
+
+Atlas exposes runtime terrain source registration through `registerTerrainSource(def)` on the default `TerrainRegistry`, wired via `resolveTerrain` and `AtlasEngine.registerTerrainSource()`. Products can register custom DEM tile sources before or after engine construction; `listTerrainSources()` and `setTerrainSource(sourceId)` resolve against the same registry. Registration validates that `id` and `url` are non-empty.
+
+**Reason**
+
+Foundation 28 added runtime basemap style registration; terrain sources still required hard-coding every product DEM endpoint in Atlas builtins. The spatial contract requires swappable terrain without leaking provider URLs into Lab or Studio.
+
+**Consequences**
+
+- Module export: `registerTerrainSource` from `src/index.ts`; engine method mirrors it on `AtlasEngine`.
+- Lab labels updated to Foundation 30; no new Lab terrain UI beyond existing selector.
+- GitHub Actions `validate` workflow runs `npm run validate` on push/PR to `main`.

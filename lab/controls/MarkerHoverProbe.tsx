@@ -155,7 +155,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
 
   return (
     <div style={readoutStyle}>
-      <div>Foundation 29 — library peer dependency packaging</div>
+      <div>Foundation 30 — runtime terrain source registration</div>
       <div>Highlight: {describeFeatureId(highlightedFeatureId === "none" ? null : highlightedFeatureId)}</div>
       <div>Camera: {cameraChange}</div>
       <div>Map: {mapReady}</div>

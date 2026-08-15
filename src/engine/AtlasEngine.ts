@@ -22,6 +22,7 @@ import {
 import {
   getTerrainSourceDefinition,
   listAvailableTerrainSources,
+  registerTerrainSource as registerTerrainSourceDefinition,
   resolveTerrainSource
 } from "../data/providers/terrain/resolveTerrain";
 import { DEFAULT_MAP_STYLE_ID } from "../data/mapStyles/builtinMapStyles";
@@ -340,6 +341,10 @@ export class AtlasEngine implements AtlasEngineContract {
 
   listTerrainSources(): TerrainSourceDefinition[] {
     return listAvailableTerrainSources();
+  }
+
+  registerTerrainSource(def: TerrainSourceDefinition): void {
+    registerTerrainSourceDefinition(def);
   }
 
   getTerrainSourceId(): string {

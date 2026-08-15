@@ -47,6 +47,7 @@ export interface AtlasEngineContract {
   setMapStyle(styleId: string): Promise<void>;
   isTerrainEnabled(): boolean;
   listTerrainSources(): import("../types/terrain").TerrainSourceDefinition[];
+  registerTerrainSource(def: import("../types/terrain").TerrainSourceDefinition): void;
   getTerrainSourceId(): string;
   setTerrainSource(sourceId: string): Promise<void>;
   setTerrainEnabled(enabled: boolean): Promise<void>;

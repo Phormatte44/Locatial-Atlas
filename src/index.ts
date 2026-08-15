@@ -36,6 +36,7 @@ export {
   LOCATIAL_EDITORIAL_STYLE_URL
 } from "./data/mapStyles/builtinMapStyles";
 export { registerMapStyle } from "./data/providers/mapStyle/resolveMapStyle";
+export { registerTerrainSource } from "./data/providers/terrain/resolveTerrain";
 export type { GeographicPoint, ScreenPoint } from "./types/projection";
 export type { MapStyleDefinition } from "./types/mapStyle";
 export type { TerrainSourceDefinition } from "./types/terrain";
