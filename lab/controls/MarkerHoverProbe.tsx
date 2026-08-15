@@ -184,7 +184,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
 
   return (
     <div style={readoutStyle}>
-      <div>Foundation 33 — view mode, atmosphere, elevation query</div>
+      <div>Foundation 34 — PBR markup materials</div>
       <div>View: {viewMode}</div>
       <div>Atmosphere: {atmosphereEnabled ? "on" : "off"}</div>
       <div>Lighting: {lightingEnabled ? "on" : "off"}</div>

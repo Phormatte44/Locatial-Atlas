@@ -20,6 +20,13 @@ import {
   HIGHLIGHTED_MARKER_SCALE,
   markerColorForId
 } from "./markerColors";
+import {
+  applyMarkupMaterialAppearance,
+  createMarkupMaterial,
+  defaultOpacityForMarkup,
+  getTintableMarkupMaterial,
+  replaceMeshMarkupMaterial
+} from "./markupMaterials";
 import { markupMatchesHighlight } from "../../interaction/placeHighlightIds";
 import type { AtlasViewMode } from "../../types/viewMode";
 import type { LightingSettings } from "../../types/lighting";
@@ -116,11 +123,16 @@ export class ThreeOverlayAdapter {
   }
 
   setLightingSettings(settings: LightingSettings): void {
+    const lightingModeChanged = this.lightingSettings.enabled !== settings.enabled;
     this.lightingSettings = settings;
     this.lightingRig.applySettings(settings);
 
     for (const entry of this.markupEntries) {
       this.lightingRig.attachToScene(entry.scene);
+    }
+
+    if (lightingModeChanged) {
+      this.refreshMarkupMaterialModes();
     }
 
     this.map?.triggerRepaint();
@@ -215,15 +227,17 @@ export class ThreeOverlayAdapter {
       });
     }
 
+    const color = markerColorForId(markup.id);
+    const lightingEnabled = this.lightingSettings.enabled;
+
     if (markup.kind === "line") {
       return new THREE.Line(
         createLineGeometry(markup.path, markup.lng, markup.lat),
-        new THREE.LineBasicMaterial({
-          color: markerColorForId(markup.id),
-          transparent: true,
-          opacity: 0.88,
-          depthTest: false,
-          depthWrite: false
+        createMarkupMaterial({
+          kind: "line",
+          color,
+          opacity: defaultOpacityForMarkup("line", false),
+          lightingEnabled
         })
       );
     }
@@ -231,13 +245,11 @@ export class ThreeOverlayAdapter {
     if (markup.kind === "polygon") {
       return new THREE.Mesh(
         createPolygonShapeGeometry(markup.ring, markup.lng, markup.lat),
-        new THREE.MeshBasicMaterial({
-          color: markerColorForId(markup.id),
-          transparent: true,
-          opacity: 0.24,
-          depthTest: false,
-          depthWrite: false,
-          side: THREE.DoubleSide
+        createMarkupMaterial({
+          kind: "polygon",
+          color,
+          opacity: defaultOpacityForMarkup("polygon", false),
+          lightingEnabled
         })
       );
     }
@@ -245,25 +257,22 @@ export class ThreeOverlayAdapter {
     if (markup.kind === "circle") {
       return new THREE.Mesh(
         new THREE.CircleGeometry(1, 64),
-        new THREE.MeshBasicMaterial({
-          color: markerColorForId(markup.id),
-          transparent: true,
-          opacity: 0.28,
-          depthTest: false,
-          depthWrite: false,
-          side: THREE.DoubleSide
+        createMarkupMaterial({
+          kind: "circle",
+          color,
+          opacity: defaultOpacityForMarkup("circle", false),
+          lightingEnabled
         })
       );
     }
 
     return new THREE.Mesh(
       new THREE.SphereGeometry(1, 24, 24),
-      new THREE.MeshBasicMaterial({
-        color: markerColorForId(markup.id),
-        transparent: true,
-        opacity: 0.92,
-        depthTest: false,
-        depthWrite: false
+      createMarkupMaterial({
+        kind: "sphere",
+        color,
+        opacity: defaultOpacityForMarkup("sphere", false),
+        lightingEnabled
       })
     );
   }
@@ -313,30 +322,14 @@ export class ThreeOverlayAdapter {
         continue;
       }
 
-      const material = this.getMarkupMaterial(entry.object);
+      const material = getTintableMarkupMaterial(entry.object);
 
       if (!material) {
         continue;
       }
 
-      material.color.setHex(
-        isHighlighted ? highlightedMarkerColorForId(entry.id) : markerColorForId(entry.id)
-      );
-      material.opacity = isHighlighted
-        ? entry.kind === "sphere"
-          ? 1
-          : entry.kind === "line"
-            ? 1
-            : entry.kind === "circle"
-              ? 0.42
-              : 0.38
-        : entry.kind === "sphere"
-          ? 0.92
-          : entry.kind === "line"
-            ? 0.88
-            : entry.kind === "circle"
-              ? 0.28
-              : 0.24;
+      const color = isHighlighted ? highlightedMarkerColorForId(entry.id) : markerColorForId(entry.id);
+      applyMarkupMaterialAppearance(material, color, defaultOpacityForMarkup(entry.kind, isHighlighted));
       entry.object.renderOrder = isHighlighted
         ? markupRenderPriority(entry.kind) + 10
         : markupRenderPriority(entry.kind);
@@ -384,18 +377,24 @@ export class ThreeOverlayAdapter {
     }
   }
 
-  private getMarkupMaterial(object: THREE.Object3D): THREE.LineBasicMaterial | THREE.MeshBasicMaterial | null {
-    if (object instanceof THREE.Line) {
-      const material = object.material;
-      return material instanceof THREE.LineBasicMaterial ? material : null;
-    }
+  private refreshMarkupMaterialModes(): void {
+    const lightingEnabled = this.lightingSettings.enabled;
 
-    if (object instanceof THREE.Mesh) {
-      const material = object.material;
-      return material instanceof THREE.MeshBasicMaterial ? material : null;
-    }
+    for (const entry of this.markupEntries) {
+      if (entry.kind !== "sphere" && entry.kind !== "polygon" && entry.kind !== "circle") {
+        continue;
+      }
 
-    return null;
+      if (!(entry.object instanceof THREE.Mesh)) {
+        continue;
+      }
+
+      const isHighlighted = this.isMarkupHighlighted(entry.id);
+      const color = isHighlighted ? highlightedMarkerColorForId(entry.id) : markerColorForId(entry.id);
+      const opacity = defaultOpacityForMarkup(entry.kind, isHighlighted);
+
+      replaceMeshMarkupMaterial(entry.object, entry.kind, color, opacity, lightingEnabled);
+    }
   }
 
   private disposeMarkups(): void {

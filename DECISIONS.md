@@ -648,3 +648,21 @@ Products need programmatic elevation lookup separate from pointer unprojection. 
 - Module export is engine-only; no new provider types.
 - Elevation remains approximate until terrain tiles are fully loaded.
 - Lab label updated to Foundation 33.
+
+---
+
+## 2026-08-15 — Foundation 34 PBR markup materials
+
+**Decision**
+
+World-space overlay materials are defined centrally in `src/rendering/three/markupMaterials.ts`. Mesh markup kinds (`sphere`, `polygon`, `circle`) use `MeshStandardMaterial` when `LightingSettings.enabled` is true so they respond to `OverlayLightingRig`; when lighting is disabled they fall back to `MeshBasicMaterial` for the prior flat appearance. Lines keep `LineBasicMaterial`; labels keep canvas `SpriteMaterial` (documented non-PBR paths).
+
+**Reason**
+
+`RENDERING-SYSTEM.md` requires materials to be defined centrally rather than inside scenes. Foundation 32 attached overlay lighting; Foundation 34 connects mesh markup to that rig without exposing Three.js types through the public API.
+
+**Consequences**
+
+- `ThreeOverlayAdapter` creates and updates materials through the shared factory; toggling lighting swaps mesh material mode in place.
+- Studio continues to drive material appearance indirectly via `setLightingSettings({ enabled })` and existing atmosphere/lighting options.
+- Lab label updated to Foundation 34.
