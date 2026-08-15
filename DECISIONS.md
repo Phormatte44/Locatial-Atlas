@@ -1973,7 +1973,26 @@ Studio D-047 (Foundation 100) completes F85–F99 structure-level move authoring
 
 **Next**
 
-- Foundation 101: TBD — candidate: validation summary autofix shortcuts per group, keyframe copy/paste timing, or multi-move batch retime.
+- Foundation 101: validation summary autofix shortcuts per group (see Studio D-048).
+
+## 2026-08-15 — Foundation 101 validation summary group autofix stays Studio-side
+
+**Decision**
+
+Per-group **Fix N in this group** shortcuts in the F97 validation summary — filtered F89 autofix apply via `filterAutofixActionsForIssueGroup` and `applyAllMarkupMotionAutofixes`, instant apply matching F93 — live in Creator Studio. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-048 (Foundation 101) extends F97 drill-down with targeted remediation at issue-type granularity. Authors fixing one class of conflict no longer need Fix all or per-row menus. No duplicate repair rules or Atlas API.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-048 for `countFixableIssuesInGroup`, group fix button in `MarkupMotionValidationSummary.tsx`, and `DirectorMarkupPanel.applyGroupMarkupAutofixes`.
+
+**Next**
+
+- Foundation 102: TBD — candidate: keyframe copy/paste timing, multi-move batch retime, or validation dismiss/snooze.
 
 ## 2026-08-15 — Foundation 95 keyframe drag on Storyline rail stays Studio-side
 
