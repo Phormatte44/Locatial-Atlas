@@ -2791,6 +2791,25 @@ Studio D-094 (Foundation 147) closes the gap after F146 unified draft — defaul
 
 - Foundation 149: candidate — consolidate duplicate snooze surfaces if author testing shows redundancy, or StructureTree validation-summary jump from section badge.
 
+## 2026-08-15 — Foundation 149 consolidate duplicate snooze surfaces in default layout stays Studio-side
+
+**Decision**
+
+The default Creator Studio shell (`WorkspaceLayoutDirectorContent`) consolidates cross-section snooze awareness to **SceneRail section badges only** (F147). F144 **Other sections** chips in `MarkupSequencePanel` are suppressed via `hideInactiveSectionSnoozeChips` when SceneRail badges are mounted. Original and hybrid layouts keep chips or StructureTree badges unchanged.
+
+**Reason**
+
+Studio D-096 (Foundation 149) removes redundant inactive-section rollup beside Build Order / Motion Sequence after F147 added filmstrip badges — one at-a-glance surface on the structure rail.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-096 for `shouldShowInactiveSectionSnoozeChips`, default-layout chip suppression, and consolidation tests.
+
+**Next**
+
+- Foundation 150: candidate — StructureTree validation-summary jump from section badge, or hybrid-layout chip consolidation if author testing shows redundancy there too.
+
 ## 2026-08-15 — Foundation 134 validation snooze keyboard snooze on selected sequence row stays Studio-side
 
 **Decision**
