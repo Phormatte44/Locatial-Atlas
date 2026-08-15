@@ -1783,7 +1783,26 @@ Studio D-033 (Foundation 86) extends F85 structure-level move authoring with fee
 
 **Next**
 
-- Foundation 87: TBD — candidate: keyframe easing curves, move type/style editing, or validation auto-fix actions.
+- Foundation 87: structure-level move type/style editing (see Studio D-034).
+
+## 2026-08-15 — Foundation 87 structure-level move type/style editing stays Studio-side
+
+**Decision**
+
+Section storyline move transition type overrides (CUT / 3 STEP / GLIDE / ARC on rail selection, localStorage persistence) live in Creator Studio. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-034 (Foundation 87) extends F85–F86 structure-level move authoring with transition type that propagates to camera seek sampling. Fixture `MoveDefinition` data remains the default; authored overrides merge at seek time in `storylineCameraSeek` before `movePathFamilyForDefinition` maps type/style to Atlas path families for `sampleCameraTransition`.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-034 for `storylineMoveTypeStyleDraft.ts`, `useStorylineMoveTypeStyle`, `storylineTransitionMapping.ts`, and `MoveTypeStyleControls`.
+
+**Next**
+
+- Foundation 88: TBD — candidate: keyframe easing curves, validation auto-fix actions, or move type preview on rail.
 
 ## 2026-08-15 — Foundation 85 structure-level move duration editing stays Studio-side
 
