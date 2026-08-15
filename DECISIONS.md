@@ -2960,7 +2960,26 @@ Studio D-108 (Foundation 161) closes the feedback gap left by F160 — authors w
 
 **Next**
 
-- Foundation 162: candidate — validation snooze keyboard restore extensions, or paste-preview toolbar/keyboard loop unification.
+- Foundation 162: validation snooze keyboard restore extensions (see Studio D-109).
+
+## 2026-08-15 — Foundation 162 validation snooze keyboard restore extensions stays Studio-side
+
+**Decision**
+
+F162 extends F155 focus restore to **additional validation snooze surfaces** in Creator Studio. After panel-level **Snooze all warnings** / **Restore all snoozed** (F120), focus restores to the validation summary panel toggle or first visible header control. After per-group bulk snooze/restore (F118/F119), focus restores to the selected sequence row when applicable, otherwise the group header toggle. After properties-panel per-issue **Snooze** via keyboard navigation, focus restores to the properties snooze button or selected sequence row. All paths reuse F128 double-rAF scheduling and skip text inputs. Snooze behavior unchanged.
+
+**Reason**
+
+Studio D-109 (Foundation 162) closes the keyboard focus gap left by F155 — bulk summary actions and properties-panel snooze no longer strand keyboard authors after snooze state re-render.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-109 for extended `validationSnoozeSequenceRowFocus.ts`, summary/properties `data-locatial-*` selectors, and `DirectorMarkupPanel` bulk/group/properties wiring.
+
+**Next**
+
+- Foundation 163: candidate — validation summary keyboard roving between group controls, or paste-preview toolbar/keyboard loop unification.
 
 ## 2026-08-15 — Foundation 154 keyboard-first snooze badge activation audit stays Studio-side
 
