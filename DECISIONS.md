@@ -1650,7 +1650,26 @@ Studio D-022 (Foundation 75) adds authored `markup-cue` StorylineItems with cue-
 
 **Next**
 
-- Foundation 76: TBD — candidate: keyframed attributes (Build 6), progressive `draw-on` reveal, or focus-cue rail items.
+- Foundation 77: TBD — candidate: focus-cue rail items, keyframe edit conflicts, or title cues.
+
+## 2026-08-15 — Foundation 76 keyframed markup and draw-on reveal stay Studio-side
+
+**Decision**
+
+Keyframed markup attributes (CUE-003) and progressive line/arrow draw-on reveal (REVEAL-001–002) are sampled in Creator Studio and applied through existing `setWorldMarkup` overrides — truncated line paths, `WorldMarkup.style.opacity`, and `strokeWidth`. No Atlas engine timeline or Konva layer.
+
+**Reason**
+
+Studio D-023 (Foundation 76) extends the F67–F75 override path. Atlas already truncates lines via `truncateWorldLine` and accepts style tokens on the public markup contract; a renderer-side keyframe system would duplicate Studio storyline ownership.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-023 for `markupKeyframeSampling`, `markupRevealSampling`, and properties-panel authoring.
+
+**Next**
+
+- Foundation 77: TBD — candidate: focus-cue rail items or title cues.
 
 ## 2026-08-15 — Foundation 74 camera transition sampling on public API
 
