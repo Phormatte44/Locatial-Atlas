@@ -2105,7 +2105,26 @@ Studio D-054 (Foundation 107) extends F96 single-move duration drag with F98-sty
 
 **Next**
 
-- Foundation 108: TBD — candidate: move timing copy/paste, validation dismiss/snooze, or paste-preview hover persistence.
+- Foundation 108: move timing copy/paste (see Studio D-055).
+
+## 2026-08-15 — Foundation 108 move timing copy/paste stays Studio-side
+
+**Decision**
+
+Copy/paste of move **duration timing patterns** on the Storyline rail (relative offsets from the first copied move, paste onto matching move count with F85 bounds enforcement, ⌘C/⌘V/⇧⌘V and toolbar actions when moves are selected) lives in Creator Studio. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-055 (Foundation 108) extends F96–F107 on-rail move editing with a timing-only clipboard — authors duplicate move rhythm patterns across structure segments without feel/arc/type copy or Atlas API changes.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-055 for `storylineMoveTimingClipboard.ts`, `DirectorMarkupPanel` move timing toolbar, and `updateMoveDuration` paste wiring.
+
+**Next**
+
+- Foundation 109: TBD — candidate: move timing paste ghost preview, validation dismiss/snooze, or paste-preview hover persistence.
 
 ## 2026-08-15 — Foundation 95 keyframe drag on Storyline rail stays Studio-side
 
