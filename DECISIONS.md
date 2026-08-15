@@ -2827,7 +2827,26 @@ Studio D-097 (Foundation 150) closes the gap after F145 show-snoozed expansion �
 
 **Next**
 
-- Foundation 152: candidate — hybrid layout `navigateToSectionSnooze` unification with default, or paste-preview re-copy loop polish.
+- Foundation 153: candidate — paste-preview re-copy loop polish, or StructurePanel navigate-only aria/tooltip audit across layout tests.
+
+## 2026-08-15 — Foundation 152 hybrid snooze navigation unification stays Studio-side
+
+**Decision**
+
+The hybrid Creator Studio shell (`?layoutTest=bottom-structure`) routes StructureTree snooze badge clicks through the **same `createSectionSnoozeNavigationHandler` → `navigateToSectionSnooze` path** as the default layout. F145's split pattern — StructurePanel internal navigation plus a parent post-nav expand hook — is removed. Both markup-visible layouts share one handler factory and `DirectorMarkupPanel.expandShowSnoozed` validation-summary jump (F150). Original layout keeps navigate-only StructurePanel badges.
+
+**Reason**
+
+Studio D-099 (Foundation 152) closes the wiring gap after F151 unified default header-rail badges — hybrid no longer duplicates navigation in StructurePanel while expanding show-snoozed in a separate parent callback.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-099 for `createSectionSnoozeNavigationHandler`, StructurePanel delegation, hybrid wiring tests, and layout matrix update.
+
+**Next**
+
+- Foundation 153: candidate — paste-preview re-copy loop polish, or StructurePanel navigate-only aria/tooltip audit across layout tests.
 
 ## 2026-08-15 — Foundation 151 unified StructureTree snooze badges on default layout stays Studio-side
 
@@ -2846,7 +2865,7 @@ Studio D-098 (Foundation 151) unifies snooze badge mounting with original/hybrid
 
 **Next**
 
-- Foundation 152: candidate — hybrid layout `navigateToSectionSnooze` unification with default, or paste-preview re-copy loop polish.
+- Foundation 153: candidate — paste-preview re-copy loop polish, or StructurePanel navigate-only aria/tooltip audit across layout tests.
 
 ## 2026-08-15 — Foundation 134 validation snooze keyboard snooze on selected sequence row stays Studio-side
 
