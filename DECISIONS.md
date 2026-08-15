@@ -1057,3 +1057,48 @@ MapLibre GL JS 5.x has no native 3D Tiles source. Photogrammetry and city mesh o
 **Next**
 
 - Foundation 49: 3D Tiles depth compositing with terrain/basemap, self-hosted Draco/KTX2 paths, path-family easing on legacy rAF fallback, or Studio integration pass for `registerTileset3DLayer` + optional peer install docs.
+
+## 2026-08-15 — Foundation 49 3D Tiles depth compositing and production hardening
+
+**Decision**
+
+Foundation 48’s live renderer is hardened for production compositing and host configuration. `Tileset3DOverlayAdapter` renders with depth test and depth write enabled via shared helpers in `overlayDepthCompositing.ts`, compositing tileset meshes with MapLibre terrain and the basemap in the same WebGL depth buffer. `ThreeOverlayAdapter` continues to render world markup in a depth-disabled overlay pass above tileset custom layers; `moveThreeLayerToTop` runs after each tileset mount. Draco/KTX2 decoder asset paths are configurable through `AtlasEngineOptions.tileset3DDecoderBaseUrl` and optional per-layer `Tileset3DLayerDefinition.decoderBaseUrl` (resolved to `.../draco/` and `.../basis/` internally). Public framing APIs `flyToTilesetBounds(layerId)` and `frameTilesetOnReady(layerId)` derive geographic bounds from the tileset bounding sphere and reuse `frameBounds`.
+
+**Reason**
+
+Photogrammetry and city mesh overlays must occlude correctly against 3D terrain without breaking editorial markup visibility. CDN-pinned decoder defaults are unsuitable for air-gapped or self-hosted tile pipelines. Lab and Studio workflows need a contract-level way to frame a tileset once it reaches `ready` without exposing Three.js or `3d-tiles-renderer`.
+
+**Consequences**
+
+- Internal multi-pass contract documented in `overlayDepthCompositing.ts`; no Three.js or renderer types added to `src/index.ts`.
+- Default decoder base remains a pinned unpkg URL for Atlas’s Three peer version; hosts override via engine options or per-layer definition.
+- `flyToTilesetBounds` is a no-op when bounds are unavailable (layer disabled or not yet ready); `frameTilesetOnReady` resolves when the layer errors without framing.
+- Lab auto-frames the Re:Earth Buildings sample on enable via `frameTilesetOnReady`.
+- `INTEGRATION.md` documents decoder hosting and framing APIs for Studio consumers.
+
+**Limitations**
+
+- Bounding-volume framing uses a bounding-sphere approximation in WGS84 — not a tight oriented bounding box; explicit `Tileset3DTransform` still recommended for georeferencing.
+- No hover, selection, or per-feature ids on 3D Tiles content.
+- Semi-transparent tilesets (`opacity < 1`) disable depth write per mesh; stacking order may differ from opaque terrain occlusion.
+- Multiple simultaneous tileset layers each own a custom layer; render order follows `setTileset3DLayers` definition order only.
+
+**Next**
+
+- Foundation 50: 3D Tiles picking/highlight hooks, tighter OBB framing, path-family easing on legacy rAF fallback, or Studio integration pass wiring `registerTileset3DLayer` + optional peer install in Creator Director.
+
+## 2026-08-15 — Manual test path families: straight and high-arc
+
+**Decision**
+
+Two manual camera path families are live samplers under `src/camera/paths/`: `straight` (geodesic A→B, no altitude flourish) and `high-arc` (geodesic A→B with a single sine altitude peak at mid-flight). They are not auto-selected. Products and Lab request them with `framePlace(place, { pathFamily })` / `frameBounds(bounds, { pathFamily })`. Distance auto-select still chooses only `local-glide`, `orbit-reveal`, or `departure-arrival-arc`. A catalog in `paths/catalog.ts` (re-exported for Lab at `lab/presets/cameraPathTests.ts`) is the hook for upcoming buttons — buttons target ids, not markdown.
+
+**Reason**
+
+The first isolated motion test needs two contrasting shapes that can be requested on the same place pair, without changing default city-button behavior.
+
+**Consequences**
+
+- `CameraPathFamily` widens additively with `straight` and `high-arc`.
+- `CameraTransitionRunner` now samples the requested family instead of re-running auto-select every frame.
+- Lab path-family UI is not built in this pass.

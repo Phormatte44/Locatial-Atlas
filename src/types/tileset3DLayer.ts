@@ -34,5 +34,11 @@ export interface Tileset3DLayerDefinition {
   tilesetUrl: string;
   style?: Tileset3DStyleTokens;
   transform?: Tileset3DTransform;
+  /**
+   * Optional base URL for Three.js Draco/KTX2 decoder assets
+   * (for example `https://cdn.example.com/three/libs/` → `.../draco/` and `.../basis/`).
+   * Overrides {@link AtlasEngineOptions.tileset3DDecoderBaseUrl} for this layer.
+   */
+  decoderBaseUrl?: string;
   attribution?: string;
 }

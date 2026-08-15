@@ -168,6 +168,8 @@ export class AtlasEngine implements AtlasEngineContract {
     this.atmosphereSettings = mergeAtmosphereSettings(DEFAULT_ATMOSPHERE_SETTINGS, options.atmosphere);
     this.lightingSettings = mergeLightingSettings(DEFAULT_LIGHTING_SETTINGS, options.lighting);
 
+    this.mapAdapter.configureTileset3DDecoderBaseUrl(options.tileset3DDecoderBaseUrl);
+
     this.mapAdapter.configureViewMode(this.viewMode);
     this.mapAdapter.configureAtmosphere(this.atmosphereSettings);
     this.mapAdapter.configureLighting(this.lightingSettings);
@@ -689,6 +691,42 @@ export class AtlasEngine implements AtlasEngineContract {
     const definitions = resolveTileset3DLayers(layerIds);
     this.enabledTileset3DLayerIds = definitions.map((layer) => layer.id);
     this.mapAdapter.setTileset3DLayers(definitions);
+  }
+
+  async flyToTilesetBounds(layerId: string): Promise<void> {
+    const bounds = this.mapAdapter.getTileset3DGeographicBounds(layerId);
+    if (!bounds) {
+      return;
+    }
+
+    await this.frameBounds(bounds);
+  }
+
+  async frameTilesetOnReady(layerId: string): Promise<void> {
+    const current = this.getLayerLoadState(layerId);
+    if (current?.family === "tiles3d" && current.status === "ready") {
+      await this.flyToTilesetBounds(layerId);
+      return;
+    }
+
+    await new Promise<void>((resolve) => {
+      const unsubscribe = this.onLayerLoadChange(({ state }) => {
+        if (state.layerId !== layerId || state.family !== "tiles3d") {
+          return;
+        }
+
+        if (state.status === "ready") {
+          unsubscribe();
+          void this.flyToTilesetBounds(layerId).finally(resolve);
+          return;
+        }
+
+        if (state.status === "error") {
+          unsubscribe();
+          resolve();
+        }
+      });
+    });
   }
 
   async expandClusterAt(screenX: number, screenY: number): Promise<boolean> {

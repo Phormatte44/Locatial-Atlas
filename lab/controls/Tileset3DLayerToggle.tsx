@@ -75,6 +75,14 @@ export function Tileset3DLayerToggle({ engine }: Tileset3DLayerToggleProps) {
   }, [engine, enabled, selectedLayerId]);
 
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
+    void engine.frameTilesetOnReady(selectedLayerId);
+  }, [engine, enabled, selectedLayerId]);
+
+  useEffect(() => {
     return engine.onLayerLoadChange(({ state }) => {
       if (state.layerId === selectedLayerId && state.family === "tiles3d") {
         setLoadState(state);
@@ -117,9 +125,9 @@ export function Tileset3DLayerToggle({ engine }: Tileset3DLayerToggleProps) {
         ))}
       </select>
       <span style={noteStyle}>
-        Foundation 48 renders enabled tilesets through a MapLibre custom layer with 3d-tiles-renderer.
-        Expect `ready` after tileset.json validates and root tiles load; fly to a city with buildings
-        (e.g. Tokyo) to see the Re:Earth sample.
+        Foundation 49 depth-composites tilesets with MapLibre terrain (shared depth buffer) and keeps
+        world markup above tilesets. Expect `ready` after tileset.json validates and root tiles load;
+        the camera auto-frames to the tileset bounds on ready. Use flyToTilesetBounds for manual framing.
       </span>
       {enabled ? (
         <span style={statusStyle}>

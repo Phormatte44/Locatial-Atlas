@@ -9,6 +9,11 @@ export interface AtlasEngineOptions {
   viewMode?: import("../types/viewMode").AtlasViewMode;
   atmosphere?: Partial<import("../types/atmosphere").AtmosphereSettings>;
   lighting?: Partial<import("../types/lighting").LightingSettings>;
+  /**
+   * Default base URL for Three.js Draco/KTX2 decoder assets used by 3D Tiles overlays.
+   * Per-layer {@link Tileset3DLayerDefinition.decoderBaseUrl} overrides this value.
+   */
+  tileset3DDecoderBaseUrl?: string;
 }
 
 export type { CameraState } from "../types/camera";
@@ -162,6 +167,8 @@ export interface AtlasEngineContract {
   registerTileset3DLayer(def: import("../types/tileset3DLayer").Tileset3DLayerDefinition): void;
   getEnabledTileset3DLayerIds(): string[];
   setTileset3DLayers(layerIds: string[]): void;
+  flyToTilesetBounds(layerId: string): Promise<void>;
+  frameTilesetOnReady(layerId: string): Promise<void>;
   getTransitionPathFamily(to: import("../types/place").AtlasPlace): CameraPathFamily;
   isMapReady(): boolean;
   onMapReady(listener: import("../types/mapReady").MapReadyListener): () => void;

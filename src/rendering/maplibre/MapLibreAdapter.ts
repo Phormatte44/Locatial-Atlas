@@ -687,6 +687,14 @@ export class MapLibreAdapter {
     return this.tileset3DLayers.map((layer) => layer.id);
   }
 
+  configureTileset3DDecoderBaseUrl(baseUrl: string | undefined): void {
+    this.tileset3DOverlay.setDecoderBaseUrl(baseUrl);
+  }
+
+  getTileset3DGeographicBounds(layerId: string): import("../../types/bounds").GeographicBounds | null {
+    return this.tileset3DOverlay.getGeographicBounds(layerId);
+  }
+
   getEnabledPoiLayerIds(): string[] {
     return this.poiLayers.map((layer) => layer.id);
   }
@@ -1152,7 +1160,10 @@ export class MapLibreAdapter {
       adapter: this.tileset3DOverlay,
       definitions: this.tileset3DLayers,
       loadTracker: this.tileset3DLoadTracker,
-      abortControllers: this.tileset3DAbortControllers
+      abortControllers: this.tileset3DAbortControllers,
+      onLayerMounted: () => {
+        this.moveThreeLayerToTop();
+      }
     };
   }
 

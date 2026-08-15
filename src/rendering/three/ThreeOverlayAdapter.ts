@@ -7,6 +7,10 @@ import { createLabelSprite, disposeLabelSprite } from "./labelSprites";
 import { createOverlayMatrixForMarkup } from "../../world/overlayModelMatrix";
 import { isProjectionBlendActive } from "../maplibre/projectionBlend";
 import {
+  beginMarkupOverlayPass,
+  resetOverlayRendererState
+} from "./overlayDepthCompositing";
+import {
   highlightedMarkerColorForId,
   HIGHLIGHTED_MARKER_SCALE,
   markerColorForId
@@ -201,9 +205,8 @@ export class ThreeOverlayAdapter {
     const litEntries = this.markupEntries.filter((entry) => entry.anchor !== null);
     const unlitEntries = this.markupEntries.filter((entry) => entry.anchor === null);
 
-    this.renderer.resetState();
-    gl.disable(gl.DEPTH_TEST);
-    gl.depthMask(false);
+    resetOverlayRendererState(this.renderer);
+    beginMarkupOverlayPass(gl);
 
     if (this.litScene && litEntries.length > 0) {
       for (const entry of litEntries) {

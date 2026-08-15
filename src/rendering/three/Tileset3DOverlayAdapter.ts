@@ -3,18 +3,26 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader.js";
+import type { GeographicBounds } from "../../types/bounds";
 import type { Tileset3DLayerDefinition } from "../../types/tileset3DLayer";
 import type { Tileset3DSourceLoadTracker } from "../../data/tileset3DSourceLoadTracker";
 import { mergeTileset3DStyle } from "../../data/tilesets3d/tileset3DDefaults";
 import type { AtlasViewMode } from "../../types/viewMode";
 import { isProjectionBlendActive } from "../maplibre/projectionBlend";
 import {
+  applyTileset3DDepthCompositing,
   applyTileset3DOpacity,
+  computeTilesetGeographicBounds,
   createTileset3DPlacementMatrix,
   rebaseTilesGroupToOrigin,
   resolveTileset3DAnchor,
   type Tileset3DAnchor
 } from "./tileset3DPlacement";
+import {
+  beginTerrainAlignedDepthPass,
+  resetOverlayRendererState
+} from "./overlayDepthCompositing";
+import { resolveTileset3DDecoderPaths } from "./tileset3DDecoderPaths";
 import {
   loadTilesRendererModule,
   TILESET3D_RENDERER_MISSING_MESSAGE,
@@ -23,14 +31,13 @@ import {
 } from "./tilesRendererLoader";
 import { tileset3DCustomLayerId, validateTileset3DUrl } from "./tileset3DSetup";
 
-const DRACO_DECODER_PATH = "https://unpkg.com/three@0.179.1/examples/jsm/libs/draco/";
-const KTX2_TRANSCODER_PATH = "https://unpkg.com/three@0.179.1/examples/jsm/libs/basis/";
-
 interface Tileset3DRuntimeLayer {
   definition: Tileset3DLayerDefinition;
   customLayerId: string;
   anchor: Tileset3DAnchor | null;
   placementMatrix: THREE.Matrix4 | null;
+  geographicBounds: GeographicBounds | null;
+  renderOrder: number;
   tiles: AtlasTilesRenderer | null;
   scene: THREE.Scene | null;
   camera: THREE.Camera | null;
@@ -45,16 +52,22 @@ export interface Tileset3DOverlaySyncOptions {
   definitions: Tileset3DLayerDefinition[];
   loadTracker: Tileset3DSourceLoadTracker;
   abortControllers: Map<string, AbortController>;
+  onLayerMounted?: () => void;
 }
 
 export class Tileset3DOverlayAdapter {
   private map: MapLibreMap | null = null;
   private viewMode: AtlasViewMode = "map";
   private projectionTransition = 0;
+  private decoderBaseUrl: string | undefined;
   private readonly layers = new Map<string, Tileset3DRuntimeLayer>();
   private tilesRendererCtor: AtlasTilesRendererConstructor | null | undefined;
   private readonly pendingDefinitions: Tileset3DLayerDefinition[] = [];
   private syncOptions: Tileset3DOverlaySyncOptions | null = null;
+
+  setDecoderBaseUrl(baseUrl: string | undefined): void {
+    this.decoderBaseUrl = baseUrl;
+  }
 
   setMap(map: MapLibreMap | null): void {
     this.map = map;
@@ -81,6 +94,10 @@ export class Tileset3DOverlayAdapter {
 
   getLayerIds(): string[] {
     return [...this.layers.keys()];
+  }
+
+  getGeographicBounds(layerId: string): GeographicBounds | null {
+    return this.layers.get(layerId)?.geographicBounds ?? null;
   }
 
   async syncLayers(options: Tileset3DOverlaySyncOptions): Promise<void> {
@@ -124,8 +141,8 @@ export class Tileset3DOverlayAdapter {
       return;
     }
 
-    for (const definition of options.definitions) {
-      void this.enableLayer(definition, options, tilesModule.TilesRenderer);
+    for (const [index, definition] of options.definitions.entries()) {
+      void this.enableLayer(definition, options, tilesModule.TilesRenderer, index);
     }
   }
 
@@ -165,7 +182,8 @@ export class Tileset3DOverlayAdapter {
   private async enableLayer(
     definition: Tileset3DLayerDefinition,
     options: Tileset3DOverlaySyncOptions,
-    TilesRenderer: AtlasTilesRendererConstructor
+    TilesRenderer: AtlasTilesRendererConstructor,
+    renderOrder: number
   ): Promise<void> {
     const url = definition.tilesetUrl.trim();
     const controller = new AbortController();
@@ -174,7 +192,7 @@ export class Tileset3DOverlayAdapter {
 
     const existing = this.layers.get(definition.id);
     if (existing) {
-      this.updateLayerDefinition(existing, definition);
+      this.updateLayerDefinition(existing, definition, renderOrder);
       options.abortControllers.delete(definition.id);
       return;
     }
@@ -186,7 +204,7 @@ export class Tileset3DOverlayAdapter {
         return;
       }
 
-      this.mountLayer(definition, TilesRenderer, options, url);
+      this.mountLayer(definition, TilesRenderer, options, url, renderOrder);
     } catch (error) {
       if (controller.signal.aborted || options.abortControllers.get(definition.id) !== controller) {
         return;
@@ -205,7 +223,8 @@ export class Tileset3DOverlayAdapter {
     definition: Tileset3DLayerDefinition,
     TilesRenderer: AtlasTilesRendererConstructor,
     options: Tileset3DOverlaySyncOptions,
-    url: string
+    url: string,
+    renderOrder: number
   ): void {
     if (!this.map) {
       return;
@@ -218,6 +237,8 @@ export class Tileset3DOverlayAdapter {
       customLayerId,
       anchor: null,
       placementMatrix: null,
+      geographicBounds: null,
+      renderOrder,
       tiles: null,
       scene: null,
       camera: null,
@@ -247,9 +268,10 @@ export class Tileset3DOverlayAdapter {
         });
         runtime.renderer.autoClear = false;
 
-        const gltfLoader = this.createGltfLoader(runtime.renderer);
+        const gltfLoader = this.createGltfLoader(runtime.renderer, definition.decoderBaseUrl);
         runtime.tiles = new TilesRenderer(url);
         runtime.tiles.group.name = `atlas-tileset3d-${definition.id}`;
+        runtime.tiles.group.renderOrder = renderOrder;
         runtime.scene.add(runtime.tiles.group);
         runtime.tiles.setCamera(runtime.tilesCamera);
         runtime.tiles.setResolutionFromRenderer(runtime.tilesCamera, runtime.renderer);
@@ -275,6 +297,7 @@ export class Tileset3DOverlayAdapter {
     }
 
     this.map.addLayer(customLayer);
+    options.onLayerMounted?.();
     this.map.triggerRepaint();
   }
 
@@ -293,9 +316,14 @@ export class Tileset3DOverlayAdapter {
       runtime.onLoadTileset = null;
     }
 
+    runtime.geographicBounds = computeTilesetGeographicBounds(
+      runtime.tiles,
+      runtime.definition.transform
+    );
     rebaseTilesGroupToOrigin(runtime.tiles);
     runtime.anchor = resolveTileset3DAnchor(runtime.tiles, runtime.definition.transform);
     runtime.placementMatrix = this.createPlacementMatrixForRuntime(runtime);
+    applyTileset3DDepthCompositing(runtime.tiles.group);
     applyTileset3DOpacity(runtime.tiles.group, runtime.opacity);
     options.loadTracker.markReady(runtime.definition.id, url);
     this.map?.triggerRepaint();
@@ -339,7 +367,9 @@ export class Tileset3DOverlayAdapter {
     runtime.tilesCamera.matrixWorldInverse.copy(viewMatrix);
     runtime.tilesCamera.matrixWorld.copy(viewMatrix).invert();
 
-    runtime.renderer.resetState();
+    const gl = runtime.renderer.getContext();
+    resetOverlayRendererState(runtime.renderer);
+    beginTerrainAlignedDepthPass(gl);
     runtime.renderer.render(runtime.scene, runtime.camera);
 
     if (runtime.tiles) {
@@ -361,27 +391,39 @@ export class Tileset3DOverlayAdapter {
     });
   }
 
-  private createGltfLoader(renderer: THREE.WebGLRenderer): GLTFLoader {
+  private createGltfLoader(renderer: THREE.WebGLRenderer, layerDecoderBaseUrl?: string): GLTFLoader {
+    const { dracoDecoderPath, ktx2TranscoderPath } = resolveTileset3DDecoderPaths(
+      layerDecoderBaseUrl ?? this.decoderBaseUrl
+    );
+
     const gltfLoader = new GLTFLoader();
     const dracoLoader = new DRACOLoader();
-    dracoLoader.setDecoderPath(DRACO_DECODER_PATH);
+    dracoLoader.setDecoderPath(dracoDecoderPath);
     gltfLoader.setDRACOLoader(dracoLoader);
 
     const ktx2Loader = new KTX2Loader();
-    ktx2Loader.setTranscoderPath(KTX2_TRANSCODER_PATH);
+    ktx2Loader.setTranscoderPath(ktx2TranscoderPath);
     ktx2Loader.detectSupport(renderer);
     gltfLoader.setKTX2Loader(ktx2Loader);
 
     return gltfLoader;
   }
 
-  private updateLayerDefinition(runtime: Tileset3DRuntimeLayer, definition: Tileset3DLayerDefinition): void {
+  private updateLayerDefinition(
+    runtime: Tileset3DRuntimeLayer,
+    definition: Tileset3DLayerDefinition,
+    renderOrder: number
+  ): void {
     runtime.definition = definition;
+    runtime.renderOrder = renderOrder;
     runtime.opacity = mergeTileset3DStyle(definition.style).opacity;
 
     if (runtime.tiles) {
+      runtime.geographicBounds = computeTilesetGeographicBounds(runtime.tiles, definition.transform);
       runtime.anchor = resolveTileset3DAnchor(runtime.tiles, definition.transform);
       runtime.placementMatrix = this.createPlacementMatrixForRuntime(runtime);
+      runtime.tiles.group.renderOrder = renderOrder;
+      applyTileset3DDepthCompositing(runtime.tiles.group);
       applyTileset3DOpacity(runtime.tiles.group, runtime.opacity);
     }
 

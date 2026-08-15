@@ -40,6 +40,7 @@ export interface SyncTileset3DLayersOptions {
   definitions: Tileset3DLayerDefinition[];
   loadTracker: Tileset3DSourceLoadTracker;
   abortControllers: Map<string, AbortController>;
+  onLayerMounted?: () => void;
 }
 
 /** Sync enabled 3D Tiles layers through the Three.js overlay adapter. */
@@ -47,7 +48,8 @@ export function syncTileset3DLayers(options: SyncTileset3DLayersOptions): void {
   void options.adapter.syncLayers({
     definitions: options.definitions,
     loadTracker: options.loadTracker,
-    abortControllers: options.abortControllers
+    abortControllers: options.abortControllers,
+    onLayerMounted: options.onLayerMounted
   });
 }
 
@@ -68,7 +70,8 @@ export async function retryTileset3DLayer(
   await options.adapter.syncLayers({
     definitions,
     loadTracker: options.loadTracker,
-    abortControllers: options.abortControllers
+    abortControllers: options.abortControllers,
+    onLayerMounted: options.onLayerMounted
   });
 }
 

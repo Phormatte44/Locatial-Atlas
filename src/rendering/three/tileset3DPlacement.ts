@@ -1,5 +1,6 @@
 import { MercatorCoordinate, type Map as MapLibreMap } from "maplibre-gl";
 import * as THREE from "three";
+import type { GeographicBounds } from "../../types/bounds";
 import type { Tileset3DTransform } from "../../types/tileset3DLayer";
 import {
   type OverlayTransformContext,
@@ -8,6 +9,7 @@ import {
 import type { AtlasTilesRenderer } from "./tilesRendererLoader";
 
 const DEFAULT_TILESET_ROTATION: [number, number, number] = [Math.PI / 2, 0, 0];
+const METERS_PER_DEGREE_LAT = 111_320;
 
 export interface Tileset3DAnchor {
   lng: number;
@@ -182,8 +184,49 @@ export function applyTileset3DOpacity(root: THREE.Object3D, opacity: number): vo
         material.opacity = opacity;
         material.transparent = opacity < 1;
         material.depthWrite = opacity >= 1;
+        material.depthTest = true;
         material.needsUpdate = true;
       }
     }
   });
+}
+
+/** Ensure tile meshes participate in the shared MapLibre depth buffer. */
+export function applyTileset3DDepthCompositing(root: THREE.Object3D): void {
+  root.traverse((object) => {
+    if (!(object instanceof THREE.Mesh)) {
+      return;
+    }
+
+    object.renderOrder = 0;
+
+    const materials = Array.isArray(object.material) ? object.material : [object.material];
+    for (const material of materials) {
+      if ("depthTest" in material) {
+        material.depthTest = true;
+      }
+
+      if ("depthWrite" in material && typeof material.opacity === "number") {
+        material.depthWrite = material.opacity >= 1;
+      }
+    }
+  });
+}
+
+/** Approximate geographic bounds from a tileset bounding sphere (WGS84). */
+export function computeTilesetGeographicBounds(
+  tiles: AtlasTilesRenderer,
+  transform?: Tileset3DTransform
+): GeographicBounds {
+  const sphere = new THREE.Sphere();
+  tiles.getBoundingSphere(sphere);
+  const center = ecefToLngLatAlt(sphere.center.x, sphere.center.y, sphere.center.z);
+  const lng = transform?.lng ?? center.lng;
+  const lat = transform?.lat ?? center.lat;
+  const radiusMeters = Math.max(sphere.radius, 250);
+  const latDelta = radiusMeters / METERS_PER_DEGREE_LAT;
+  const lngDelta =
+    radiusMeters / (METERS_PER_DEGREE_LAT * Math.max(Math.cos((lat * Math.PI) / 180), 0.2));
+
+  return [lng - lngDelta, lat - latDelta, lng + lngDelta, lat + latDelta];
 }

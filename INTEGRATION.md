@@ -130,3 +130,41 @@ public/map-styles/
 ## API boundary
 
 Import only from `locational-atlas` (the package entry). Do not import `lab/`, renderer internals, or deep paths under `src/rendering/`. See `AGENTS.md` and `ARCHITECTURE.md`.
+
+## 3D Tiles overlays
+
+Register layers with `registerTileset3DLayer()` and enable them via `setTileset3DLayers([layerId])`. Load lifecycle uses family `tiles3d` (`getLayerLoadState`, `onLayerLoadChange`).
+
+Install the optional peer `3d-tiles-renderer` alongside `three`. Without it, enabling a layer validates the tileset URL but reports a clear install hint.
+
+### Draco / KTX2 decoder assets
+
+Compressed glTF tiles need Three.js Draco and Basis/KTX2 transcoder WASM files. By default Atlas loads them from a pinned unpkg URL for the peer Three version. For air-gapped or self-hosted deployments, set a libs base URL on the engine or per layer:
+
+```ts
+const engine = new AtlasEngine({
+  tileset3DDecoderBaseUrl: "https://cdn.example.com/three/0.179.1/examples/jsm/libs/"
+});
+
+engine.registerTileset3DLayer({
+  id: "city-mesh",
+  label: "City mesh",
+  semanticType: "photogrammetry",
+  tilesetUrl: "https://tiles.example.com/tileset.json",
+  decoderBaseUrl: "https://cdn.example.com/custom-three/libs/" // optional per-layer override
+});
+```
+
+Atlas resolves `${baseUrl}/draco/` and `${baseUrl}/basis/` internally. Host those directories from your Three.js package `examples/jsm/libs/` tree (or equivalent mirror).
+
+### Framing loaded tilesets
+
+After a tileset reaches `ready`, frame the camera to its bounding volume:
+
+```ts
+await engine.frameTilesetOnReady("city-mesh");
+// or, if already ready:
+await engine.flyToTilesetBounds("city-mesh");
+```
+
+Both methods use the tileset bounding sphere converted to geographic bounds and Atlas’s existing `frameBounds` camera solver.
