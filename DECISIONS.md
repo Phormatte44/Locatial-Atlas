@@ -2810,6 +2810,25 @@ Studio D-096 (Foundation 149) removes redundant inactive-section rollup beside B
 
 - Foundation 150: candidate — StructureTree validation-summary jump from section badge, or hybrid-layout chip consolidation if author testing shows redundancy there too.
 
+## 2026-08-15 — Foundation 150 StructureTree validation-summary jump from section badge stays Studio-side
+
+**Decision**
+
+When a Creator Studio shell exposes **both** StructureTree section-header snooze badges (F142/F143) **and** the F97 validation summary via `DirectorMarkupPanel`, badge clicks complete a **validation-summary jump**: navigate to the target section, expand **Show snoozed**, switch to Markup mode when needed, open the summary panel, and scroll the validation summary into view. `?layoutTest=bottom-structure` (hybrid) and the default SceneRail shell share this loop via `navigateToSectionSnooze` + `expandShowSnoozedWithValidationSummaryJump`. `?layoutTest=original` keeps navigate-only badge behavior with aria-label/tooltip polish noting authors must open Markup mode to review snoozed warnings. Hybrid layout also suppresses redundant F144 chips when StructureTree badges are mounted (F149 pattern).
+
+**Reason**
+
+Studio D-097 (Foundation 150) closes the gap after F145 show-snoozed expansion — authors jumping from StructureTree badges land on the snoozed validation summary, not just the target section. Original layout limitation is documented instead of implied.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-097 for `validationSummarySnoozeJump.ts`, `DirectorMarkupPanel` expand wiring, navigate-only badge copy, and hybrid chip consolidation.
+
+**Next**
+
+- Foundation 151: candidate — default layout StructureTree badges on unified draft, or paste-preview re-copy loop polish.
+
 ## 2026-08-15 — Foundation 134 validation snooze keyboard snooze on selected sequence row stays Studio-side
 
 **Decision**
