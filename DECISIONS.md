@@ -1764,7 +1764,26 @@ Studio D-030 (Foundation 83) extends F76 style keyframes with seekable shape mot
 
 **Next**
 
-- Foundation 86: TBD — candidate: keyframe easing curves, move feel/arc editing, or validation auto-fix actions.
+- Foundation 86: structure-level move feel/arc editing (see Studio D-033).
+
+## 2026-08-15 — Foundation 86 structure-level move feel/arc editing stays Studio-side
+
+**Decision**
+
+Section storyline move feel/arc overrides (TransitionControls-style selects on rail selection, localStorage persistence) live in Creator Studio. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-033 (Foundation 86) extends F85 structure-level move authoring with feel and arc that propagate to camera seek sampling. Fixture `MoveDefinition` data remains the default; authored overrides merge at seek time in `storylineCameraSeek` before `movePathFamilyForDefinition` and feel-based easing for `sampleCameraTransition`.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-033 for `storylineMoveFeelArcDraft.ts`, `useStorylineMoveFeelArc`, and `MoveFeelArcControls`.
+
+**Next**
+
+- Foundation 87: TBD — candidate: keyframe easing curves, move type/style editing, or validation auto-fix actions.
 
 ## 2026-08-15 — Foundation 85 structure-level move duration editing stays Studio-side
 
@@ -1783,7 +1802,7 @@ Studio D-032 (Foundation 85) extends F73–F74 storyline rail authoring with str
 
 **Next**
 
-- Foundation 86: TBD — candidate: keyframe easing curves, move feel/arc editing, or validation auto-fix actions.
+- Foundation 86: structure-level move feel/arc editing (see Studio D-033).
 
 ## 2026-08-15 — Foundation 84 markup motion validation stays Studio-side
 
