@@ -2637,7 +2637,26 @@ Studio D-086 (Foundation 139) closes the live countdown loop for validation summ
 
 **Next**
 
-- Foundation 140: candidate — paste-preview re-copy loop polish, or validation summary panel-level expiry toast.
+- Foundation 140: validation summary panel-level expiry toast (see Studio D-087).
+
+## 2026-08-15 — Foundation 140 validation summary panel-level expiry toast stays Studio-side
+
+**Decision**
+
+When all section validation snoozes expire naturally on the shared 60s tick (`snoozedIssueCount` drops from `> 0` to `0` because timers elapsed), show brief inline feedback above Build Order / Motion Sequence via the F106 `KeyframeTimingFeedback` pattern — reusing F138 copy (**Validation warnings restored** / **Snooze expired**). Manual restore-all, per-group restore, per-row restore, and ⌥⌘R suppress the panel toast. When the selected row's snooze expires on the same tick and F138 already toasts, panel feedback is deduped within that tick. Toast region is `role="status"` with `aria-live="polite"`.
+
+**Reason**
+
+Studio D-087 (Foundation 140) closes the expiry feedback loop for authors who snooze warnings without a selected row snooze — F138 row toast alone left silent reappearance when the last snoozed issues elapsed section-wide.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-087 for `didSectionSnoozesExpireNaturally`, `shouldShowSectionSnoozeExpiryToast`, `DirectorMarkupPanel` tick wiring, and shared `validationSnoozeFeedback` toast.
+
+**Next**
+
+- Foundation 141: candidate — paste-preview re-copy loop polish, or validation snooze multi-section expiry coordination.
 
 ## 2026-08-15 — Foundation 136 validation snooze expiry countdown on sequence-row badge stays Studio-side
 
