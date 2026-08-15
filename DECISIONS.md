@@ -1087,6 +1087,34 @@ Photogrammetry and city mesh overlays must occlude correctly against 3D terrain 
 
 - Foundation 50: 3D Tiles picking/highlight hooks, tighter OBB framing, path-family easing on legacy rAF fallback, or Studio integration pass wiring `registerTileset3DLayer` + optional peer install in Creator Director.
 
+## 2026-08-15 — Foundation 50 3D Tiles interaction and camera polish
+
+**Decision**
+
+Foundation 49’s production tileset path gains mesh-level interaction and tighter camera framing. `Tileset3DOverlayAdapter` raycast-picks loaded tile geometry using the same projection/view matrices stored each custom-layer render frame; feature ids use `tileset3d:{layerId}:{meshUuid}`. Pick order in `AtlasEngine.updateGeoHover` / `selectGeoAt` is world markup → POIs → 3D Tiles → labels → roads → buildings → areas → boundaries. Highlights reuse `highlightFeature(featureId)` with emissive tint on the hit mesh (internal `tileset3DHighlight.ts`). `computeTilesetGeographicBounds` prefers root OBB from `TilesRenderer.getOrientedBoundingBox`, then AABB, then bounding-sphere fallback. Legacy rAF camera playback in `CameraTransitionRunner` applies path-family polynomial easing (`power2/3/4.inOut` parity) via `applyLegacyTransitionEasing(linearProgress, pathFamily)`.
+
+**Reason**
+
+Photogrammetry workflows need hover/select on individual buildings without Studio importing renderer internals. Bounding-sphere framing was too loose for city-scale tilesets. Hosts without the optional `gsap` peer should get the same motion character as GSAP-backed transitions.
+
+**Consequences**
+
+- Pick/highlight helpers live under `src/interaction/tileset3dFeatureIds.ts` and `src/rendering/three/`; not exported from `src/index.ts`.
+- Feature keys are mesh uuids (session-stable while loaded), not batch-table feature ids — documented in `INTEGRATION.md`.
+- `INTEGRATION.md` adds tileset registration, pick/highlight, OBB framing, and optional-peers summary for Studio consumers.
+- Lab labels advance to Foundation 50.
+
+**Limitations**
+
+- Pick requires at least one rendered frame after tileset `ready` (camera matrices cached during custom-layer render).
+- Highlight is emissive-only; no outline or feature-id persistence across tile unload/reload.
+- OBB framing uses root tile volume — not union of all loaded descendant tiles.
+- Batch-table / EXT_mesh_features semantic ids are not yet surfaced.
+
+**Next**
+
+- Foundation 51: EXT_mesh_features / batch-table feature ids for stable pick keys, tileset click-to-frame single feature, Lab path-family motion buttons, or Studio Director wiring for 3D Tiles enable + hover readout.
+
 ## 2026-08-15 — Manual test path families: straight and high-arc
 
 **Decision**

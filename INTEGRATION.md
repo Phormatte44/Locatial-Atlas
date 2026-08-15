@@ -167,4 +167,38 @@ await engine.frameTilesetOnReady("city-mesh");
 await engine.flyToTilesetBounds("city-mesh");
 ```
 
-Both methods use the tileset bounding sphere converted to geographic bounds and Atlas’s existing `frameBounds` camera solver.
+Both methods use the tileset root oriented bounding box (OBB) when available, falling back to axis-aligned bounds or bounding sphere, converted to geographic bounds and Atlas’s existing `frameBounds` camera solver.
+
+### Picking and highlighting 3D Tiles features
+
+3D Tiles meshes participate in the same hover/select pipeline as other geographic layers. Pick order (first match wins): world markup → POIs → **3D Tiles** → labels → roads → buildings → areas → boundaries.
+
+Raycast picking runs against loaded tile geometry each frame using the same camera matrices as the custom layer render pass. Feature ids use the prefix `tileset3d:`:
+
+```
+tileset3d:{layerId}:{meshUuid}
+```
+
+The feature key is the hit mesh’s Three.js `uuid` (stable for the loaded session). Use hover/select APIs as usual:
+
+```ts
+engine.updateGeoHover(screenX, screenY);
+engine.selectGeoAt(screenX, screenY);
+
+// Explicit highlight (same contract as other layer families)
+engine.highlightFeature("tileset3d:city-mesh:abc123-def456-...");
+engine.clearHighlights();
+```
+
+Highlight applies an emissive tint on the picked mesh; it does not cross the public API with Three.js types.
+
+### Optional peers summary (Studio)
+
+| Peer | Required? | Atlas behavior without it |
+| --- | --- | --- |
+| `react`, `react-dom` | Yes | `AtlasMapView` unavailable |
+| `maplibre-gl` | Yes | Map cannot mount |
+| `three` | Yes | World markup and 3D Tiles overlays unavailable |
+| `@turf/turf` | Yes | Geographic geometry helpers fail at runtime |
+| `3d-tiles-renderer` | Optional | Register/enable 3D Tiles layers still works; rendering emits install hint; pick/highlight no-op |
+| `gsap` | Optional | Camera transitions use rAF playback with path-family polynomial easing (parity with GSAP `powerN.inOut`) |

@@ -125,9 +125,9 @@ export function Tileset3DLayerToggle({ engine }: Tileset3DLayerToggleProps) {
         ))}
       </select>
       <span style={noteStyle}>
-        Foundation 49 depth-composites tilesets with MapLibre terrain (shared depth buffer) and keeps
-        world markup above tilesets. Expect `ready` after tileset.json validates and root tiles load;
-        the camera auto-frames to the tileset bounds on ready. Use flyToTilesetBounds for manual framing.
+        Foundation 50 raycast-picks tileset meshes (tileset3d: layer ids) after markup/POI in the hover
+        pipeline. Expect `ready` after tileset.json validates and root tiles load; the camera
+        auto-frames to OBB-derived bounds on ready. Hover a building mesh to highlight it.
       </span>
       {enabled ? (
         <span style={statusStyle}>

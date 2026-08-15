@@ -57,7 +57,7 @@ A transition should separate:
 
 ## Playback (Foundation 46)
 
-`CameraTransitionRunner` advances normalized progress `0 → 1` along the solved path. When the host installs the optional `gsap` peer dependency, playback uses a GSAP timeline with path-family easing tokens from `transitionEasing.ts`:
+`CameraTransitionRunner` advances normalized progress `0 → 1` along the solved path. When the host installs the optional `gsap` peer dependency, playback uses a GSAP timeline with path-family easing tokens from `transitionEasing.ts`. Without GSAP, the legacy rAF fallback applies matching `powerN.inOut` polynomial easing per path family.
 
 | Path family | GSAP ease | Feel |
 | --- | --- | --- |

@@ -7,7 +7,10 @@ export interface AtlasTilesRenderer {
   root: { transform?: number[] } | null;
   addEventListener(type: string, listener: () => void): void;
   removeEventListener(type: string, listener: () => void): void;
-  getBoundingSphere(target: THREE.Sphere): void;
+  getBoundingSphere(target: THREE.Sphere): boolean;
+  getBoundingBox(target: THREE.Box3): boolean;
+  getOrientedBoundingBox(targetBox: THREE.Box3, targetMatrix: THREE.Matrix4): boolean;
+  raycast?(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]): void;
   setCamera(camera: THREE.Camera): void;
   setResolutionFromRenderer(camera: THREE.Camera, renderer: THREE.WebGLRenderer): void;
   update(): void;

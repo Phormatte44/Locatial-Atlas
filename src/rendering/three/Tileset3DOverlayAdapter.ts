@@ -18,6 +18,11 @@ import {
   resolveTileset3DAnchor,
   type Tileset3DAnchor
 } from "./tileset3DPlacement";
+import { applyTileset3DFeatureHighlight } from "./tileset3DHighlight";
+import {
+  pickTileset3DFeatureAtScreen,
+  type Tileset3DPickResult
+} from "./pickTileset3DFeature";
 import {
   beginTerrainAlignedDepthPass,
   resetOverlayRendererState
@@ -30,6 +35,7 @@ import {
   type AtlasTilesRendererConstructor
 } from "./tilesRendererLoader";
 import { tileset3DCustomLayerId, validateTileset3DUrl } from "./tileset3DSetup";
+import { parseTileset3DFeatureId } from "../../interaction/tileset3dFeatureIds";
 
 interface Tileset3DRuntimeLayer {
   definition: Tileset3DLayerDefinition;
@@ -46,6 +52,9 @@ interface Tileset3DRuntimeLayer {
   opacity: number;
   loadHandled: boolean;
   onLoadTileset: (() => void) | null;
+  pickProjectionMatrix: THREE.Matrix4 | null;
+  pickViewMatrix: THREE.Matrix4 | null;
+  highlightedFeatureKey: string | null;
 }
 
 export interface Tileset3DOverlaySyncOptions {
@@ -98,6 +107,90 @@ export class Tileset3DOverlayAdapter {
 
   getGeographicBounds(layerId: string): GeographicBounds | null {
     return this.layers.get(layerId)?.geographicBounds ?? null;
+  }
+
+  queryFeatureAtScreen(x: number, y: number, enabledLayerIds: string[]): Tileset3DPickResult | null {
+    if (!this.map || enabledLayerIds.length === 0) {
+      return null;
+    }
+
+    const canvas = this.map.getCanvas();
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    if (width <= 0 || height <= 0) {
+      return null;
+    }
+
+    const orderedLayerIds = enabledLayerIds
+      .map((layerId) => this.layers.get(layerId))
+      .filter((runtime): runtime is Tileset3DRuntimeLayer => Boolean(runtime?.tiles))
+      .sort((left, right) => right.renderOrder - left.renderOrder);
+
+    for (const runtime of orderedLayerIds) {
+      if (
+        !runtime.tiles ||
+        !runtime.pickProjectionMatrix ||
+        !runtime.pickViewMatrix
+      ) {
+        continue;
+      }
+
+      const pick = pickTileset3DFeatureAtScreen(
+        runtime.definition.id,
+        runtime.tiles,
+        {
+          projectionMatrix: runtime.pickProjectionMatrix,
+          matrixWorldInverse: runtime.pickViewMatrix
+        },
+        x,
+        y,
+        width,
+        height
+      );
+
+      if (pick) {
+        return pick;
+      }
+    }
+
+    return null;
+  }
+
+  highlightFeature(featureId: string | null): void {
+    const parsed = featureId ? parseTileset3DFeatureId(featureId) : null;
+
+    if (featureId && !parsed) {
+      this.clearAllHighlights();
+      return;
+    }
+
+    for (const runtime of this.layers.values()) {
+      const isTargetLayer = parsed?.layerId === runtime.definition.id;
+      const nextKey = isTargetLayer ? (parsed?.featureKey ?? null) : null;
+      this.applyRuntimeHighlight(runtime, nextKey);
+    }
+
+    this.map?.triggerRepaint();
+  }
+
+  private clearAllHighlights(): void {
+    for (const runtime of this.layers.values()) {
+      this.applyRuntimeHighlight(runtime, null);
+    }
+  }
+
+  private applyRuntimeHighlight(runtime: Tileset3DRuntimeLayer, featureKey: string | null): void {
+    if (!runtime.tiles) {
+      runtime.highlightedFeatureKey = featureKey;
+      return;
+    }
+
+    applyTileset3DFeatureHighlight(
+      runtime.tiles.group,
+      featureKey,
+      runtime.highlightedFeatureKey
+    );
+    runtime.highlightedFeatureKey = featureKey;
   }
 
   async syncLayers(options: Tileset3DOverlaySyncOptions): Promise<void> {
@@ -246,7 +339,10 @@ export class Tileset3DOverlayAdapter {
       renderer: null,
       opacity: style.opacity,
       loadHandled: false,
-      onLoadTileset: null
+      onLoadTileset: null,
+      pickProjectionMatrix: null,
+      pickViewMatrix: null,
+      highlightedFeatureKey: null
     };
 
     const customLayer: CustomLayerInterface = {
@@ -366,6 +462,9 @@ export class Tileset3DOverlayAdapter {
     runtime.tilesCamera.projectionMatrix.copy(projectionMatrix);
     runtime.tilesCamera.matrixWorldInverse.copy(viewMatrix);
     runtime.tilesCamera.matrixWorld.copy(viewMatrix).invert();
+
+    runtime.pickProjectionMatrix = projectionMatrix.clone();
+    runtime.pickViewMatrix = viewMatrix.clone();
 
     const gl = runtime.renderer.getContext();
     resetOverlayRendererState(runtime.renderer);

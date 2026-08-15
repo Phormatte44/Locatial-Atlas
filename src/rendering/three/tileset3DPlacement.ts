@@ -213,11 +213,67 @@ export function applyTileset3DDepthCompositing(root: THREE.Object3D): void {
   });
 }
 
-/** Approximate geographic bounds from a tileset bounding sphere (WGS84). */
+/** Approximate geographic bounds from tileset root OBB/AABB, falling back to bounding sphere. */
 export function computeTilesetGeographicBounds(
   tiles: AtlasTilesRenderer,
   transform?: Tileset3DTransform
 ): GeographicBounds {
+  tiles.group.updateMatrixWorld(true);
+
+  const boundsBox = new THREE.Box3();
+  const obbMatrix = new THREE.Matrix4();
+  let localToEcef: THREE.Matrix4 | null = null;
+
+  if (tiles.getOrientedBoundingBox(boundsBox, obbMatrix)) {
+    localToEcef = new THREE.Matrix4().multiplyMatrices(tiles.group.matrixWorld, obbMatrix);
+  } else if (tiles.getBoundingBox(boundsBox)) {
+    localToEcef = tiles.group.matrixWorld.clone();
+  }
+
+  if (localToEcef && !boundsBox.isEmpty()) {
+    const corners = [
+      new THREE.Vector3(boundsBox.min.x, boundsBox.min.y, boundsBox.min.z),
+      new THREE.Vector3(boundsBox.max.x, boundsBox.min.y, boundsBox.min.z),
+      new THREE.Vector3(boundsBox.min.x, boundsBox.max.y, boundsBox.min.z),
+      new THREE.Vector3(boundsBox.max.x, boundsBox.max.y, boundsBox.min.z),
+      new THREE.Vector3(boundsBox.min.x, boundsBox.min.y, boundsBox.max.z),
+      new THREE.Vector3(boundsBox.max.x, boundsBox.min.y, boundsBox.max.z),
+      new THREE.Vector3(boundsBox.min.x, boundsBox.max.y, boundsBox.max.z),
+      new THREE.Vector3(boundsBox.max.x, boundsBox.max.y, boundsBox.max.z)
+    ];
+
+    let minLng = Infinity;
+    let minLat = Infinity;
+    let maxLng = -Infinity;
+    let maxLat = -Infinity;
+
+    for (const corner of corners) {
+      const ecef = corner.applyMatrix4(localToEcef);
+      const geo = ecefToLngLatAlt(ecef.x, ecef.y, ecef.z);
+      minLng = Math.min(minLng, geo.lng);
+      minLat = Math.min(minLat, geo.lat);
+      maxLng = Math.max(maxLng, geo.lng);
+      maxLat = Math.max(maxLat, geo.lat);
+    }
+
+    if (Number.isFinite(minLng) && Number.isFinite(minLat)) {
+      const centerLng = transform?.lng ?? (minLng + maxLng) / 2;
+      const centerLat = transform?.lat ?? (minLat + maxLat) / 2;
+      const latSpan = Math.max(maxLat - minLat, 0.002);
+      const lngSpan = Math.max(maxLng - minLng, 0.002);
+      const minPadLat = 250 / METERS_PER_DEGREE_LAT;
+      const minPadLng =
+        250 / (METERS_PER_DEGREE_LAT * Math.max(Math.cos((centerLat * Math.PI) / 180), 0.2));
+
+      return [
+        centerLng - Math.max(lngSpan / 2, minPadLng),
+        centerLat - Math.max(latSpan / 2, minPadLat),
+        centerLng + Math.max(lngSpan / 2, minPadLng),
+        centerLat + Math.max(latSpan / 2, minPadLat)
+      ];
+    }
+  }
+
   const sphere = new THREE.Sphere();
   tiles.getBoundingSphere(sphere);
   const center = ecefToLngLatAlt(sphere.center.x, sphere.center.y, sphere.center.z);

@@ -93,7 +93,7 @@ export class CameraTransitionRunner {
       const tick = (now: number) => {
         const elapsedMs = now - startTime;
         const linearProgress = Math.min(1, elapsedMs / options.durationMs);
-        const easedProgress = applyLegacyTransitionEasing(linearProgress);
+        const easedProgress = applyLegacyTransitionEasing(linearProgress, options.pathFamily);
 
         if (linearProgress >= 1) {
           options.onFrame({ ...options.to, transitionProgress: 1 });

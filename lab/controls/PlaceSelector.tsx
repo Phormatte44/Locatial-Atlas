@@ -84,13 +84,14 @@ export function PlaceSelector({ engine, places }: PlaceSelectorProps) {
 
   return (
     <div style={panelStyle}>
-      <strong style={{ fontSize: 14 }}>Atlas Lab — Foundation 49</strong>
+      <strong style={{ fontSize: 14 }}>Atlas Lab — Foundation 50</strong>
       <span style={{ fontSize: 12, color: "#555" }}>
         City buttons frame the center point via GSAP camera paths (local-glide within a city,
         orbit-reveal for regional hops, departure-arrival-arc for London ↔ Dubai). Area buttons frame
         metro bounds with local-glide. Enable raster imagery for satellite overlays; toggle 3D Tiles
-        to render the Re:Earth Buildings sample — depth-composited with terrain, auto-framed on ready.
-        Toggle POI layers for clustered landmarks — click a cluster to expand.
+        to render the Re:Earth Buildings sample — depth-composited with terrain, OBB-framed on ready,
+        raycast pick/highlight via tileset3d feature ids. Toggle POI layers for clustered landmarks —
+        click a cluster to expand.
       </span>
       <ViewModeSelector engine={engine} />
       <VisualEnvironmentControls engine={engine} />

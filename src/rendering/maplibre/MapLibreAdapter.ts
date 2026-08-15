@@ -695,6 +695,20 @@ export class MapLibreAdapter {
     return this.tileset3DOverlay.getGeographicBounds(layerId);
   }
 
+  queryTileset3DFeatureAtScreen(x: number, y: number): string | null {
+    const pick = this.tileset3DOverlay.queryFeatureAtScreen(
+      x,
+      y,
+      this.getEnabledTileset3DLayerIds()
+    );
+
+    return pick?.featureId ?? null;
+  }
+
+  highlightTileset3DFeature(featureId: string | null): void {
+    this.tileset3DOverlay.highlightFeature(featureId);
+  }
+
   getEnabledPoiLayerIds(): string[] {
     return this.poiLayers.map((layer) => layer.id);
   }

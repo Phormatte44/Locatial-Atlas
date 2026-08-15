@@ -81,6 +81,12 @@ function describeFeatureId(featureId: string | null): string {
     return featureKey ?? layerId ?? featureId;
   }
 
+  if (featureId.startsWith("tileset3d:")) {
+    const parts = featureId.split(":");
+    const layerId = parts[1];
+    return layerId ? `3D tile mesh (${layerId})` : "3D tile mesh";
+  }
+
   if (featureId.startsWith("area:")) {
     const parts = featureId.split(":");
     const layerId = parts[1];
@@ -318,7 +324,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
 
   return (
     <div style={readoutStyle}>
-      <div>Foundation 49 — 3D Tiles depth compositing</div>
+      <div>Foundation 50 — 3D Tiles pick + OBB framing</div>
       <div>
         View: {viewMode}
         {viewMode === "globe" || viewModeBlend !== "settled"
