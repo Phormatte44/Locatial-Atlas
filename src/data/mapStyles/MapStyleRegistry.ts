@@ -16,6 +16,18 @@ export class MapStyleRegistry {
     return this.styles.get(id);
   }
 
+  register(def: MapStyleDefinition): void {
+    if (!def.id.trim()) {
+      throw new Error("Map style id is required");
+    }
+
+    if (!def.styleUrl.trim()) {
+      throw new Error("Map style url is required");
+    }
+
+    this.styles.set(def.id, def);
+  }
+
   resolveStyleUrl(id: string = DEFAULT_MAP_STYLE_ID): string {
     const style = this.styles.get(id) ?? this.styles.get(DEFAULT_MAP_STYLE_ID);
     if (!style) {

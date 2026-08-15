@@ -4,6 +4,8 @@ This document defines the boundary between Locational Atlas and applications tha
 
 The contract should remain small and renderer-agnostic.
 
+Creator Studio’s Director map is a live consumer of this contract through `AtlasEngine` and `AtlasMapView`. Lab remains the development harness; it is not the product API.
+
 ## Core geographic camera state
 
 Atlas should support a canonical camera state based on geographic values:
@@ -24,7 +26,7 @@ Applications should be able to ask Atlas to:
 - set or update camera state
 - frame a geographic place or bounds
 - play a transition between camera states
-- render or update world-space geometry
+- render or update world-space geometry (`setWorldMarkup`; display only — no draw/authoring API yet)
 - highlight a geographic feature or place
 - clear highlights
 - project a geographic position to screen space

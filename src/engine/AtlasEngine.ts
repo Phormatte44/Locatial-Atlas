@@ -16,6 +16,7 @@ import { computeTransitionDurationMs } from "../camera/transitionDuration";
 import {
   getMapStyleDefinition,
   listAvailableMapStyles,
+  registerMapStyle as registerMapStyleDefinition,
   resolveMapStyleUrl
 } from "../data/providers/mapStyle/resolveMapStyle";
 import {
@@ -172,7 +173,17 @@ export class AtlasEngine implements AtlasEngineContract {
   }
 
   getCameraState(): CameraState {
-    return this.camera.getState();
+    const state = this.camera.getState();
+
+    if (this.isTransitionRunning() && state.transitionProgress === undefined) {
+      return { ...state, transitionProgress: 0 };
+    }
+
+    return state;
+  }
+
+  isTransitionRunning(): boolean {
+    return this.transitionRunner.isRunning();
   }
 
   setCamera(state: CameraState): void {
@@ -297,6 +308,10 @@ export class AtlasEngine implements AtlasEngineContract {
 
   listMapStyles(): MapStyleDefinition[] {
     return listAvailableMapStyles();
+  }
+
+  registerMapStyle(def: MapStyleDefinition): void {
+    registerMapStyleDefinition(def);
   }
 
   getMapStyleId(): string {

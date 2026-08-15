@@ -74,7 +74,7 @@ export function PlaceSelector({ engine, places }: PlaceSelectorProps) {
 
   return (
     <div style={panelStyle}>
-      <strong style={{ fontSize: 14 }}>Atlas Lab — Foundation 27</strong>
+      <strong style={{ fontSize: 14 }}>Atlas Lab — Foundation 28</strong>
       <span style={{ fontSize: 12, color: "#555" }}>
         City buttons frame the center point; area buttons frame metro bounds.
       </span>

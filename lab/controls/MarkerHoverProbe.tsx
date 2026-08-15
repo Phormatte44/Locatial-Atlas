@@ -71,6 +71,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
   const [mapError, setMapError] = useState<string>("none");
   const [cameraChange, setCameraChange] = useState<string>("waiting");
   const [highlightedFeatureId, setHighlightedFeatureId] = useState<string>("none");
+  const [transitionRunning, setTransitionRunning] = useState(false);
 
   useEffect(() => {
     return engine.onGeoHover((event) => {
@@ -130,6 +131,10 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
       setCameraChange(
         `${event.reason} · ${event.state.lat.toFixed(2)}, ${event.state.lng.toFixed(2)} · ${Math.round(event.state.altitudeMeters)} m${progress}`
       );
+
+      if (event.reason === "transition") {
+        setTransitionRunning(engine.isTransitionRunning());
+      }
     });
   }, [engine]);
 
@@ -137,8 +142,10 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
     return engine.onCameraTransition((event: CameraTransitionEvent) => {
       setPathFamily(event.pathFamily);
       setTransitionPhase(event.phase);
+      setTransitionRunning(event.phase === "started");
 
       if (event.phase === "completed" || event.phase === "cancelled") {
+        setTransitionRunning(false);
         window.setTimeout(() => {
           setTransitionPhase("idle");
         }, 800);
@@ -148,7 +155,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
 
   return (
     <div style={readoutStyle}>
-      <div>Foundation 27 — feature highlight</div>
+      <div>Foundation 28 — style registration + transition query</div>
       <div>Highlight: {describeFeatureId(highlightedFeatureId === "none" ? null : highlightedFeatureId)}</div>
       <div>Camera: {cameraChange}</div>
       <div>Map: {mapReady}</div>
@@ -169,6 +176,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
       </div>
       <div>Path: {pathFamily}</div>
       <div>Transition: {transitionPhase}</div>
+      <div>Running: {transitionRunning ? "yes" : "no"}</div>
     </div>
   );
 }

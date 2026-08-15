@@ -2,7 +2,19 @@
 
 Locational Atlas is the standalone spatial/map engine for Locational.
 
-It exists to develop, test, and eventually expose the geographic world system used by other Locational products.
+It exists to develop, test, and expose the geographic world system used by other Locational products.
+
+Creator Studio’s Director map already consumes Atlas through the public API (`AtlasEngine`, `AtlasMapView`, `src/index.ts`) via a live sibling `file:` link. Studio owns UX; this repo owns map/globe rendering.
+
+## Consuming Atlas
+
+Integrate through the public API — primarily `AtlasEngine` and `AtlasMapView`. Consumers link this repo as a sibling dependency and must not import from `lab/` or renderer internals.
+
+- Built entry: `dist/index.js` (run `npm run build`)
+- Source entry for dev aliases: `src/index.ts`
+- Integration guide: [`INTEGRATION.md`](INTEGRATION.md) (install, MapLibre CSS, map style assets)
+- Boundaries: `AGENTS.md`, `SPATIAL-CONTRACT.md`
+- Camera and place contracts: `SPATIAL-CONTRACT.md`
 
 ## Atlas owns
 

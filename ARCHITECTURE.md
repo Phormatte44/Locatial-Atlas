@@ -66,3 +66,15 @@ Subsystems in `src` may depend on lower-level shared contracts and utilities whe
 `src` must never import from `lab`.
 
 External applications should consume Atlas through `src/contracts` and the engine entry point rather than renderer internals.
+
+## Product consumers
+
+Creator Studio is the first live product consumer.
+
+- Studio repo: sibling `Documents/GitHub/Locatial-Creator-Studio`
+- Link: `"locational-atlas": "file:../Locatial-Atlas"` plus a Vite alias to this `src/`
+- Studio Director map: `AtlasEngine` + `AtlasMapView` only
+- Studio translates its Place and markup types at its boundary; Atlas receives `AtlasPlace` and `WorldMarkup`
+- Two git repos; commits do not cross. Edits in `src/` show in Studio while its dev server is running
+
+Studio must not import `lab/` or `src/rendering/maplibre/*` / `src/rendering/three/*`. Capabilities that still live in Studio/Spatial (markup drawing, story globe overlay, aesthetic rail, Spatial playback) stay there until Atlas grows an explicit public API for them.

@@ -518,3 +518,43 @@ Atlas exposes spatial-contract highlight controls through `highlightFeature(feat
 - Lab adds route highlight and clear buttons; readout shows the resolved active highlight id.
 - Products can spotlight routes, areas, or labels programmatically.
 - `clearHighlights()` resets hover, selection, and explicit highlight together.
+
+---
+
+## 2026-08-15 — Foundation 28 runtime style registration + transition state query
+
+**Decision**
+
+Atlas exposes runtime basemap registration through `registerMapStyle(def)` on the default `MapStyleRegistry`, wired via `resolveMapStyle` and `AtlasEngine.registerMapStyle()`. Products can register custom styles before or after engine construction; `listMapStyles()` and `setMapStyle(styleId)` resolve against the same registry. Transition state is queryable through `isTransitionRunning()`, backed by `CameraTransitionRunner`. `getCameraState()` includes `transitionProgress` while a transition is active (defaulting to `0` before the first animation frame) and omits it once the transition settles or is cancelled.
+
+**Reason**
+
+The spatial contract requires basemap style selection without hard-coding every product style in Atlas builtins, and transition progress without polling MapLibre every frame. Foundation 26 added throttled `onCameraChange()` progress events but left no synchronous transition-running query or guaranteed `getCameraState()` progress during active framing.
+
+**Consequences**
+
+- Module export: `registerMapStyle` from `src/index.ts`; engine method mirrors it on `AtlasEngine`.
+- Lab readout shows `isTransitionRunning()` during city framing animations.
+- `getCameraState().transitionProgress` is defined for the full active transition window.
+
+---
+
+## 2026-08-15 — Creator Studio consumes Atlas through the public API
+
+**Decision**
+
+Creator Studio’s Director map is a live product consumer of Locational Atlas. Studio talks only to the public engine surface (`AtlasEngine`, `AtlasMapView`, and the exports in `src/index.ts`). Atlas remains a sibling git repo, linked from Studio as `file:../Locatial-Atlas` with a Vite alias into `src/`. Lab is not a product API.
+
+**Reason**
+
+Studio retired in-repo Spatial (`MapViewport` / `SpatialEngine`) for the Director map. Atlas already owns camera, terrain, markup display, and geographic events. Consuming the public contract — rather than copying Atlas or importing `lab/` / renderer folders — keeps the Lab-to-product boundary real and lets Atlas edits appear in Studio while `npm run dev` is running.
+
+**Consequences**
+
+- Breaking or silently widening `src/index.ts`, `AtlasEngine`, `AtlasMapView`, camera state, Place, markup, or event types will break Studio immediately.
+- Studio must not import `lab/` or `src/rendering/maplibre/*` / `src/rendering/three/*`. Do not add “convenience” leaks to make Studio work.
+- Studio maps `locational-atlas` types through its own `.d.ts` shim because Atlas MapLibre 5 types collide with Studio MapLibre 6. Do not “fix” that by exposing renderer types from Atlas.
+- Atlas still uses `import maplibregl from "maplibre-gl"`. Studio rewrites that default import at Vite compile time. Changing MapLibre import style or major version is an explicit, documented decision.
+- `public/map-styles/locatial-editorial.json` is copied into Studio. Editing that file here requires Studio to recopy it.
+- Atlas has no draw API. `setWorldMarkup()` displays geometry Studio already owns. Terra Draw, story globe overlay, aesthetic rail, and Spatial playback remain Studio/Spatial seams until explicitly tasked.
+- Commits do not cross repos. Atlas changes land here; Studio adapters stay in Studio.

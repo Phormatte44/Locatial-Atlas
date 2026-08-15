@@ -35,12 +35,14 @@ export type { CameraChangeEvent, CameraChangeListener, CameraChangeReason } from
 
 export interface AtlasEngineContract {
   getCameraState(): import("../types/camera").CameraState;
+  isTransitionRunning(): boolean;
   setCamera(state: import("../types/camera").CameraState): void;
   framePlace(place: import("../types/place").AtlasPlace): Promise<void>;
   frameBounds(bounds: import("../types/bounds").GeographicBounds): Promise<void>;
   setWorldMarkup(markups: import("../types/worldMarkup").WorldMarkup[]): void;
   setWorldMarkers(markers: import("../types/worldMarker").WorldMarker[]): void;
   listMapStyles(): MapStyleDefinition[];
+  registerMapStyle(def: MapStyleDefinition): void;
   getMapStyleId(): string;
   setMapStyle(styleId: string): Promise<void>;
   isTerrainEnabled(): boolean;

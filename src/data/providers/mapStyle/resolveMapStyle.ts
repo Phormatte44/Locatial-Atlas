@@ -21,3 +21,10 @@ export function getMapStyleDefinition(
 ): MapStyleDefinition | undefined {
   return registry.get(styleId);
 }
+
+export function registerMapStyle(
+  def: MapStyleDefinition,
+  registry: MapStyleRegistry = defaultMapStyleRegistry
+): void {
+  registry.register(def);
+}
