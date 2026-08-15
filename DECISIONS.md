@@ -2276,7 +2276,26 @@ Studio D-063 (Foundation 116) closes the F111 gap for authors editing a single s
 
 **Next**
 
-- Foundation 117: candidate — validation snooze expiry indicator in summary, or paste-preview keyboard focus ring on pinned ghosts.
+- Foundation 117: validation snooze expiry indicator in summary (see Studio D-064).
+
+## 2026-08-15 — Foundation 117 validation snooze expiry indicator stays Studio-side
+
+**Decision**
+
+When **Show snoozed** is expanded in the F97 validation summary, each snoozed warning row displays a muted remaining-time label (e.g. `Snoozed · 18h left`) from the F111 fingerprint-based localStorage expiry timestamp. Tooltip shows exact expiry datetime. 24h snooze duration unchanged.
+
+**Reason**
+
+Studio D-064 (Foundation 117) gives authors temporal context for when snoozed validation warnings will return, without changing snooze behavior or restore flow.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-064 for `formatSnoozeRemaining`, `getIssueSnoozeExpiresAt`, and `MarkupMotionValidationSummary` expiry label wiring.
+
+**Next**
+
+- Foundation 118: candidate — paste-preview keyboard focus ring on pinned ghosts, or validation snooze bulk-restore by group.
 
 ## 2026-08-15 — Foundation 111 validation dismiss/snooze stays Studio-side
 
