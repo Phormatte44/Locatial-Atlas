@@ -2582,6 +2582,25 @@ Studio D-082 (Foundation 135) closes the snooze/restore keyboard loop with one t
 
 - Foundation 136: validation snooze expiry countdown on sequence-row badge (see Studio D-083).
 
+## 2026-08-15 — Foundation 137 validation snooze badge aria-live expiry announcements stays Studio-side
+
+**Decision**
+
+When a Build Order / Motion Sequence row is **selected** and shows an F136 snooze countdown badge, a visually hidden `aria-live="polite"` region announces countdown updates on the 60s panel tick when the formatted remaining string changes. Unselected rows stay silent. Badge `aria-label` combines countdown, exact expiry, and F133–F135 keyboard hints.
+
+**Reason**
+
+Studio D-084 (Foundation 137) gives screen-reader authors passive snooze expiry updates on the selected sequence row without opening the validation summary — parity with F136 live countdown for sighted authors.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-084 for `formatElementSnoozeBadgeAriaLabel`, `shouldAnnounceElementSnoozeBadgeLabelChange`, `ElementSnoozeBadge`, and `MarkupSequencePanel` row badge wiring.
+
+**Next**
+
+- Foundation 138: candidate — paste-preview re-copy loop polish, or validation snooze expiry toast when countdown reaches zero on selected row.
+
 ## 2026-08-15 — Foundation 136 validation snooze expiry countdown on sequence-row badge stays Studio-side
 
 **Decision**
@@ -2599,7 +2618,7 @@ Studio D-083 (Foundation 136) enhances F123 static-duration badges so authors se
 
 **Next**
 
-- Foundation 137: candidate — paste-preview re-copy loop polish, or validation snooze badge aria-live expiry announcements.
+- Foundation 137: validation snooze badge aria-live expiry announcements (see Studio D-084).
 
 ## 2026-08-15 — Foundation 134 validation snooze keyboard snooze on selected sequence row stays Studio-side
 
