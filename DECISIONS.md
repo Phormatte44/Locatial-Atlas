@@ -1631,7 +1631,26 @@ F72 resolved cue-anchored motion timing but left no scrub control. F73 connects 
 - HEAD-002 markup slice satisfied; camera seek on scrub remains Studio Build 4.
 
 ### Next
-- Foundation 75: TBD — candidate: markup-cue rail items (Build 5), hide-cue authoring, or keyframed attributes.
+- Foundation 76: TBD — candidate: keyframed attributes (Build 6), progressive reveal, or focus-cue rail items.
+
+## 2026-08-15 — Foundation 75 markup-cue visibility stays Studio-side
+
+**Decision**
+
+Markup show/hide cue visibility during storyline scrub and playback is resolved in Creator Studio by omitting hidden shapes from `setWorldMarkup` via existing `MarkupMotionOverride.visible`. No Atlas engine visibility hook or timeline API.
+
+**Reason**
+
+Studio D-022 (Foundation 75) adds authored `markup-cue` StorylineItems with cue-resolved visibility at the shared playhead clock (CUE-001–004). Atlas already honors `visible: false` through the public markup sync path; a renderer-side timeline would duplicate Studio ownership of storyline sequencing.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-022 for `storylineDraft`, `markupCueVisibility`, and rail authoring.
+
+**Next**
+
+- Foundation 76: TBD — candidate: keyframed attributes (Build 6), progressive `draw-on` reveal, or focus-cue rail items.
 
 ## 2026-08-15 — Foundation 74 camera transition sampling on public API
 
@@ -1651,7 +1670,7 @@ F73 satisfied HEAD-002 for markup via instant motion sampling. Build 4 camera se
 
 **Next**
 
-- Foundation 75: TBD — candidate: markup-cue rail items, hide-cue authoring, or keyframed attributes.
+- Foundation 76: TBD — candidate: keyframed attributes (Build 6), progressive reveal, or focus-cue rail items.
 
 ## 2026-08-15 — Studio transition preview uses Atlas straight and high-arc
 
