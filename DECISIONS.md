@@ -1897,7 +1897,26 @@ Studio D-043 (Foundation 96) extends F85 Frame-panel move duration editing with 
 
 **Next**
 
-- Foundation 97: TBD — candidate: validation issue summary drill-down, keyframe multi-select retime, or move feel/arc drag on rail.
+- Foundation 97: validation issue summary drill-down (see Studio D-044).
+
+## 2026-08-15 — Foundation 97 validation issue summary drill-down stays Studio-side
+
+**Decision**
+
+Collapsible validation summary panel in the Markup sequence area — grouped by F84 issue type with counts, affected shapes, and jump-to-element that selects the shape and scrolls the properties panel to the relevant section — lives in Creator Studio. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-044 (Foundation 97) closes the diagnostic loop opened by F84–F93: authors can scan issue types at section scope and jump to the owning shape without opening each sequence row. Grouping consumes existing `validateSectionMarkupMotion()` output; no duplicate validation rules or Atlas API.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-044 for `markupMotionValidationSummary.ts`, `MarkupMotionValidationSummary.tsx`, and `DirectorMarkupPanel` jump/scroll wiring.
+
+**Next**
+
+- Foundation 98: TBD — candidate: keyframe multi-select retime, move feel/arc drag on rail, or validation summary autofix shortcuts per group.
 
 ## 2026-08-15 — Foundation 95 keyframe drag on Storyline rail stays Studio-side
 
