@@ -8,9 +8,9 @@ import { ATLAS_ROAD_PREFIX } from "./roadSetup";
 
 export const ATLAS_AREA_PREFIX = "atlas-area";
 
-/** Basemap stack (bottom → top): boundaries → areas → roads → labels → Three overlay. */
+/** Basemap stack (bottom → top): boundaries → areas → buildings → roads → labels → Three overlay. */
 export const AREA_LAYER_STACK_NOTE =
-  "Area fill/outline layers render above boundary layers and below road and label layers.";
+  "Area fill/outline layers render above boundary layers and below building, road, and label layers.";
 
 export function areaSourceId(layerId: string): string {
   return `${ATLAS_AREA_PREFIX}-source-${layerId}`;

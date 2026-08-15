@@ -27,6 +27,35 @@ function describeFeatureId(featureId: string | null): string {
     return "none";
   }
 
+  if (featureId.startsWith("building:")) {
+    const parts = featureId.split(":");
+    const layerId = parts[1];
+    const featureKey = parts[2];
+    if (layerId === "lab-london-buildings") {
+      if (featureKey === "london-shard") {
+        return "Shard block";
+      }
+      if (featureKey === "london-guildhall") {
+        return "Guildhall block";
+      }
+      if (featureKey === "london-canary") {
+        return "Canary Wharf block";
+      }
+    }
+    if (layerId === "lab-dubai-buildings") {
+      if (featureKey === "dubai-burj") {
+        return "Burj block";
+      }
+      if (featureKey === "dubai-marina") {
+        return "Marina tower";
+      }
+      if (featureKey === "dubai-opera") {
+        return "Opera block";
+      }
+    }
+    return featureKey ?? layerId ?? featureId;
+  }
+
   if (featureId.startsWith("area:")) {
     const parts = featureId.split(":");
     const layerId = parts[1];
@@ -241,7 +270,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
 
   return (
     <div style={readoutStyle}>
-      <div>Foundation 41 — area layer registry</div>
+      <div>Foundation 42 — building layer registry</div>
       <div>
         View: {viewMode}
         {viewMode === "globe" || viewModeBlend !== "settled"

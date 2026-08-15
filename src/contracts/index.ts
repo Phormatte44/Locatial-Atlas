@@ -56,6 +56,13 @@ export type {
   AreaSemanticType,
   AreaStyleTokens
 } from "../types/areaLayer";
+export type {
+  BuildingGeoJsonInline,
+  BuildingGeoJsonSource,
+  BuildingLayerDefinition,
+  BuildingSemanticType,
+  BuildingStyleTokens
+} from "../types/buildingLayer";
 export type { CameraTransitionEvent, CameraTransitionListener } from "../types/cameraTransition";
 export type { CameraPathFamily } from "../types/cameraTransition";
 export type { GeoHoverEvent, GeoHoverListener } from "../types/geoHover";
@@ -110,6 +117,10 @@ export interface AtlasEngineContract {
   registerAreaLayer(def: import("../types/areaLayer").AreaLayerDefinition): void;
   getEnabledAreaLayerIds(): string[];
   setAreaLayers(layerIds: string[]): void;
+  listBuildingLayers(): import("../types/buildingLayer").BuildingLayerDefinition[];
+  registerBuildingLayer(def: import("../types/buildingLayer").BuildingLayerDefinition): void;
+  getEnabledBuildingLayerIds(): string[];
+  setBuildingLayers(layerIds: string[]): void;
   getTransitionPathFamily(to: import("../types/place").AtlasPlace): CameraPathFamily;
   isMapReady(): boolean;
   onMapReady(listener: import("../types/mapReady").MapReadyListener): () => void;

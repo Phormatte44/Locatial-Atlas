@@ -41,6 +41,7 @@ export { registerBoundaryLayer } from "./data/providers/boundary/resolveBoundary
 export { registerLabelLayer } from "./data/providers/label/resolveLabelLayer";
 export { registerRoadLayer } from "./data/providers/road/resolveRoadLayer";
 export { registerAreaLayer } from "./data/providers/area/resolveAreaLayer";
+export { registerBuildingLayer } from "./data/providers/building/resolveBuildingLayer";
 export type { GeographicPoint, ScreenPoint } from "./types/projection";
 export type { MapStyleDefinition } from "./types/mapStyle";
 export type { TerrainSourceDefinition } from "./types/terrain";
@@ -72,6 +73,13 @@ export type {
   AreaSemanticType,
   AreaStyleTokens
 } from "./types/areaLayer";
+export type {
+  BuildingGeoJsonInline,
+  BuildingGeoJsonSource,
+  BuildingLayerDefinition,
+  BuildingSemanticType,
+  BuildingStyleTokens
+} from "./types/buildingLayer";
 export type {
   CameraPathFamily,
   CameraTransitionEvent,

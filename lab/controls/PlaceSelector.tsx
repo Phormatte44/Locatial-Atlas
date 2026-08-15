@@ -7,6 +7,7 @@ import { BoundaryLayerToggle } from "./BoundaryLayerToggle";
 import { LabelLayerToggle } from "./LabelLayerToggle";
 import { RoadLayerToggle } from "./RoadLayerToggle";
 import { AreaLayerToggle } from "./AreaLayerToggle";
+import { BuildingLayerToggle } from "./BuildingLayerToggle";
 import { ViewModeSelector } from "./ViewModeSelector";
 import { VisualEnvironmentControls } from "./VisualEnvironmentControls";
 
@@ -80,9 +81,10 @@ export function PlaceSelector({ engine, places }: PlaceSelectorProps) {
 
   return (
     <div style={panelStyle}>
-      <strong style={{ fontSize: 14 }}>Atlas Lab — Foundation 41</strong>
+      <strong style={{ fontSize: 14 }}>Atlas Lab — Foundation 42</strong>
       <span style={{ fontSize: 12, color: "#555" }}>
-        City buttons frame the center point; area buttons frame metro bounds.
+        City buttons frame the center point; area buttons frame metro bounds. Enable building
+        layers and pitch the camera to see fill-extrusion footprints.
       </span>
       <ViewModeSelector engine={engine} />
       <VisualEnvironmentControls engine={engine} />
@@ -93,7 +95,17 @@ export function PlaceSelector({ engine, places }: PlaceSelectorProps) {
       <LabelLayerToggle engine={engine} />
       <RoadLayerToggle engine={engine} />
       <AreaLayerToggle engine={engine} />
+      <BuildingLayerToggle engine={engine} />
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <button
+          type="button"
+          style={secondaryButtonStyle}
+          onClick={() => {
+            engine.highlightFeature("building:lab-london-buildings:london-shard");
+          }}
+        >
+          Highlight tower
+        </button>
         <button
           type="button"
           style={secondaryButtonStyle}

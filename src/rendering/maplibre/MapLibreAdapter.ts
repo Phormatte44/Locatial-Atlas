@@ -3,6 +3,7 @@ import type { BoundaryLayerDefinition } from "../../types/boundaryLayer";
 import type { LabelLayerDefinition } from "../../types/labelLayer";
 import type { RoadLayerDefinition } from "../../types/roadLayer";
 import type { AreaLayerDefinition } from "../../types/areaLayer";
+import type { BuildingLayerDefinition } from "../../types/buildingLayer";
 import type { TerrainSourceDefinition } from "../../types/terrain";
 import type { CameraState } from "../../types/camera";
 import { markupsFromMarkers } from "../../geometry/worldMarkup";
@@ -50,10 +51,16 @@ import {
   setAreaFeatureHighlight,
   syncAreaLayersOnMap
 } from "./areaSetup";
+import {
+  queryBuildingFeatureAtScreen,
+  setBuildingFeatureHighlight,
+  syncBuildingLayersOnMap
+} from "./buildingSetup";
 import { parseBoundaryFeatureId } from "../../interaction/boundaryFeatureIds";
 import { parseLabelFeatureId } from "../../interaction/labelFeatureIds";
 import { parseRoadFeatureId } from "../../interaction/roadFeatureIds";
 import { parseAreaFeatureId } from "../../interaction/areaFeatureIds";
+import { parseBuildingFeatureId } from "../../interaction/buildingFeatureIds";
 
 type CameraChangeListener = (state: CameraState) => void;
 type MapReadyListener = (reason: MapReadyReason) => void;
@@ -80,10 +87,12 @@ export class MapLibreAdapter {
   private labelLayers: LabelLayerDefinition[] = [];
   private roadLayers: RoadLayerDefinition[] = [];
   private areaLayers: AreaLayerDefinition[] = [];
+  private buildingLayers: BuildingLayerDefinition[] = [];
   private highlightedBoundary: { layerId: string; featureKey: string } | null = null;
   private highlightedLabel: { layerId: string; featureKey: string } | null = null;
   private highlightedRoad: { layerId: string; featureKey: string } | null = null;
   private highlightedArea: { layerId: string; featureKey: string } | null = null;
+  private highlightedBuilding: { layerId: string; featureKey: string } | null = null;
 
   create(container: HTMLElement, initialCamera: CameraState, styleUrl: string): void {
     if (this.map) {
@@ -431,6 +440,42 @@ export class MapLibreAdapter {
     this.applyAreaHighlight(parsed);
   }
 
+  setBuildingLayers(definitions: BuildingLayerDefinition[]): void {
+    this.buildingLayers = definitions;
+
+    if (!this.map?.loaded()) {
+      return;
+    }
+
+    syncBuildingLayersOnMap(this.map, definitions);
+    this.moveThreeLayerToTop();
+    this.applyBuildingHighlight(this.highlightedBuilding);
+  }
+
+  getEnabledBuildingLayerIds(): string[] {
+    return this.buildingLayers.map((layer) => layer.id);
+  }
+
+  queryBuildingFeatureAtScreen(x: number, y: number): string | null {
+    if (!this.map?.loaded()) {
+      return null;
+    }
+
+    const pick = queryBuildingFeatureAtScreen(
+      this.map,
+      x,
+      y,
+      this.getEnabledBuildingLayerIds()
+    );
+
+    return pick?.featureId ?? null;
+  }
+
+  highlightBuildingFeature(featureId: string | null): void {
+    const parsed = featureId ? parseBuildingFeatureId(featureId) : null;
+    this.applyBuildingHighlight(parsed);
+  }
+
   private applyRoadHighlight(next: { layerId: string; featureKey: string } | null): void {
     if (!this.map?.loaded()) {
       this.highlightedRoad = next;
@@ -450,6 +495,22 @@ export class MapLibreAdapter {
 
     setAreaFeatureHighlight(this.map, next?.layerId ?? "", next?.featureKey ?? null, this.highlightedArea);
     this.highlightedArea = next;
+    this.map.triggerRepaint();
+  }
+
+  private applyBuildingHighlight(next: { layerId: string; featureKey: string } | null): void {
+    if (!this.map?.loaded()) {
+      this.highlightedBuilding = next;
+      return;
+    }
+
+    setBuildingFeatureHighlight(
+      this.map,
+      next?.layerId ?? "",
+      next?.featureKey ?? null,
+      this.highlightedBuilding
+    );
+    this.highlightedBuilding = next;
     this.map.triggerRepaint();
   }
 
@@ -575,6 +636,11 @@ export class MapLibreAdapter {
       syncAreaLayersOnMap(this.map!, this.areaLayers);
       this.moveThreeLayerToTop();
       this.applyAreaHighlight(this.highlightedArea);
+    }
+    if (this.buildingLayers.length > 0) {
+      syncBuildingLayersOnMap(this.map!, this.buildingLayers);
+      this.moveThreeLayerToTop();
+      this.applyBuildingHighlight(this.highlightedBuilding);
     }
     if (this.labelLayers.length > 0) {
       syncLabelLayersOnMap(this.map!, this.labelLayers);

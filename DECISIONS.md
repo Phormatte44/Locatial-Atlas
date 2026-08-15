@@ -841,3 +841,30 @@ Studio and future products need parks, zones, land-use overlays, and thematic fi
 - Polygon and MultiPolygon GeoJSON only; extruded fills and animated patterns deferred.
 - Area hover does not yet participate in place-id expansion; explicit area ids only.
 - Fill patterns require sprite images in the active map style; no built-in pattern catalog ships in Atlas.
+
+## 2026-08-15 — Foundation 42 building layer registry
+
+**Decision**
+
+Building footprint layers render through a provider-agnostic registry in `src/data/buildings`. Applications register `BuildingLayerDefinition` entries (GeoJSON Polygon or MultiPolygon footprints, semantic type, fill-extrusion style tokens) via `registerBuildingLayer()` or `AtlasEngine.registerBuildingLayer()`, then enable layers with `setBuildingLayers(ids[])`. MapLibre `fill-extrusion` layers are composed in `buildingSetup.ts` behind `MapLibreAdapter`; consumers never touch MapLibre source or layer ids.
+
+**Reason**
+
+Studio and future products need extruded building footprints for editorial city scenes without hard-coded demo geometry in `src` or direct MapLibre coupling. MapLibre native fill-extrusion keeps footprints aligned with the basemap and terrain; a Three.js hybrid remains available later if extrusion limits block a use case.
+
+**Consequences**
+
+- Hover and selection extend the existing `onGeoHover` / `onGeoSelect` pipeline: world markup picks first, then registered label layers, then road layers, then building layers, then area layers, then boundary layers.
+- Building feature ids use the `building:{layerId}:{featureKey}` prefix; highlight uses MapLibre feature-state on registered GeoJSON sources.
+- Render stack (bottom → top): boundaries → areas → buildings → roads → labels → Three overlay. Building layers insert before the first road or label layer when present.
+- Extrusion height resolves from a configurable GeoJSON property (default `heightMeters`) with a layer-level `heightMeters` fallback.
+- No built-in building layers ship in `src`; Lab registers London and Dubai footprint clusters at runtime.
+- Style swaps re-sync enabled building layers after the basemap reloads.
+
+**Limitations**
+
+- MapLibre `fill-extrusion` on globe projection can flatten or misalign extrusions during projection blend; prefer map view or settled mercator for reliable 3D footprints.
+- Polygon and MultiPolygon GeoJSON only; mesh roofs, detailed facades, and animated construction deferred to a future Three hybrid if needed.
+- Height requires numeric meters on features or a fixed layer fallback; no automatic OSM or 3D Tiles ingestion ships in Atlas.
+- Building hover does not yet participate in place-id expansion; explicit building ids only.
+- Picking uses 2D footprint queries; vertical face hits on extruded walls are not distinguished from footprint fills.
