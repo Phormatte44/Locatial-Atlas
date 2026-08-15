@@ -2485,7 +2485,26 @@ Studio D-075 (Foundation 128) prevents keyboard users from being stranded on sta
 
 **Next**
 
-- Foundation 129: candidate — validation snooze keyboard restore on selected sequence row, or paste-preview ghost focus after global Escape pin clear.
+- Foundation 129: paste-preview focus after global Escape pin clear (see Studio D-076).
+
+## 2026-08-15 — Foundation 129 paste-preview focus after global Escape pin clear stays Studio-side
+
+**Decision**
+
+When **global Escape** clears paste-preview pin and hides preview (F112 — ghost not keyboard-focused), focus routes to the **matching toolbar paste button** for the last pinned anchor in the active context. Fallbacks match F128: first enabled button in the context timing toolbar (typically Copy timing when preview hidden), then Storyline playhead scrub. Double `requestAnimationFrame` scheduling reuses F128 helpers.
+
+**Reason**
+
+Studio D-076 (Foundation 129) closes the keyboard gap left when F112 global Escape dismissed pin/preview without moving focus away from a stale target.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-076 for `resolveTimingPastePreviewGlobalEscapePinClearFocus` and `DirectorMarkupPanel` global Escape focus routing.
+
+**Next**
+
+- Foundation 130: candidate — validation snooze keyboard restore on selected sequence row, or paste-preview re-show focus after clipboard paste without pin.
 
 ## 2026-08-15 — Foundation 119 validation snooze bulk-snooze by group stays Studio-side
 
