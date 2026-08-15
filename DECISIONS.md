@@ -1840,7 +1840,26 @@ Studio D-036 (Foundation 89) extends F84 inline validation with remediation path
 
 **Next**
 
-- Foundation 91: TBD — candidate: keyframe segment duration editing, bulk validation fix across section, or move feel preview on rail.
+- Foundation 91: keyframe segment duration editing (see Studio D-038).
+
+## 2026-08-15 — Foundation 91 keyframe segment duration editing stays Studio-side
+
+**Decision**
+
+Per-keyframe storyline timestamp editing and optional segment duration to the next keyframe (slider/input in properties panel, monotonic re-sort, 0.1s minimum segment gap) live in Creator Studio. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-038 (Foundation 91) extends F76–F88 keyframe authoring with explicit timing controls on the shared storyline clock. Playback still samples keyframes via `markupKeyframeSampling` at `elapsedMs` — no renderer-side keyframe system is required.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-038 for `markupKeyframeTiming.ts` and `MarkupPropertiesPanel` Time / **To next** fields.
+
+**Next**
+
+- Foundation 92: TBD — candidate: bulk validation fix across section, keyframe rail markers, or move feel preview on rail.
 
 ## 2026-08-15 — Foundation 90 move type preview on rail stays Studio-side
 
@@ -1859,7 +1878,7 @@ Studio D-037 (Foundation 90) extends F85–F87 structure-level move authoring wi
 
 **Next**
 
-- Foundation 91: TBD — candidate: keyframe segment duration editing, bulk validation fix across section, or move feel preview on rail.
+- Foundation 91: keyframe segment duration editing (see Studio D-038).
 
 ## 2026-08-15 — Foundation 85 structure-level move duration editing stays Studio-side
 
