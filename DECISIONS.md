@@ -2715,6 +2715,25 @@ Studio D-090 (Foundation 143) closes the navigation gap after F142 — authors c
 
 - Foundation 144: candidate — paste-preview re-copy loop polish, or F141 inactive-section chip click-to-switch-section parity.
 
+## 2026-08-15 — Foundation 144 MarkupSequencePanel Other sections chip click-to-switch-section stays Studio-side
+
+**Decision**
+
+F141 **Other sections** snooze chips in `MarkupSequencePanel` (default Director+Markup layout) are **clickable buttons** that switch the author to the target section and its first place via F143 `resolveSnoozedSectionNavigationTarget`. Chip activation also expands the validation summary **Show snoozed** state because `DirectorMarkupPanel` surfaces the F97 summary beside the sequence table. Button semantics include `aria-label` and native keyboard activation.
+
+**Reason**
+
+Studio D-091 (Foundation 144) closes the navigation gap after F141 — authors can jump directly to a snoozed section from the default layout sequence panel and immediately see snoozed warnings expanded.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-091 for `MarkupSequencePanel` chip button wiring, `DirectorMarkupPanel` navigation handler, and show-snoozed expansion.
+
+**Next**
+
+- Foundation 145: candidate — paste-preview re-copy loop polish, or validation-summary jump from StructureTree badge when a layout exposes both surfaces.
+
 ## 2026-08-15 — Foundation 134 validation snooze keyboard snooze on selected sequence row stays Studio-side
 
 **Decision**
