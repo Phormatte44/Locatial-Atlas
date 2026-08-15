@@ -1745,7 +1745,26 @@ Studio D-027 (Foundation 80) implements INTERACTION-PRD R10 — keyframed shapes
 
 **Next**
 
-- Foundation 82: TBD — candidate: edit relative placement on existing cues, markup-cue rail selection, or keyframe geometry capture at playhead.
+- Foundation 83: TBD — candidate: keyframe geometry capture at playhead, markup motion validation UX, or structure-level move duration editing.
+
+## 2026-08-15 — Foundation 82 edit relative cue placement stays Studio-side
+
+**Decision**
+
+Editing relative placement on existing storyline cues (toggle absolute/relative, offset slider, rail re-anchor) lives in Creator Studio. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-029 (Foundation 82) extends F81 relative authoring to existing cues. Resolution still happens at merge time in Studio; Atlas has no storyline cue model.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-029 for `StorylineCueEditPlacement`, placement patch helpers, and rail anchor reassignment.
+
+**Next**
+
+- Foundation 83: TBD — candidate: keyframe geometry capture at playhead, markup motion validation UX, or structure-level move duration editing.
 
 ## 2026-08-15 — Foundation 81 relative afterItemId stays Studio-side
 
