@@ -2181,9 +2181,28 @@ Studio D-058 (Foundation 111) reduces validation noise without weakening rules �
 
 **Next**
 
-- Foundation 112: TBD — candidate: paste-preview hover persistence, paste-preview keyboard focus ring, or properties-panel snooze parity.
+- Foundation 112: paste-preview hover persistence (see Studio D-059).
 
-## 2026-08-15 — Foundation 95 keyframe drag on Storyline rail stays Studio-side
+## 2026-08-15 — Foundation 112 paste-preview hover persistence stays Studio-side
+
+**Decision**
+
+**Pin-on-click persistence** for F105/F109 paste-preview hover isolation lets authors lock one anchor ghost (first keyframe/move or playhead) while scrubbing the Storyline rail. First click on a paste button pins; second click on the same button unpins and pastes. Pin clears on Escape, successful paste, and new copy. Pinned buttons show pressed styling and a "Pinned" label. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-059 (Foundation 112) fixes hover-isolated previews resetting on pointer leave during rail scrub comparison — pin-on-click is lower scope than toolbar sticky-hover and preserves ⌘V/⇧⌘V keyboard paste.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-059 for `timingPastePreviewPinCore.ts` and `DirectorMarkupPanel` pin wiring for keyframe and move paste toolbars.
+
+**Next**
+
+- Foundation 113: TBD — candidate: paste-preview keyboard focus ring, properties-panel snooze parity, or paste-preview pin keyboard shortcut.
+
+## 2026-08-15 — Foundation 111 validation dismiss/snooze stays Studio-side
 
 **Decision**
 
