@@ -2827,7 +2827,34 @@ Studio D-097 (Foundation 150) closes the gap after F145 show-snoozed expansion �
 
 **Next**
 
-- Foundation 154: candidate — keyboard-first snooze badge activation audit, or paste-preview re-copy loop polish.
+- Foundation 155: candidate — paste-preview re-copy loop polish, or validation snooze keyboard restore on selected sequence row.
+
+## 2026-08-15 — Foundation 154 keyboard-first snooze badge activation audit stays Studio-side
+
+**Decision**
+
+F154 audits keyboard focus order for Creator Studio Structure snooze badges on **StructureSectionSnoozeHeaderRail** (default layout) and **StructureTree** (original/hybrid). Badges remain native `<button>` elements so Enter/Space activation is unchanged for navigate-only (F153) and full navigation (F152) layouts. Default-layout header rail uses **roving tabindex** (`role="toolbar"`, one badge `tabIndex={0}`, siblings `-1`) with ArrowLeft/ArrowRight between section badges. StructureTree keeps natural tab order; when a section collapses while focus is inside its place list, focus restores to the section snooze badge (preferred) or expand/collapse toggle.
+
+**Layout matrix (F154):**
+
+| Layout | Structure badges | Keyboard tab order | Arrow roving | Collapse focus restore |
+| --- | --- | --- | --- | --- |
+| Default (`WorkspaceLayoutDirectorContent`) | StructureSectionSnoozeHeaderRail | Roving tabindex (one badge) | ArrowLeft/ArrowRight on rail | N/A (rail only) |
+| Hybrid (`?layoutTest=bottom-structure`) | StructureTree | Natural per-section header | No | Badge or toggle |
+| Original (`?layoutTest=original`) | StructureTree | Natural per-section header | No | Badge or toggle |
+
+**Reason**
+
+Studio D-101 (Foundation 154) reduces tab stops on the default horizontal rail and prevents StructureTree collapse from trapping focus on hidden place rows — a11y polish only, no navigation contract changes.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-101 for `sectionSnoozeBadgeKeyboard.ts`, `StructureSectionSnoozeHeaderRail` roving toolbar, and `StructureTree` collapse focus restore.
+
+**Next**
+
+- Foundation 155: candidate — paste-preview re-copy loop polish, or validation snooze keyboard restore on selected sequence row.
 
 ## 2026-08-15 — Foundation 153 original layout navigate-only snooze badge copy audit stays Studio-side
 
@@ -2854,7 +2881,7 @@ Studio D-100 (Foundation 153) unifies navigate-only guidance copy and documents 
 
 **Next**
 
-- Foundation 154: candidate — keyboard-first snooze badge activation audit, or paste-preview re-copy loop polish.
+- Foundation 155: candidate — paste-preview re-copy loop polish, or validation snooze keyboard restore on selected sequence row.
 
 ## 2026-08-15 — Foundation 152 hybrid snooze navigation unification stays Studio-side
 
@@ -2873,7 +2900,7 @@ Studio D-099 (Foundation 152) closes the wiring gap after F151 unified default h
 
 **Next**
 
-- Foundation 154: candidate — keyboard-first snooze badge activation audit, or paste-preview re-copy loop polish.
+- Foundation 155: candidate — paste-preview re-copy loop polish, or validation snooze keyboard restore on selected sequence row.
 
 ## 2026-08-15 — Foundation 151 unified StructureTree snooze badges on default layout stays Studio-side
 
@@ -2892,7 +2919,7 @@ Studio D-098 (Foundation 151) unifies snooze badge mounting with original/hybrid
 
 **Next**
 
-- Foundation 154: candidate — keyboard-first snooze badge activation audit, or paste-preview re-copy loop polish.
+- Foundation 155: candidate — paste-preview re-copy loop polish, or validation snooze keyboard restore on selected sequence row.
 
 ## 2026-08-15 — Foundation 134 validation snooze keyboard snooze on selected sequence row stays Studio-side
 
