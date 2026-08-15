@@ -35,6 +35,13 @@ export type {
   BoundarySemanticType,
   BoundaryStyleTokens
 } from "../types/boundaryLayer";
+export type {
+  LabelGeoJsonInline,
+  LabelGeoJsonSource,
+  LabelLayerDefinition,
+  LabelSemanticType,
+  LabelStyleTokens
+} from "../types/labelLayer";
 export type { CameraTransitionEvent, CameraTransitionListener } from "../types/cameraTransition";
 export type { CameraPathFamily } from "../types/cameraTransition";
 export type { GeoHoverEvent, GeoHoverListener } from "../types/geoHover";
@@ -77,6 +84,10 @@ export interface AtlasEngineContract {
   registerBoundaryLayer(def: import("../types/boundaryLayer").BoundaryLayerDefinition): void;
   getEnabledBoundaryLayerIds(): string[];
   setBoundaryLayers(layerIds: string[]): void;
+  listLabelLayers(): import("../types/labelLayer").LabelLayerDefinition[];
+  registerLabelLayer(def: import("../types/labelLayer").LabelLayerDefinition): void;
+  getEnabledLabelLayerIds(): string[];
+  setLabelLayers(layerIds: string[]): void;
   getTransitionPathFamily(to: import("../types/place").AtlasPlace): CameraPathFamily;
   isMapReady(): boolean;
   onMapReady(listener: import("../types/mapReady").MapReadyListener): () => void;

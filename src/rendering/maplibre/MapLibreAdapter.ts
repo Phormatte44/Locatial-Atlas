@@ -1,5 +1,6 @@
 import maplibregl from "maplibre-gl";
 import type { BoundaryLayerDefinition } from "../../types/boundaryLayer";
+import type { LabelLayerDefinition } from "../../types/labelLayer";
 import type { TerrainSourceDefinition } from "../../types/terrain";
 import type { CameraState } from "../../types/camera";
 import { markupsFromMarkers } from "../../geometry/worldMarkup";
@@ -32,7 +33,13 @@ import {
   setBoundaryFeatureHighlight,
   syncBoundaryLayersOnMap
 } from "./boundarySetup";
+import {
+  queryLabelFeatureAtScreen,
+  setLabelFeatureHighlight,
+  syncLabelLayersOnMap
+} from "./labelSetup";
 import { parseBoundaryFeatureId } from "../../interaction/boundaryFeatureIds";
+import { parseLabelFeatureId } from "../../interaction/labelFeatureIds";
 
 type CameraChangeListener = (state: CameraState) => void;
 type MapReadyListener = (reason: MapReadyReason) => void;
@@ -56,7 +63,9 @@ export class MapLibreAdapter {
   private lightingSettings: LightingSettings | null = null;
   private projectionBlendListeners = new Set<ProjectionBlendListener>();
   private boundaryLayers: BoundaryLayerDefinition[] = [];
+  private labelLayers: LabelLayerDefinition[] = [];
   private highlightedBoundary: { layerId: string; featureKey: string } | null = null;
+  private highlightedLabel: { layerId: string; featureKey: string } | null = null;
 
   create(container: HTMLElement, initialCamera: CameraState, styleUrl: string): void {
     if (this.map) {
@@ -108,7 +117,9 @@ export class MapLibreAdapter {
     this.terrainEnabled = false;
     this.terrainSource = null;
     this.boundaryLayers = [];
+    this.labelLayers = [];
     this.highlightedBoundary = null;
+    this.highlightedLabel = null;
   }
 
   configureTerrain(enabled: boolean, source: TerrainSourceDefinition | null): void {
@@ -292,6 +303,53 @@ export class MapLibreAdapter {
     this.applyBoundaryHighlight(parsed);
   }
 
+  setLabelLayers(definitions: LabelLayerDefinition[]): void {
+    this.labelLayers = definitions;
+
+    if (!this.map?.loaded()) {
+      return;
+    }
+
+    syncLabelLayersOnMap(this.map, definitions);
+    this.moveThreeLayerToTop();
+    this.applyLabelHighlight(this.highlightedLabel);
+  }
+
+  getEnabledLabelLayerIds(): string[] {
+    return this.labelLayers.map((layer) => layer.id);
+  }
+
+  queryLabelFeatureAtScreen(x: number, y: number): string | null {
+    if (!this.map?.loaded()) {
+      return null;
+    }
+
+    const pick = queryLabelFeatureAtScreen(
+      this.map,
+      x,
+      y,
+      this.getEnabledLabelLayerIds()
+    );
+
+    return pick?.featureId ?? null;
+  }
+
+  highlightLabelFeature(featureId: string | null): void {
+    const parsed = featureId ? parseLabelFeatureId(featureId) : null;
+    this.applyLabelHighlight(parsed);
+  }
+
+  private applyLabelHighlight(next: { layerId: string; featureKey: string } | null): void {
+    if (!this.map?.loaded()) {
+      this.highlightedLabel = next;
+      return;
+    }
+
+    setLabelFeatureHighlight(this.map, next?.layerId ?? "", next?.featureKey ?? null, this.highlightedLabel);
+    this.highlightedLabel = next;
+    this.map.triggerRepaint();
+  }
+
   private applyBoundaryHighlight(
     next: { layerId: string; featureKey: string } | null
   ): void {
@@ -398,6 +456,11 @@ export class MapLibreAdapter {
       syncBoundaryLayersOnMap(this.map!, this.boundaryLayers);
       this.moveThreeLayerToTop();
       this.applyBoundaryHighlight(this.highlightedBoundary);
+    }
+    if (this.labelLayers.length > 0) {
+      syncLabelLayersOnMap(this.map!, this.labelLayers);
+      this.moveThreeLayerToTop();
+      this.applyLabelHighlight(this.highlightedLabel);
     }
     this.emitReady(reason);
   }

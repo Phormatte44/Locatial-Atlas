@@ -4,6 +4,7 @@ import { MapStyleSelector } from "./MapStyleSelector";
 import { TerrainSourceSelector } from "./TerrainSourceSelector";
 import { TerrainToggle } from "./TerrainToggle";
 import { BoundaryLayerToggle } from "./BoundaryLayerToggle";
+import { LabelLayerToggle } from "./LabelLayerToggle";
 import { ViewModeSelector } from "./ViewModeSelector";
 import { VisualEnvironmentControls } from "./VisualEnvironmentControls";
 
@@ -77,7 +78,7 @@ export function PlaceSelector({ engine, places }: PlaceSelectorProps) {
 
   return (
     <div style={panelStyle}>
-      <strong style={{ fontSize: 14 }}>Atlas Lab — Foundation 38</strong>
+      <strong style={{ fontSize: 14 }}>Atlas Lab — Foundation 39</strong>
       <span style={{ fontSize: 12, color: "#555" }}>
         City buttons frame the center point; area buttons frame metro bounds.
       </span>
@@ -87,6 +88,7 @@ export function PlaceSelector({ engine, places }: PlaceSelectorProps) {
       <TerrainSourceSelector engine={engine} />
       <TerrainToggle engine={engine} />
       <BoundaryLayerToggle engine={engine} />
+      <LabelLayerToggle engine={engine} />
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         <button
           type="button"

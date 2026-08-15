@@ -768,3 +768,27 @@ Studio and future products need jurisdictional overlays without hard-coded demo 
 - Polygon-only GeoJSON sources in this foundation; MultiPolygon and line boundaries deferred.
 - Multiple enabled layers re-add on every `setBoundaryLayers` call; diffing and incremental updates can follow if layer counts grow.
 - Boundary hover does not yet participate in place-id expansion (`placeHighlightIds`); explicit boundary ids only.
+
+## 2026-08-15 — Foundation 39 label layer registry
+
+**Decision**
+
+Map label layers render through a provider-agnostic registry in `src/data/labels`. Applications register `LabelLayerDefinition` entries (GeoJSON point features, semantic type, text field, style tokens) via `registerLabelLayer()` or `AtlasEngine.registerLabelLayer()`, then enable layers with `setLabelLayers(ids[])`. MapLibre symbol layers are composed in `labelSetup.ts` behind `MapLibreAdapter`; consumers never touch MapLibre source or layer ids.
+
+**Reason**
+
+Studio and future products need basemap-aligned text overlays (city names, POIs, administrative labels) without hard-coded demo geometry in `src` or direct MapLibre coupling. The registry mirrors the boundary layer pattern from Foundation 38.
+
+**Consequences**
+
+- Hover and selection extend the existing `onGeoHover` / `onGeoSelect` pipeline: world markup picks first, then registered label symbol layers, then boundary layers.
+- Label feature ids use the `label:{layerId}:{featureKey}` prefix; highlight uses MapLibre feature-state on registered GeoJSON sources.
+- Symbol text requires the active map style to define a `glyphs` URL (documented in `labelSetup.ts`; `locatial-editorial` satisfies this).
+- No built-in label layers ship in `src`; Lab registers demo city point labels at runtime.
+- Style swaps re-sync enabled label layers after the basemap reloads.
+
+**Limitations**
+
+- Point-only GeoJSON sources in this foundation; line-following labels and clustered labels deferred.
+- Default font stack assumes Noto Sans from OpenFreeMap glyphs; custom fonts require matching glyph hosting.
+- Label hover does not yet participate in place-id expansion (`placeHighlightIds`); explicit label ids only.
