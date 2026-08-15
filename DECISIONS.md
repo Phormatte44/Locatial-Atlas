@@ -2504,7 +2504,26 @@ Studio D-076 (Foundation 129) closes the keyboard gap left when F112 global Esca
 
 **Next**
 
-- Foundation 130: candidate — validation snooze keyboard restore on selected sequence row, or paste-preview re-show focus after clipboard paste without pin.
+- Foundation 130: paste-preview focus after clipboard copy without pin (see Studio D-077).
+
+## 2026-08-15 — Foundation 130 paste-preview focus after clipboard copy without pin stays Studio-side
+
+**Decision**
+
+After a **successful timing copy** (toolbar or ⌘C), when **no paste-preview pin** is active, focus routes to the **Paste timing** / **Paste move timing** button for the first anchor in the winning context (`first-keyframe` / `first-move`). F110 keyframe-over-move routing applies when both contexts are active; scheduling reuses F128 double `requestAnimationFrame`. Skip when focus is already in the timing toolbar or Storyline rail; ⌘C skips text inputs via existing shortcut guards.
+
+**Reason**
+
+Studio D-077 (Foundation 130) completes the paste-preview keyboard loop entry path after F128–F129 exit routing — keyboard users copying from map/properties panels land on paste without pointer travel.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-077 for `resolveTimingPastePreviewCopyFocus`, `scheduleFocusAfterTimingCopy`, and `DirectorMarkupPanel` copy handlers.
+
+**Next**
+
+- Foundation 131: candidate — rail ⌘C focus override or validation snooze keyboard restore on selected sequence row.
 
 ## 2026-08-15 — Foundation 119 validation snooze bulk-snooze by group stays Studio-side
 
