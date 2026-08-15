@@ -2979,7 +2979,26 @@ Studio D-109 (Foundation 162) closes the keyboard focus gap left by F155 — bul
 
 **Next**
 
-- Foundation 163: candidate — validation summary keyboard roving between group controls, or paste-preview toolbar/keyboard loop unification.
+- Foundation 163: validation summary keyboard roving between group controls (see Studio D-110).
+
+## 2026-08-15 — Foundation 163 validation summary keyboard roving between group controls stays Studio-side
+
+**Decision**
+
+F163 adds **roving tabindex** on Creator Studio validation summary bulk controls. Panel header actions (`Show snoozed`, **Snooze all warnings**, **Restore all snoozed**) and per-group toolbars (expand/collapse toggle plus bulk snooze/restore when expanded) use `role="toolbar"` with one control `tabIndex={0}` and ArrowLeft/Right/Up/Down roving. Enter/Space on native buttons unchanged. F162 programmatic focus restore syncs roving index via `onFocus`.
+
+**Reason**
+
+Studio D-110 (Foundation 163) lets keyboard authors move between summary bulk controls without tabbing every sequence row — a11y polish only, snooze behavior unchanged.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-110 for `validationSummaryControlKeyboard.ts`, `MarkupMotionValidationSummary` panel/group toolbars, and group bulk `data-locatial-validation-group-focus` selectors.
+
+**Next**
+
+- Foundation 164: candidate — paste-preview toolbar/keyboard loop unification, or validation summary sequence-row roving.
 
 ## 2026-08-15 — Foundation 154 keyboard-first snooze badge activation audit stays Studio-side
 
