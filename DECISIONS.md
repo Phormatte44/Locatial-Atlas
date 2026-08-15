@@ -2048,7 +2048,26 @@ Studio D-051 (Foundation 104) extends F102–F103 so authors see where a copied 
 
 **Next**
 
-- Foundation 105: TBD — candidate: paste-preview mode toggle, multi-move batch retime, or validation dismiss/snooze.
+- Foundation 105: paste-preview mode toggle (see Studio D-052).
+
+## 2026-08-15 — Foundation 105 paste-preview mode toggle stays Studio-side
+
+**Decision**
+
+**Paste-preview mode toggle** on the keyframe timing toolbar (Both | First | Playhead; default Both; hover/focus on paste buttons temporarily isolates one anchor; localStorage persistence; UI-layer filter over F104 preview math) lives in Creator Studio. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-052 (Foundation 105) extends F104 dual ghost previews so authors on dense rails can inspect one paste anchor at a time without changing F102/F103/F104 math.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-052 for `keyframeTimingPastePreviewMode.ts`, `KeyframeTimingPastePreviewToggle`, and `DirectorMarkupPanel` preview filtering.
+
+**Next**
+
+- Foundation 106: TBD — candidate: multi-move batch retime, validation dismiss/snooze, or paste-preview keyboard cycle.
 
 ## 2026-08-15 — Foundation 95 keyframe drag on Storyline rail stays Studio-side
 
