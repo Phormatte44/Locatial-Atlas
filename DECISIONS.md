@@ -1878,7 +1878,26 @@ Studio D-041 (Foundation 94) extends F86 feel/arc overrides and F90 type badges 
 
 **Next**
 
-- Foundation 96: TBD — candidate: validation issue summary drill-down, move duration drag on rail, or keyframe multi-select retime.
+- Foundation 96: move duration drag on rail (see Studio D-043).
+
+## 2026-08-15 — Foundation 96 move duration drag on Storyline rail stays Studio-side
+
+**Decision**
+
+Trailing-edge horizontal drag on Storyline rail move connector segments to retime structure-level move duration (0.5s step, min/max bounds, live midpoint seek preview, persist via `updateMoveDuration`) lives in Creator Studio. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-043 (Foundation 96) extends F85 Frame-panel move duration editing with on-rail drag on the shared storyline clock — same scrub/seek path as playhead and F90/F94 move preview. No renderer-side move rail or Atlas API is required.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-043 for `storylineMoveDurationDrag.ts`, draggable trailing-edge handle in `MoveItem`, and `DirectorMarkupPanel` preview/persist wiring.
+
+**Next**
+
+- Foundation 97: TBD — candidate: validation issue summary drill-down, keyframe multi-select retime, or move feel/arc drag on rail.
 
 ## 2026-08-15 — Foundation 95 keyframe drag on Storyline rail stays Studio-side
 
@@ -1897,7 +1916,7 @@ Studio D-042 (Foundation 95) extends F91–F92 keyframe timing with on-rail drag
 
 **Next**
 
-- Foundation 96: TBD — candidate: validation issue summary drill-down, move duration drag on rail, or keyframe multi-select retime.
+- Foundation 96: move duration drag on rail (see Studio D-043).
 
 ## 2026-08-15 — Foundation 93 bulk markup motion validation fix stays Studio-side
 
