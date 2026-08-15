@@ -1475,6 +1475,26 @@ Foundation 64 made ellipses first-class authored markup; authors still saw palet
 
 - Foundation 66: TBD — candidate: ellipse drag handles on map, markup motion playback on Atlas overlay, or line topology cache if profiling warrants it.
 
+## 2026-08-15 — Foundation 66 Studio ellipse drag handles on map
+
+**Decision**
+
+Ellipse on-map editing (center, axis radii, bearing) lives in Creator Studio as a screen-space overlay using Atlas public `project` / `unproject` and existing pointer events. No Atlas draw or edit API; markup geometry patches flow through existing `MarkupElement` state and `markupDraft` localStorage.
+
+**Reason**
+
+Authors need direct manipulation on the Director map. Keeping edit UX in Studio preserves Atlas as a display/pick engine and avoids coupling renderer internals into authoring.
+
+**Consequences**
+
+- Studio adds `EllipseEditOverlay` and geodesic handle math; `locational-atlas.d.ts` exposes `project()`.
+- Live edits call `setWorldMarkup` via existing markup sync; persistence unchanged.
+- Other shape types remain properties-panel or future overlays; Terra Draw path stays spatial-lab only.
+
+**Next**
+
+- Foundation 67: TBD — candidate: markup motion playback on Atlas overlay, rectangle/polygon drag handles, or line topology cache if profiling warrants it.
+
 ## 2026-08-15 — Studio transition preview uses Atlas straight and high-arc
 
 **Decision**
