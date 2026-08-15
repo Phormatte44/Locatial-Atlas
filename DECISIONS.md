@@ -2827,7 +2827,34 @@ Studio D-097 (Foundation 150) closes the gap after F145 show-snoozed expansion �
 
 **Next**
 
-- Foundation 153: candidate — paste-preview re-copy loop polish, or StructurePanel navigate-only aria/tooltip audit across layout tests.
+- Foundation 154: candidate — keyboard-first snooze badge activation audit, or paste-preview re-copy loop polish.
+
+## 2026-08-15 — Foundation 153 original layout navigate-only snooze badge copy audit stays Studio-side
+
+**Decision**
+
+The original list-row Structure shell (`?layoutTest=original`, `WorkspaceLayout`) keeps **navigate-only** StructureTree snooze badges when `DirectorMarkupPanel` / F97 validation summary is absent. F153 audits F150 copy so aria-label, tooltip (`title`), and optional click feedback share one hint: **"Switch to Markup mode to review snoozed warnings"**. Badge activation still navigates to the target section; keyboard Enter/Space on the badge button is unchanged.
+
+**Layout matrix (F153):**
+
+| Layout | Structure badges | Validation summary | `onNavigateToSnoozedSection` | Badge click behavior | Navigate-only copy |
+| --- | --- | --- | --- | --- | --- |
+| Default (`WorkspaceLayoutDirectorContent`) | StructureSectionSnoozeHeaderRail | Yes | Wired | navigate + show-snoozed + summary jump | No |
+| Hybrid (`?layoutTest=bottom-structure`) | StructureTree | Yes | Wired | navigate + show-snoozed + summary jump | No |
+| Original (`?layoutTest=original`) | StructureTree | No (`DirectorPanel`) | Omitted | navigate-only + brief inline feedback | Yes |
+
+**Reason**
+
+Studio D-100 (Foundation 153) unifies navigate-only guidance copy and documents the layout-test matrix so original-layout authors get consistent aria/tooltip/feedback without implying validation-summary jump is available beside Structure.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-100 for `NAVIGATE_ONLY_STRUCTURE_SNOOZE_MARKUP_HINT`, `StructureSnoozeNavigateOnlyFeedback`, and `layoutSnoozeNavigationMatrix.test.ts`.
+
+**Next**
+
+- Foundation 154: candidate — keyboard-first snooze badge activation audit, or paste-preview re-copy loop polish.
 
 ## 2026-08-15 — Foundation 152 hybrid snooze navigation unification stays Studio-side
 
@@ -2846,7 +2873,7 @@ Studio D-099 (Foundation 152) closes the wiring gap after F151 unified default h
 
 **Next**
 
-- Foundation 153: candidate — paste-preview re-copy loop polish, or StructurePanel navigate-only aria/tooltip audit across layout tests.
+- Foundation 154: candidate — keyboard-first snooze badge activation audit, or paste-preview re-copy loop polish.
 
 ## 2026-08-15 — Foundation 151 unified StructureTree snooze badges on default layout stays Studio-side
 
@@ -2865,7 +2892,7 @@ Studio D-098 (Foundation 151) unifies snooze badge mounting with original/hybrid
 
 **Next**
 
-- Foundation 153: candidate — paste-preview re-copy loop polish, or StructurePanel navigate-only aria/tooltip audit across layout tests.
+- Foundation 154: candidate — keyboard-first snooze badge activation audit, or paste-preview re-copy loop polish.
 
 ## 2026-08-15 — Foundation 134 validation snooze keyboard snooze on selected sequence row stays Studio-side
 
