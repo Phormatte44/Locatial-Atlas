@@ -2,6 +2,7 @@ import maplibregl from "maplibre-gl";
 import type { BoundaryLayerDefinition } from "../../types/boundaryLayer";
 import type { LabelLayerDefinition } from "../../types/labelLayer";
 import type { RoadLayerDefinition } from "../../types/roadLayer";
+import type { AreaLayerDefinition } from "../../types/areaLayer";
 import type { TerrainSourceDefinition } from "../../types/terrain";
 import type { CameraState } from "../../types/camera";
 import { markupsFromMarkers } from "../../geometry/worldMarkup";
@@ -44,9 +45,15 @@ import {
   setRoadFeatureHighlight,
   syncRoadLayersOnMap
 } from "./roadSetup";
+import {
+  queryAreaFeatureAtScreen,
+  setAreaFeatureHighlight,
+  syncAreaLayersOnMap
+} from "./areaSetup";
 import { parseBoundaryFeatureId } from "../../interaction/boundaryFeatureIds";
 import { parseLabelFeatureId } from "../../interaction/labelFeatureIds";
 import { parseRoadFeatureId } from "../../interaction/roadFeatureIds";
+import { parseAreaFeatureId } from "../../interaction/areaFeatureIds";
 
 type CameraChangeListener = (state: CameraState) => void;
 type MapReadyListener = (reason: MapReadyReason) => void;
@@ -72,9 +79,11 @@ export class MapLibreAdapter {
   private boundaryLayers: BoundaryLayerDefinition[] = [];
   private labelLayers: LabelLayerDefinition[] = [];
   private roadLayers: RoadLayerDefinition[] = [];
+  private areaLayers: AreaLayerDefinition[] = [];
   private highlightedBoundary: { layerId: string; featureKey: string } | null = null;
   private highlightedLabel: { layerId: string; featureKey: string } | null = null;
   private highlightedRoad: { layerId: string; featureKey: string } | null = null;
+  private highlightedArea: { layerId: string; featureKey: string } | null = null;
 
   create(container: HTMLElement, initialCamera: CameraState, styleUrl: string): void {
     if (this.map) {
@@ -386,6 +395,42 @@ export class MapLibreAdapter {
     this.applyRoadHighlight(parsed);
   }
 
+  setAreaLayers(definitions: AreaLayerDefinition[]): void {
+    this.areaLayers = definitions;
+
+    if (!this.map?.loaded()) {
+      return;
+    }
+
+    syncAreaLayersOnMap(this.map, definitions);
+    this.moveThreeLayerToTop();
+    this.applyAreaHighlight(this.highlightedArea);
+  }
+
+  getEnabledAreaLayerIds(): string[] {
+    return this.areaLayers.map((layer) => layer.id);
+  }
+
+  queryAreaFeatureAtScreen(x: number, y: number): string | null {
+    if (!this.map?.loaded()) {
+      return null;
+    }
+
+    const pick = queryAreaFeatureAtScreen(
+      this.map,
+      x,
+      y,
+      this.getEnabledAreaLayerIds()
+    );
+
+    return pick?.featureId ?? null;
+  }
+
+  highlightAreaFeature(featureId: string | null): void {
+    const parsed = featureId ? parseAreaFeatureId(featureId) : null;
+    this.applyAreaHighlight(parsed);
+  }
+
   private applyRoadHighlight(next: { layerId: string; featureKey: string } | null): void {
     if (!this.map?.loaded()) {
       this.highlightedRoad = next;
@@ -394,6 +439,17 @@ export class MapLibreAdapter {
 
     setRoadFeatureHighlight(this.map, next?.layerId ?? "", next?.featureKey ?? null, this.highlightedRoad);
     this.highlightedRoad = next;
+    this.map.triggerRepaint();
+  }
+
+  private applyAreaHighlight(next: { layerId: string; featureKey: string } | null): void {
+    if (!this.map?.loaded()) {
+      this.highlightedArea = next;
+      return;
+    }
+
+    setAreaFeatureHighlight(this.map, next?.layerId ?? "", next?.featureKey ?? null, this.highlightedArea);
+    this.highlightedArea = next;
     this.map.triggerRepaint();
   }
 
@@ -514,6 +570,11 @@ export class MapLibreAdapter {
       syncBoundaryLayersOnMap(this.map!, this.boundaryLayers);
       this.moveThreeLayerToTop();
       this.applyBoundaryHighlight(this.highlightedBoundary);
+    }
+    if (this.areaLayers.length > 0) {
+      syncAreaLayersOnMap(this.map!, this.areaLayers);
+      this.moveThreeLayerToTop();
+      this.applyAreaHighlight(this.highlightedArea);
     }
     if (this.labelLayers.length > 0) {
       syncLabelLayersOnMap(this.map!, this.labelLayers);

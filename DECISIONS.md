@@ -816,3 +816,28 @@ Studio and future products need route corridors, transit paths, and highway over
 - LineString and MultiLineString GeoJSON only; polygon buffers and animated paths deferred.
 - Road hover does not yet participate in place-id expansion; explicit road ids only.
 - Casing is a single pass; multi-layer cartographic casings (e.g. highway shields) deferred.
+
+## 2026-08-15 — Foundation 41 area layer registry
+
+**Decision**
+
+Area and fill layers render through a provider-agnostic registry in `src/data/areas`. Applications register `AreaLayerDefinition` entries (GeoJSON Polygon or MultiPolygon, semantic type, fill and outline style tokens) via `registerAreaLayer()` or `AtlasEngine.registerAreaLayer()`, then enable layers with `setAreaLayers(ids[])`. MapLibre fill and outline layers are composed in `areaSetup.ts` behind `MapLibreAdapter`; consumers never touch MapLibre source or layer ids.
+
+**Reason**
+
+Studio and future products need parks, zones, land-use overlays, and thematic fills without hard-coded demo geometry in `src` or direct MapLibre coupling. The registry mirrors the boundary, label, and road layer patterns from Foundations 38–40.
+
+**Consequences**
+
+- Hover and selection extend the existing `onGeoHover` / `onGeoSelect` pipeline: world markup picks first, then registered label layers, then road layers, then area layers, then boundary layers.
+- Area feature ids use the `area:{layerId}:{featureKey}` prefix; highlight uses MapLibre feature-state on registered GeoJSON sources.
+- Render stack (bottom → top): boundaries → areas → roads → labels → Three overlay. Area layers insert before the first road or label layer when present.
+- Optional `pattern` style tokens map to MapLibre `fill-pattern` when the active style exposes matching sprite images.
+- No built-in area layers ship in `src`; Lab registers London park and Dubai business zone polygons at runtime.
+- Style swaps re-sync enabled area layers after the basemap reloads.
+
+**Limitations**
+
+- Polygon and MultiPolygon GeoJSON only; extruded fills and animated patterns deferred.
+- Area hover does not yet participate in place-id expansion; explicit area ids only.
+- Fill patterns require sprite images in the active map style; no built-in pattern catalog ships in Atlas.

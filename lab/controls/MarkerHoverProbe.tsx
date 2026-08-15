@@ -27,6 +27,19 @@ function describeFeatureId(featureId: string | null): string {
     return "none";
   }
 
+  if (featureId.startsWith("area:")) {
+    const parts = featureId.split(":");
+    const layerId = parts[1];
+    const featureKey = parts[2];
+    if (layerId === "lab-london-park" || featureKey === "london-park") {
+      return "London park area";
+    }
+    if (layerId === "lab-dubai-zone" || featureKey === "dubai-zone") {
+      return "Dubai business zone";
+    }
+    return featureKey ?? layerId ?? featureId;
+  }
+
   if (featureId.startsWith("road:")) {
     const parts = featureId.split(":");
     const layerId = parts[1];
@@ -228,7 +241,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
 
   return (
     <div style={readoutStyle}>
-      <div>Foundation 40 — road layer registry</div>
+      <div>Foundation 41 — area layer registry</div>
       <div>
         View: {viewMode}
         {viewMode === "globe" || viewModeBlend !== "settled"
