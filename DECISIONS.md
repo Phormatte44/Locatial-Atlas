@@ -2561,9 +2561,28 @@ Studio D-081 (Foundation 134) closes the symmetric keyboard gap to F133 — auth
 
 **Next**
 
-- Foundation 135: candidate — validation snooze keyboard toggle (snooze visible / restore snoozed) on selected row, or paste-preview re-copy loop polish.
+- Foundation 135: validation snooze keyboard toggle on selected sequence row (see Studio D-082).
 
-## 2026-08-15 — Foundation 133 validation snooze keyboard restore on selected sequence row stays Studio-side
+## 2026-08-15 — Foundation 135 validation snooze keyboard toggle on selected sequence row stays Studio-side
+
+**Decision**
+
+When a markup element is **selected** in Build Order / Motion Sequence, **⌥⌘W** toggles validation snooze state: snooze all visible snoozeable warnings when any exist (same as F134 **⌥⌘S**), else restore all snoozed warnings when any exist (same as F133 **⌥⌘R**), else silent no-op. Brief inline feedback reuses **Snoozed N warnings** / **Restored N warnings** labels. F123 sequence-row badge tooltips document ⌥⌘S, ⌥⌘R, and ⌥⌘W. **⌥⌘S** and **⌥⌘R** remain available.
+
+**Reason**
+
+Studio D-082 (Foundation 135) closes the snooze/restore keyboard loop with one toggle chord while preserving explicit S/R shortcuts for authors who prefer directional control.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-082 for `resolveValidationSnoozeToggleAction`, `resolveValidationSnoozeToggleShortcut`, `countSnoozedIssuesForElement`, and `DirectorMarkupPanel` ⌥⌘W wiring.
+
+**Next**
+
+- Foundation 136: candidate — validation snooze expiry countdown on sequence-row badge, or paste-preview re-copy loop polish.
+
+## 2026-08-15 — Foundation 134 validation snooze keyboard snooze on selected sequence row stays Studio-side
 
 **Decision**
 
