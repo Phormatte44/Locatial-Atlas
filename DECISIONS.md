@@ -1859,7 +1859,26 @@ Studio D-038 (Foundation 91) extends F76–F88 keyframe authoring with explicit 
 
 **Next**
 
-- Foundation 92: TBD — candidate: bulk validation fix across section, keyframe rail markers, or move feel preview on rail.
+- Foundation 93: TBD — candidate: bulk validation fix across section, move feel preview on rail, or keyframe drag on rail.
+
+## 2026-08-15 — Foundation 92 keyframe rail markers stay Studio-side
+
+**Decision**
+
+Diamond keyframe markers on the section Storyline rail (selected markup element only), click-to-seek via shared `useMarkupMotionPlayback`, and properties-panel row highlight live in Creator Studio. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-039 (Foundation 92) extends F91 keyframe timing with spatial markers on the shared storyline clock — same scrub/seek path as playhead and cue chips. No renderer-side keyframe rail or Atlas draw API is required.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-039 for `storylineKeyframeMarkers.ts`, `StorylineKeyframeMarkers`, and `DirectorMarkupPanel` seek/highlight wiring.
+
+**Next**
+
+- Foundation 93: TBD — candidate: bulk validation fix across section, move feel preview on rail, or keyframe drag on rail.
 
 ## 2026-08-15 — Foundation 90 move type preview on rail stays Studio-side
 
