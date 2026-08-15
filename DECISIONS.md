@@ -2067,7 +2067,26 @@ Studio D-052 (Foundation 105) extends F104 dual ghost previews so authors on den
 
 **Next**
 
-- Foundation 106: TBD — candidate: multi-move batch retime, validation dismiss/snooze, or paste-preview keyboard cycle.
+- Foundation 106: paste-preview keyboard cycle (see Studio D-053).
+
+## 2026-08-15 — Foundation 106 paste-preview keyboard cycle stays Studio-side
+
+**Decision**
+
+**⌥⌘P keyboard cycle** for F105 paste-preview mode (Both → First → Playhead → Both; active when timing clipboard or F104 ghosts are visible; inline feedback; editable-target guard; no change to ⌘C/⌘V/⇧⌘V) lives in Creator Studio. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-053 (Foundation 106) extends F105 so authors cycle preview anchors from the keyboard during dense retime sessions without leaving the Storyline rail.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-053 for `cycleKeyframeTimingPastePreviewMode`, `resolveKeyframeTimingPastePreviewCycleShortcut`, and `DirectorMarkupPanel` cycle wiring.
+
+**Next**
+
+- Foundation 107: TBD — candidate: multi-move batch retime, validation dismiss/snooze, or paste-preview hover persistence.
 
 ## 2026-08-15 — Foundation 95 keyframe drag on Storyline rail stays Studio-side
 
