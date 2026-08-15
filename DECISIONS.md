@@ -1690,6 +1690,25 @@ Studio D-024 (Foundation 77) adds authored `focus-cue` StorylineItems (FOCUS-001
 
 - Foundation 78: TBD — candidate: title-cue rail items or focus-cue end/duration editing.
 
+## 2026-08-15 — Foundation 78 title card overlay stays Studio-side
+
+**Decision**
+
+Title-cue on-screen text cards during storyline scrub/playback are rendered in Creator Studio as a DOM overlay on the map panel (`TitleCardOverlay`). Title cues are not map-anchored — Studio owns cue timing, typography layout, and position (top/center/bottom). No Atlas engine draw API or timeline hook.
+
+**Reason**
+
+Studio D-025 (Foundation 78) adds authored `title-cue` StorylineItems with optional subtitle and viewport position. Title cards are a rendering-layer concern per INTERACTION-PRD R8 — distinct from focus spotlight and Atlas markup.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-025 for `storylineDraft`, `titleCuePlayback`, and rail authoring.
+
+**Next**
+
+- Foundation 79: TBD — candidate: title-cue duration editing, keyframe vs Terra Draw conflict UX, or relative storyline authoring.
+
 ## 2026-08-15 — Foundation 74 camera transition sampling on public API
 
 **Decision**
