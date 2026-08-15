@@ -1954,7 +1954,26 @@ Studio D-046 (Foundation 99) completes F86–F96 structure-level move authoring 
 
 **Next**
 
-- Foundation 100: TBD — candidate: validation summary autofix shortcuts per group, keyframe copy/paste timing, or move type/style on-rail drag.
+- Foundation 100: move type/style on-rail drag (see Studio D-047).
+
+## 2026-08-15 — Foundation 100 move type/style drag on Storyline rail stays Studio-side
+
+**Decision**
+
+On-rail horizontal drag on Storyline move transition-type badges to cycle discrete types (CUT / 3 STEP / GLIDE / ARC) — style encoded in transition type enum, live midpoint seek preview with draft overrides, persist via `updateMoveTransitionType` — lives in Creator Studio. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-047 (Foundation 100) completes F85–F99 structure-level move authoring with on-rail transition-type adjustment on the shared storyline clock — same scrub/seek path as F90 badges, F96 duration drag, and F99 feel/arc drag. No renderer-side move rail or Atlas API is required.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-047 for `storylineMoveTypeStyleDrag.ts`, draggable type badge in `MoveItem`, and `DirectorMarkupPanel` draft/preview/persist wiring.
+
+**Next**
+
+- Foundation 101: TBD — candidate: validation summary autofix shortcuts per group, keyframe copy/paste timing, or multi-move batch retime.
 
 ## 2026-08-15 — Foundation 95 keyframe drag on Storyline rail stays Studio-side
 
