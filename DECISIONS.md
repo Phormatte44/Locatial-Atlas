@@ -2428,7 +2428,26 @@ Studio D-072 (Foundation 125) completes the F112–F124 paste-preview pin keyboa
 
 **Next**
 
-- Foundation 126: candidate — validation snooze keyboard restore on selected sequence row, or paste-preview ghost arrow-key anchor switch while pinned.
+- Foundation 126: paste-preview ghost arrow-key anchor switch while pinned (see Studio D-073).
+
+## 2026-08-15 — Foundation 126 paste-preview ghost arrow-key anchor switch while pinned stays Studio-side
+
+**Decision**
+
+When a **pinned paste-preview ghost** is keyboard-focused (F124) and pin is active in the winning context, **Left/Right arrow** toggles the pinned anchor between **first keyframe/move** and **playhead** — mirroring F112 switch-pin without toolbar or **⌥⌘L**. Updates pin state, toolbar, F113 rings, F115 tooltips, and refocuses the first ghost of the new anchor. Inline feedback reuses F114 (`Pinned: playhead` / `Pinned: first keyframe`). Handled arrows call **preventDefault**; text inputs and modified keys are skipped.
+
+**Reason**
+
+Studio D-073 (Foundation 126) completes keyboard-only anchor comparison during paste-preview pin — authors can Tab → arrow switch → Enter paste without leaving the rail.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-073 for `timingPastePreviewGhostAnchorSwitchShortcut`, `DirectorMarkupPanel` arrow handler, and updated ghost aria-label.
+
+**Next**
+
+- Foundation 127: candidate — validation snooze keyboard restore on selected sequence row, or paste-preview ghost Escape-to-unpin while focused.
 
 ## 2026-08-15 — Foundation 119 validation snooze bulk-snooze by group stays Studio-side
 
