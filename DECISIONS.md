@@ -1593,7 +1593,26 @@ F66–F69 established ellipse and area overlay patterns. Authors need the same d
 
 **Next**
 
-- Foundation 72: TBD — candidate: storyline cue integration, motion validation UX, or label/callout placement handles.
+- Foundation 73: TBD — candidate: StorylinePlayhead scrub/seek, markup-cue rail items, or motion validation UX.
+
+## 2026-08-15 — Foundation 72 Studio storyline cue integration for markup motion (doc-only)
+
+**Decision**
+
+Creator Studio binds markup motion `On cue` starts to section storyline anchors via `MarkupElement.motion.startCueId`. Timeline resolution and preview playback live entirely in Studio (`markupCueModel.ts`, `markupMotionPlayback.ts`, `useMarkupMotionPlayback`). Atlas public API is unchanged — preview continues to drive `setWorldMarkup` + `highlightFeature` only.
+
+**Reason**
+
+F67–F68 established motion preview and persisted specs on Studio markup drafts. F72 is the first slice of CUE-004 storyline integration: absolute cue timing from place/move anchors before full playhead and markup-cue rail authoring.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-019 for the cue binding contract and persistence model.
+
+**Next**
+
+- Foundation 73: TBD — candidate: StorylinePlayhead scrub/seek wired to markup motion seek, or markup-cue rail items.
 
 ## 2026-08-15 — Studio transition preview uses Atlas straight and high-arc
 
