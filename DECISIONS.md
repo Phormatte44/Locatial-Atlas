@@ -2295,9 +2295,28 @@ Studio D-064 (Foundation 117) gives authors temporal context for when snoozed va
 
 **Next**
 
-- Foundation 118: candidate — paste-preview keyboard focus ring on pinned ghosts, or validation snooze bulk-restore by group.
+- Foundation 119: candidate — paste-preview keyboard focus ring on pinned ghosts, or validation snooze bulk-snooze by group.
 
-## 2026-08-15 — Foundation 111 validation dismiss/snooze stays Studio-side
+## 2026-08-15 — Foundation 118 validation snooze bulk-restore by group stays Studio-side
+
+**Decision**
+
+When **Show snoozed** is expanded in the F97 validation summary, warning groups with two or more snoozed shapes show **Restore all in group (N)** in the group header. One click restores every snoozed fingerprint in that issue-type group via the F111 localStorage store. Single-snoozed groups keep per-row Restore only.
+
+**Reason**
+
+Studio D-065 (Foundation 118) reduces click cost after broad snooze passes without changing snooze rules, duration, or Atlas rendering.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-065 for `filterSnoozedIssuesInGroup`, `unsnoozeValidationIssuesInGroup`, `restoreIssuesForGroup`, and `MarkupMotionValidationSummary` bulk-restore wiring.
+
+**Next**
+
+- Foundation 119: candidate — paste-preview keyboard focus ring on pinned ghosts, or validation snooze bulk-snooze by group.
+
+## 2026-08-15 — Foundation 117 validation snooze expiry indicator stays Studio-side
 
 **Decision**
 
