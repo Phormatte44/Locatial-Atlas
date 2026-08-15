@@ -1358,6 +1358,32 @@ Foundation 58 fixed geodesic circles on the globe but place-area overlays often 
 
 - Foundation 60: TBD — candidate: overlay geometry simplification (Douglas–Peucker), spatial vertex cache during projection blend, or Studio area-authoring integration for ellipses.
 
+## 2026-08-15 — Foundation 60 Douglas–Peucker simplification + projection-blend vertex cache
+
+**Decision**
+
+Overlay geometry for lines, polygon rings, and geodesic circle/ellipse rings runs Douglas–Peucker simplification in local meter space (default 5 m tolerance) before the existing vertex caps (512 lines / 256 rings). `ThreeOverlayAdapter` caches per-markup mercator-local and globe-local vertex endpoints in `MarkupVertexCache`; during projection blend it lerps cached endpoints by globeness instead of resampling geodesic rings or calling `getMatrixForModel` per vertex each frame. Circle pick/hit testing uses the same sampled geodesic ring polygon test as ellipses.
+
+**Reason**
+
+Foundation 57–59 recomputed full geodesic rings and per-vertex globe matrices on every projection-blend frame. Dense authored paths lost detail to uniform decimation, and circle picks used a mercator radius disc that misaligned on the globe.
+
+**Consequences**
+
+- `douglasPeuckerGeoRing`, `DOUGLAS_PEUCKER_TOLERANCE_METERS`, `MarkupVertexCache`, and `CAMERA_SIGNATURE_THRESHOLDS` export from `src/index.ts`.
+- `ThreeOverlayAdapter` invalidates globe vertex cache on markup change (`clear()`), view-mode settle (projection blend ends or `setViewMode`), and significant camera move (center > 0.01°, zoom > 0.1, bearing/pitch > 1°). Mercator endpoints persist across globe invalidation.
+- Lab labels read Foundation 60.
+
+**Limitations**
+
+- Polygon/circle/ellipse fills still rebuild `ShapeGeometry` each blend frame from lerped outlines (triangulation cost remains; ring sampling and matrix work are cached).
+- Douglas–Peucker uses local ENU meters from the ring’s first vertex, not geodesic cross-track distance.
+- Globe endpoint vertices are sampled at the current map transform when the cache is built, not a forced projection-offscreen globe matrix.
+
+**Next**
+
+- Foundation 61: TBD — candidate: earcut-stable fill mesh with in-place position updates during blend, Studio ellipse area-authoring integration, or overlay spatial index for pick performance.
+
 ## 2026-08-15 — Studio transition preview uses Atlas straight and high-arc
 
 **Decision**

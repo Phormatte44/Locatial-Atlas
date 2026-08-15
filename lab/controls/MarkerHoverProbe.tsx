@@ -350,7 +350,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
 
   return (
     <div style={readoutStyle}>
-      <div>Foundation 59 — ellipse globe geometry</div>
+      <div>Foundation 60 — DP simplification + vertex cache</div>
       <div>
         View: {viewMode}
         {viewMode === "globe" || viewModeBlend !== "settled"

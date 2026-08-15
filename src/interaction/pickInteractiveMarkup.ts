@@ -1,6 +1,7 @@
 import { measureLabelSpriteMeters } from "../geometry/labelMarkup";
 import type { ProjectGeoFn, ScreenPoint } from "../types/projection";
 import type { GeoRing, WorldCircleMarkup, WorldEllipseMarkup, WorldLabelMarkup, WorldMarkup } from "../types/worldMarkup";
+import { sampleGeodesicCircleRing } from "../geometry/circleMarkup";
 import { sampleGeodesicEllipseRing } from "../geometry/ellipseMarkup";
 
 const DEFAULT_POINT_PICK_RADIUS_PX = 36;
@@ -131,30 +132,22 @@ function pickCircleCandidate(
   screenY: number,
   project: ProjectGeoFn
 ): PickCandidate | null {
+  const ring = sampleGeodesicCircleRing(markup.lng, markup.lat, markup.radiusMeters);
+
+  if (!isPointInScreenPolygon(screenX, screenY, ring, project)) {
+    return null;
+  }
+
   const altitudeMeters = markup.altitudeMeters ?? 0;
   const center = project(markup.lng, markup.lat, altitudeMeters);
   if (!center) {
     return null;
   }
 
-  const east = offsetMetersToLngLat(markup.lng, markup.lat, markup.radiusMeters, 0);
-  const eastProjected = project(east.lng, east.lat, altitudeMeters);
-  if (!eastProjected) {
-    return null;
-  }
-
-  const radiusPx = Math.abs(eastProjected.x - center.x);
-  const radiusSquared = radiusPx * radiusPx;
-  const distanceSquaredToCenter = distanceSquared(screenX, screenY, center.x, center.y);
-
-  if (distanceSquaredToCenter > radiusSquared) {
-    return null;
-  }
-
   return {
     id: markup.id,
     priority: PICK_PRIORITY.circle,
-    distanceSquared: distanceSquaredToCenter
+    distanceSquared: distanceSquared(screenX, screenY, center.x, center.y)
   };
 }
 

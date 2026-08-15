@@ -42,10 +42,17 @@ export {
   createGlobeAwareEllipseShapeGeometry,
   createGlobeAwareLineGeometry,
   createGlobeAwarePolygonShapeGeometry,
+  DOUGLAS_PEUCKER_TOLERANCE_METERS,
+  douglasPeuckerGeoRing,
   MAX_LINE_VERTICES,
   MAX_POLYGON_VERTICES,
   simplifyGeoRing
 } from "./geometry/globeMarkupGeometry";
+export {
+  CAMERA_SIGNATURE_THRESHOLDS,
+  MarkupVertexCache,
+  type MarkupVertexCacheEntry
+} from "./geometry/markupVertexCache";
 export { markupsFromMarkers, sphereMarkupFromMarker } from "./geometry/worldMarkup";
 export {
   DEFAULT_MAP_STYLE_ID,

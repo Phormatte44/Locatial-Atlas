@@ -1,13 +1,20 @@
 import type { CustomLayerInterface, CustomRenderMethodInput, Map as MapLibreMap } from "maplibre-gl";
 import * as THREE from "three";
 import {
-  applyMarkupLocalVertices,
+  applyLocalVertexPositions,
   createGlobeAwareCircleShapeGeometry,
   createGlobeAwareEllipseShapeGeometry,
   createGlobeAwareLineGeometry,
   createGlobeAwarePolygonShapeGeometry,
-  lineLegibilityForGlobeness
+  lineLegibilityForGlobeness,
+  shapeFromLocalPositions
 } from "../../geometry/globeMarkupGeometry";
+import {
+  hasSignificantCameraMove,
+  MarkupVertexCache,
+  readCameraSignature,
+  type CameraSignature
+} from "../../geometry/markupVertexCache";
 import type { WorldMarkup } from "../../types/worldMarkup";
 import { createLabelSprite, disposeLabelObject, createLabelPlaneMesh, applyLabelOpacity } from "./labelSprites";
 import { createOverlayMatrixForMarkup } from "../../world/overlayModelMatrix";
@@ -77,12 +84,19 @@ interface MarkupEntry {
   labelUsesTangent?: boolean;
   labelHighlighted?: boolean;
   linePolygonGlobeness?: number;
+  cachedVertexCount?: number;
 }
 
 function isGlobeAwareGeometryKind(
   kind: WorldMarkup["kind"]
 ): kind is "line" | "polygon" | "circle" | "ellipse" {
   return kind === "line" || kind === "polygon" || kind === "circle" || kind === "ellipse";
+}
+
+function isGlobeAwareMarkup(
+  markup: WorldMarkup
+): markup is Extract<WorldMarkup, { kind: "line" | "polygon" | "circle" | "ellipse" }> {
+  return isGlobeAwareGeometryKind(markup.kind);
 }
 
 export class ThreeOverlayAdapter {
@@ -98,6 +112,9 @@ export class ThreeOverlayAdapter {
   private lightingSettings: LightingSettings = DEFAULT_LIGHTING_SETTINGS;
   private readonly lightingRig = new OverlayLightingRig();
   private litScene: THREE.Scene | null = null;
+  private readonly vertexCache = new MarkupVertexCache();
+  private lastCameraSignature: CameraSignature | null = null;
+  private projectionBlendWasActive = false;
 
   getLayer(): CustomLayerInterface {
     return {
@@ -152,6 +169,7 @@ export class ThreeOverlayAdapter {
     }
 
     this.viewMode = mode;
+    this.vertexCache.invalidateGlobe();
     this.map?.triggerRepaint();
   }
 
@@ -231,8 +249,12 @@ export class ThreeOverlayAdapter {
 
     this.projectionTransition = options.defaultProjectionData.projectionTransition;
 
-    if (isProjectionBlendActive(this.projectionTransition)) {
-      this.refreshMarkupMatrices();
+    const globeInvalidated = this.syncVertexCacheInvalidation();
+
+    if (isProjectionBlendActive(this.projectionTransition) || globeInvalidated) {
+      if (isProjectionBlendActive(this.projectionTransition)) {
+        this.refreshMarkupMatrices();
+      }
       this.refreshGlobeAwareGeometry();
     }
 
@@ -271,6 +293,8 @@ export class ThreeOverlayAdapter {
   }
 
   private rebuildMarkups(): void {
+    this.vertexCache.clear();
+    this.lastCameraSignature = null;
     this.disposeMarkups();
 
     if (this.litScene) {
@@ -512,9 +536,33 @@ export class ThreeOverlayAdapter {
     }
   }
 
+  private syncVertexCacheInvalidation(): boolean {
+    if (!this.map) {
+      return false;
+    }
+
+    const cameraSignature = readCameraSignature(this.map);
+    const blendActive = isProjectionBlendActive(this.projectionTransition);
+    let globeInvalidated = false;
+
+    if (hasSignificantCameraMove(this.lastCameraSignature, cameraSignature)) {
+      this.vertexCache.invalidateGlobe();
+      globeInvalidated = true;
+    }
+
+    if (this.projectionBlendWasActive && !blendActive) {
+      this.vertexCache.invalidateGlobe();
+      globeInvalidated = true;
+    }
+
+    this.lastCameraSignature = cameraSignature;
+    this.projectionBlendWasActive = blendActive;
+    return globeInvalidated;
+  }
+
   private syncGlobeAwareGeometry(entry: MarkupEntry): void {
     const markup = this.markups.find((candidate) => candidate.id === entry.id);
-    if (!markup || !isGlobeAwareGeometryKind(markup.kind)) {
+    if (!markup || !isGlobeAwareMarkup(markup)) {
       return;
     }
 
@@ -531,15 +579,16 @@ export class ThreeOverlayAdapter {
 
     entry.linePolygonGlobeness = globeness;
 
+    const cacheEntry = this.vertexCache.ensureEntry(markup, this.map, altitudeMeters);
+    if (!cacheEntry) {
+      return;
+    }
+
+    const positions = new Float32Array(cacheEntry.vertexCount * 3);
+    this.vertexCache.applyBlendedVertices(positions, cacheEntry, globeness);
+
     if (markup.kind === "line" && entry.object instanceof THREE.Line) {
-      applyMarkupLocalVertices(
-        entry.object.geometry,
-        markup.path,
-        markup.lng,
-        markup.lat,
-        altitudeMeters,
-        context
-      );
+      applyLocalVertexPositions(entry.object.geometry, positions);
 
       const material = getTintableMarkupMaterial(entry.object);
       if (material) {
@@ -554,48 +603,12 @@ export class ThreeOverlayAdapter {
       return;
     }
 
-    if (markup.kind === "polygon" && entry.object instanceof THREE.Mesh) {
-      const nextGeometry = createGlobeAwarePolygonShapeGeometry(
-        markup.ring,
-        markup.lng,
-        markup.lat,
-        altitudeMeters,
-        context
-      );
+    if (entry.object instanceof THREE.Mesh) {
+      const shape = shapeFromLocalPositions(positions, cacheEntry.vertexCount);
+      const nextGeometry = new THREE.ShapeGeometry(shape);
       entry.object.geometry.dispose();
       entry.object.geometry = nextGeometry;
-      return;
-    }
-
-    if (markup.kind === "circle" && entry.object instanceof THREE.Mesh) {
-      const nextGeometry = createGlobeAwareCircleShapeGeometry(
-        markup.lng,
-        markup.lat,
-        markup.radiusMeters,
-        markup.lng,
-        markup.lat,
-        altitudeMeters,
-        context
-      );
-      entry.object.geometry.dispose();
-      entry.object.geometry = nextGeometry;
-      return;
-    }
-
-    if (markup.kind === "ellipse" && entry.object instanceof THREE.Mesh) {
-      const nextGeometry = createGlobeAwareEllipseShapeGeometry(
-        markup.lng,
-        markup.lat,
-        markup.radiusXMeters,
-        markup.radiusYMeters,
-        markup.bearingDegrees ?? 0,
-        markup.lng,
-        markup.lat,
-        altitudeMeters,
-        context
-      );
-      entry.object.geometry.dispose();
-      entry.object.geometry = nextGeometry;
+      entry.cachedVertexCount = cacheEntry.vertexCount;
     }
   }
 
