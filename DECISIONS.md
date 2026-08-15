@@ -1553,7 +1553,27 @@ F66 established the ellipse overlay pattern. Authors need the same direct manipu
 
 **Next**
 
-- Foundation 71: TBD — candidate: storyline cue integration, motion validation UX, or circle radius drag handles.
+- Foundation 72: TBD — candidate: storyline cue integration, motion validation UX, or label/callout placement handles.
+
+## 2026-08-15 — Foundation 71 Studio circle radius drag handles on map
+
+**Decision**
+
+Circle on-map editing (center move and geodesic radius resize) lives in Creator Studio as a screen-space overlay using Atlas public `project` / `unproject`. No Atlas draw or edit API; geometry patches flow through existing `MarkupElement.points` / `radiusMeters` state and `markupDraft` localStorage.
+
+**Reason**
+
+F66–F70 established ellipse, area, and line overlay patterns. Authors need the same direct manipulation for circles without coupling Terra Draw or renderer internals into Director.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Studio adds `CircleEditOverlay` and `circleHandleGeometry.ts`; mirrors F66 ellipse overlay pattern with center + radius handles on the geodesic ring.
+- Radius drag uses haversine distance from center; ring preview uses `sampleGeodesicCircleRing`.
+
+**Next**
+
+- Foundation 72: TBD — candidate: storyline cue integration, motion validation UX, or label/callout placement handles.
 
 ## 2026-08-15 — Foundation 70 Studio line/route vertex drag handles on map
 
@@ -1573,7 +1593,7 @@ F66–F69 established ellipse and area overlay patterns. Authors need the same d
 
 **Next**
 
-- Foundation 71: TBD — candidate: storyline cue integration, motion validation UX, or circle radius drag handles.
+- Foundation 72: TBD — candidate: storyline cue integration, motion validation UX, or label/callout placement handles.
 
 ## 2026-08-15 — Studio transition preview uses Atlas straight and high-arc
 
