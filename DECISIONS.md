@@ -1802,7 +1802,7 @@ Studio D-034 (Foundation 87) extends F85–F86 structure-level move authoring wi
 
 **Next**
 
-- Foundation 89: TBD — candidate: validation auto-fix actions, move type preview on rail, or keyframe segment duration editing.
+- Foundation 90: TBD — candidate: move type preview on rail, keyframe segment duration editing, or bulk validation fix across section.
 
 ## 2026-08-15 — Foundation 88 keyframe easing curves stay Studio-side
 
@@ -1821,7 +1821,26 @@ Studio D-035 (Foundation 88) extends F76–F83 keyframe authoring with editorial
 
 **Next**
 
-- Foundation 89: TBD — candidate: validation auto-fix actions, move type preview on rail, or keyframe segment duration editing.
+- Foundation 90: TBD — candidate: move type preview on rail, keyframe segment duration editing, or bulk validation fix across section.
+
+## 2026-08-15 — Foundation 89 markup motion validation auto-fix stays Studio-side
+
+**Decision**
+
+One-click fix actions for F84 markup motion validation warnings (merge overlapping keyframes, clear draw-on vs Draw conflict, remove mismatched geometry keyframes, add show cue) live in Creator Studio. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-036 (Foundation 89) extends F84 inline validation with remediation paths that apply element patches or storyline cues without changing playback merge order or Atlas rendering.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-036 for `markupMotionValidationAutofix.ts`, `MarkupMotionValidationWarnings`, and `DirectorMarkupPanel` apply handlers.
+
+**Next**
+
+- Foundation 90: TBD — candidate: move type preview on rail, keyframe segment duration editing, or bulk validation fix across section.
 
 ## 2026-08-15 — Foundation 85 structure-level move duration editing stays Studio-side
 
