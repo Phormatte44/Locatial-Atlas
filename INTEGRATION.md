@@ -211,6 +211,12 @@ await engine.framePlace(place, { pathFamily: "straight", durationMs: 6400 });
 
 Highlight applies an emissive tint on the picked mesh; it does not cross the public API with Three.js types.
 
+## Place-area ellipses (world markup)
+
+For geodesic place-area authoring, build `WorldEllipseMarkup` with `ellipseMarkupFromCenter(id, lng, lat, radiusXMeters, radiusYMeters, bearingDegrees?)` and push it through `engine.setWorldMarkup([...])` alongside labels, circles, and other markup. Atlas samples the ellipse ring geodesically (turf `destination` on a rotated ENU loop) and renders it on the ground plane with the same hover/select pipeline as circles and polygons (pick priority 2, spatial index from Foundation 62).
+
+Studio pattern: derive one ellipse per place from the Director place index (bounds → axis radii when available, otherwise demo defaults), toggle against legacy rectangle/polygon markup in the Frame tab, and keep markup ids stable (`place-area:{placeId}`) so `onGeoHover` / `onGeoSelect` highlight and selection work without Studio importing renderer internals.
+
 #### Async mesh-feature picks
 
 When `EXT_mesh_features` stores feature ids in textures, the first sync raycast may return a provisional key (batch id or mesh uuid). Atlas queues `MeshFeatures.getFeaturesAsync` for that hit and re-emits `onGeoHover` / `onGeoSelect` when the semantic `mf:{id}@{objectUuid}` key resolves. Hover highlight upgrades with the resolved id.
