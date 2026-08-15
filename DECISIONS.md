@@ -2738,7 +2738,7 @@ Studio D-091 (Foundation 144) closes the navigation gap after F141 — authors c
 
 **Decision**
 
-When a Creator Studio shell exposes **both** StructureTree section-header snooze badges (F142/F143) **and** the F97 validation summary via `DirectorMarkupPanel`, badge clicks also expand **Show snoozed** — matching F144 chip behavior. `?layoutTest=bottom-structure` is the hybrid prototype. `?layoutTest=original` and the default Director+SceneRail shell keep navigate-only badge behavior (no markup validation summary beside Structure).
+When a Creator Studio shell exposes **both** StructureTree section-header snooze badges (F142/F143) **and** the F97 validation summary via `DirectorMarkupPanel`, badge clicks also expand **Show snoozed** — matching F144 chip behavior. `?layoutTest=bottom-structure` is the hybrid prototype. `?layoutTest=original` keeps navigate-only badge behavior (no markup validation summary beside Structure). The default Director+SceneRail shell uses F147 SceneRail badges + F144 chips, both expanding show-snoozed.
 
 **Reason**
 
@@ -2771,6 +2771,25 @@ Studio D-093 (Foundation 146) lifts duplicated React draft state so default Scen
 **Next**
 
 - Foundation 147: candidate — default layout exposing StructureTree badges + validation summary on unified draft, or paste-preview re-copy loop polish.
+
+## 2026-08-15 — Foundation 147 SceneRail section snooze badges in default layout stays Studio-side
+
+**Decision**
+
+The default Creator Studio shell (`WorkspaceLayoutDirectorContent`) shows **StructureTree-style section snooze badges** on the SceneRail filmstrip — one muted badge on the first place card per section when that section has snoozed validation warnings. Badge clicks use `navigateToSectionSnooze` with **Show snoozed** expansion (matching F144 chips) because `DirectorMarkupPanel` surfaces the F97 validation summary. F144 **Other sections** chips in `MarkupSequencePanel` remain as a complementary inactive-section rollup beside the sequence table.
+
+**Reason**
+
+Studio D-094 (Foundation 147) closes the gap after F146 unified draft — default authors get section snooze awareness on the structure filmstrip without `?layoutTest=bottom-structure`, while markup authors keep F144 chips unchanged.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-094 for `SceneRail` badge wiring, `isFirstSceneInSection`, `useCrossSectionSnoozeSummaries`, and default-layout navigation tests.
+
+**Next**
+
+- Foundation 148: candidate — paste-preview re-copy loop polish, or consolidate duplicate snooze surfaces if author testing shows redundancy.
 
 ## 2026-08-15 — Foundation 134 validation snooze keyboard snooze on selected sequence row stays Studio-side
 
