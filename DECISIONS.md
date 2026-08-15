@@ -2162,7 +2162,26 @@ Studio D-057 (Foundation 110) removes near-duplicate toggle UI and keyboard rout
 
 **Next**
 
-- Foundation 111: TBD — candidate: validation dismiss/snooze, paste-preview hover persistence, or paste-preview keyboard focus ring.
+- Foundation 111: validation dismiss/snooze for markup motion issues (see Studio D-058).
+
+## 2026-08-15 — Foundation 111 validation dismiss/snooze stays Studio-side
+
+**Decision**
+
+**Validation dismiss/snooze** for markup motion warnings lets authors suppress acknowledged F84 issues for 24 hours during iterative timing edits. Snooze keys match the validation issue fingerprint; snoozed warnings are excluded from F97 summary counts and F93/F101 autofix scopes. Info-only preview divergence is not snoozeable. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-058 (Foundation 111) reduces validation noise without weakening rules — timed localStorage snooze with restore and expiry, not silent deletion.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-058 for `markupMotionValidationSnooze.ts`, `useMarkupValidationSnooze`, and `MarkupMotionValidationSummary` snooze controls.
+
+**Next**
+
+- Foundation 112: TBD — candidate: paste-preview hover persistence, paste-preview keyboard focus ring, or properties-panel snooze parity.
 
 ## 2026-08-15 — Foundation 95 keyframe drag on Storyline rail stays Studio-side
 
