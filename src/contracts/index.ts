@@ -6,6 +6,9 @@ export interface AtlasEngineOptions {
   mapStyleId?: string;
   terrainEnabled?: boolean;
   terrainSourceId?: string;
+  viewMode?: import("../types/viewMode").AtlasViewMode;
+  atmosphere?: Partial<import("../types/atmosphere").AtmosphereSettings>;
+  lighting?: Partial<import("../types/lighting").LightingSettings>;
 }
 
 export type { CameraState } from "../types/camera";
@@ -32,6 +35,18 @@ export type { GeoSelectEvent, GeoSelectListener } from "../types/geoSelect";
 export type { MapReadyEvent, MapReadyListener, MapReadyReason } from "../types/mapReady";
 export type { MapErrorEvent, MapErrorKind, MapErrorListener } from "../types/mapError";
 export type { CameraChangeEvent, CameraChangeListener, CameraChangeReason } from "../types/cameraChange";
+export type { AtlasViewMode, ViewModeChangeEvent, ViewModeChangeListener } from "../types/viewMode";
+export { ATLAS_VIEW_MODES } from "../types/viewMode";
+export type {
+  AtmosphereChangeEvent,
+  AtmosphereChangeListener,
+  AtmosphereSettings
+} from "../types/atmosphere";
+export type {
+  LightingChangeEvent,
+  LightingChangeListener,
+  LightingSettings
+} from "../types/lighting";
 
 export interface AtlasEngineContract {
   getCameraState(): import("../types/camera").CameraState;
@@ -71,4 +86,15 @@ export interface AtlasEngineContract {
   project(lng: number, lat: number, altitudeMeters?: number): { x: number; y: number } | null;
   unproject(x: number, y: number): { lng: number; lat: number; altitudeMeters?: number } | null;
   findWorldMarkerAtScreen(x: number, y: number, thresholdPx?: number): string | null;
+  getViewMode(): import("../types/viewMode").AtlasViewMode;
+  setViewMode(mode: import("../types/viewMode").AtlasViewMode): void;
+  listViewModes(): readonly import("../types/viewMode").AtlasViewMode[];
+  onViewModeChange(listener: import("../types/viewMode").ViewModeChangeListener): () => void;
+  getAtmosphereSettings(): import("../types/atmosphere").AtmosphereSettings;
+  setAtmosphereSettings(settings: Partial<import("../types/atmosphere").AtmosphereSettings>): void;
+  onAtmosphereChange(listener: import("../types/atmosphere").AtmosphereChangeListener): () => void;
+  getLightingSettings(): import("../types/lighting").LightingSettings;
+  setLightingSettings(settings: Partial<import("../types/lighting").LightingSettings>): void;
+  onLightingChange(listener: import("../types/lighting").LightingChangeListener): () => void;
+  queryGroundElevation(lng: number, lat: number): number | null;
 }

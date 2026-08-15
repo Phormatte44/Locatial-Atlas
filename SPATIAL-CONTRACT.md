@@ -32,6 +32,9 @@ Applications should be able to ask Atlas to:
 - project a geographic position to screen space
 - unproject a screen position to geographic space
 - report geographic hover/selection results
+- query ground elevation at a geographic point
+- select a geographic view mode (globe, map, or flat mercator)
+- configure atmosphere and overlay lighting
 
 ## Core events Atlas may report
 
@@ -40,6 +43,8 @@ Atlas may report:
 - hovered geographic feature
 - selected geographic feature
 - camera state changes
+- view mode changes
+- atmosphere or lighting settings changes
 - transition started
 - transition completed
 - renderer/data readiness changes

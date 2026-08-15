@@ -51,3 +51,19 @@ export type { GeoSelectEvent, GeoSelectListener } from "./types/geoSelect";
 export type { MapReadyEvent, MapReadyListener, MapReadyReason } from "./types/mapReady";
 export type { MapErrorEvent, MapErrorKind, MapErrorListener } from "./types/mapError";
 export type { CameraChangeEvent, CameraChangeListener, CameraChangeReason } from "./types/cameraChange";
+export type { AtlasViewMode, ViewModeChangeEvent, ViewModeChangeListener } from "./types/viewMode";
+export { ATLAS_VIEW_MODES } from "./types/viewMode";
+export type {
+  AtmosphereChangeEvent,
+  AtmosphereChangeListener,
+  AtmosphereSettings
+} from "./types/atmosphere";
+export type {
+  LightingChangeEvent,
+  LightingChangeListener,
+  LightingSettings
+} from "./types/lighting";
+export {
+  DEFAULT_ATMOSPHERE_SETTINGS,
+  DEFAULT_LIGHTING_SETTINGS
+} from "./rendering/lighting/atmosphereDefaults";

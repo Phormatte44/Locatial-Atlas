@@ -3,6 +3,8 @@ import type { AtlasEngine, AtlasPlace } from "../../src";
 import { MapStyleSelector } from "./MapStyleSelector";
 import { TerrainSourceSelector } from "./TerrainSourceSelector";
 import { TerrainToggle } from "./TerrainToggle";
+import { ViewModeSelector } from "./ViewModeSelector";
+import { VisualEnvironmentControls } from "./VisualEnvironmentControls";
 
 interface PlaceSelectorProps {
   engine: AtlasEngine;
@@ -74,10 +76,12 @@ export function PlaceSelector({ engine, places }: PlaceSelectorProps) {
 
   return (
     <div style={panelStyle}>
-      <strong style={{ fontSize: 14 }}>Atlas Lab — Foundation 30</strong>
+      <strong style={{ fontSize: 14 }}>Atlas Lab — Foundation 33</strong>
       <span style={{ fontSize: 12, color: "#555" }}>
         City buttons frame the center point; area buttons frame metro bounds.
       </span>
+      <ViewModeSelector engine={engine} />
+      <VisualEnvironmentControls engine={engine} />
       <MapStyleSelector engine={engine} />
       <TerrainSourceSelector engine={engine} />
       <TerrainToggle engine={engine} />

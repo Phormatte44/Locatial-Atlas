@@ -72,6 +72,10 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
   const [cameraChange, setCameraChange] = useState<string>("waiting");
   const [highlightedFeatureId, setHighlightedFeatureId] = useState<string>("none");
   const [transitionRunning, setTransitionRunning] = useState(false);
+  const [viewMode, setViewMode] = useState(engine.getViewMode());
+  const [atmosphereEnabled, setAtmosphereEnabled] = useState(engine.getAtmosphereSettings().enabled);
+  const [lightingEnabled, setLightingEnabled] = useState(engine.getLightingSettings().enabled);
+  const [queryElevation, setQueryElevation] = useState<string>("—");
 
   useEffect(() => {
     return engine.onGeoHover((event) => {
@@ -81,6 +85,13 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
           ? { lng: event.geo.lng, lat: event.geo.lat, altitudeMeters: event.geo.altitudeMeters }
           : null
       );
+
+      if (event.geo) {
+        const elevation = engine.queryGroundElevation(event.geo.lng, event.geo.lat);
+        setQueryElevation(elevation === null ? "n/a" : `${Math.round(elevation)} m`);
+      } else {
+        setQueryElevation("—");
+      }
     });
   }, [engine]);
 
@@ -139,6 +150,24 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
   }, [engine]);
 
   useEffect(() => {
+    return engine.onViewModeChange((event) => {
+      setViewMode(event.viewMode);
+    });
+  }, [engine]);
+
+  useEffect(() => {
+    return engine.onAtmosphereChange((event) => {
+      setAtmosphereEnabled(event.settings.enabled);
+    });
+  }, [engine]);
+
+  useEffect(() => {
+    return engine.onLightingChange((event) => {
+      setLightingEnabled(event.settings.enabled);
+    });
+  }, [engine]);
+
+  useEffect(() => {
     return engine.onCameraTransition((event: CameraTransitionEvent) => {
       setPathFamily(event.pathFamily);
       setTransitionPhase(event.phase);
@@ -155,7 +184,11 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
 
   return (
     <div style={readoutStyle}>
-      <div>Foundation 30 — runtime terrain source registration</div>
+      <div>Foundation 33 — view mode, atmosphere, elevation query</div>
+      <div>View: {viewMode}</div>
+      <div>Atmosphere: {atmosphereEnabled ? "on" : "off"}</div>
+      <div>Lighting: {lightingEnabled ? "on" : "off"}</div>
+      <div>Query elev: {queryElevation}</div>
       <div>Highlight: {describeFeatureId(highlightedFeatureId === "none" ? null : highlightedFeatureId)}</div>
       <div>Camera: {cameraChange}</div>
       <div>Map: {mapReady}</div>

@@ -21,6 +21,10 @@ import {
   markerColorForId
 } from "./markerColors";
 import { markupMatchesHighlight } from "../../interaction/placeHighlightIds";
+import type { AtlasViewMode } from "../../types/viewMode";
+import type { LightingSettings } from "../../types/lighting";
+import { OverlayLightingRig } from "../lighting/OverlayLightingRig";
+import { DEFAULT_LIGHTING_SETTINGS } from "../lighting/atmosphereDefaults";
 
 const LAYER_ID = "atlas-three-overlay";
 
@@ -56,6 +60,9 @@ export class ThreeOverlayAdapter {
   private camera: THREE.Camera | null = null;
   private renderer: THREE.WebGLRenderer | null = null;
   private map: MapLibreMap | null = null;
+  private viewMode: AtlasViewMode = "map";
+  private lightingSettings: LightingSettings = DEFAULT_LIGHTING_SETTINGS;
+  private readonly lightingRig = new OverlayLightingRig();
 
   getLayer(): CustomLayerInterface {
     return {
@@ -97,6 +104,30 @@ export class ThreeOverlayAdapter {
 
     this.rebuildMarkups();
     this.map?.triggerRepaint();
+  }
+
+  setViewMode(mode: AtlasViewMode): void {
+    if (this.viewMode === mode) {
+      return;
+    }
+
+    this.viewMode = mode;
+    this.map?.triggerRepaint();
+  }
+
+  setLightingSettings(settings: LightingSettings): void {
+    this.lightingSettings = settings;
+    this.lightingRig.applySettings(settings);
+
+    for (const entry of this.markupEntries) {
+      this.lightingRig.attachToScene(entry.scene);
+    }
+
+    this.map?.triggerRepaint();
+  }
+
+  getViewMode(): AtlasViewMode {
+    return this.viewMode;
   }
 
   setHighlightedMarkupId(markupId: string | null): void {
@@ -151,6 +182,8 @@ export class ThreeOverlayAdapter {
 
     for (const markup of this.markups) {
       const scene = new THREE.Scene();
+      this.lightingRig.attachToScene(scene);
+      this.lightingRig.applySettings(this.lightingSettings);
       const object = this.createObjectForMarkup(markup);
       scene.add(object);
 

@@ -32,6 +32,24 @@ import type { GeoSelectEvent, GeoSelectListener } from "../types/geoSelect";
 import type { MapReadyEvent, MapReadyListener } from "../types/mapReady";
 import type { MapErrorEvent, MapErrorListener } from "../types/mapError";
 import type { CameraChangeEvent, CameraChangeListener } from "../types/cameraChange";
+import type { AtlasViewMode, ViewModeChangeEvent, ViewModeChangeListener } from "../types/viewMode";
+import { ATLAS_VIEW_MODES } from "../types/viewMode";
+import type {
+  AtmosphereChangeEvent,
+  AtmosphereChangeListener,
+  AtmosphereSettings
+} from "../types/atmosphere";
+import type {
+  LightingChangeEvent,
+  LightingChangeListener,
+  LightingSettings
+} from "../types/lighting";
+import {
+  DEFAULT_ATMOSPHERE_SETTINGS,
+  DEFAULT_LIGHTING_SETTINGS,
+  mergeAtmosphereSettings,
+  mergeLightingSettings
+} from "../rendering/lighting/atmosphereDefaults";
 import { findNearestGeoFeature } from "../interaction/pickGeoFeature";
 import { findNearestInteractiveMarkup } from "../interaction/pickInteractiveMarkup";
 import { MapLibreAdapter } from "../rendering/maplibre/MapLibreAdapter";
@@ -60,11 +78,24 @@ export class AtlasEngine implements AtlasEngineContract {
   private activeTransition: { pathFamily: CameraPathFamily; from: CameraState; to: CameraState } | null =
     null;
   private lastTransitionProgressEmit = -1;
+  private viewMode: AtlasViewMode;
+  private atmosphereSettings: AtmosphereSettings;
+  private lightingSettings: LightingSettings;
+  private readonly viewModeListeners = new Set<ViewModeChangeListener>();
+  private readonly atmosphereListeners = new Set<AtmosphereChangeListener>();
+  private readonly lightingListeners = new Set<LightingChangeListener>();
 
   constructor(options: AtlasEngineOptions = {}) {
     this.mapStyleId = options.mapStyleId ?? DEFAULT_MAP_STYLE_ID;
     this.terrainSourceId = options.terrainSourceId ?? DEFAULT_TERRAIN_SOURCE_ID;
     this.terrainEnabled = options.terrainEnabled ?? false;
+    this.viewMode = options.viewMode ?? "map";
+    this.atmosphereSettings = mergeAtmosphereSettings(DEFAULT_ATMOSPHERE_SETTINGS, options.atmosphere);
+    this.lightingSettings = mergeLightingSettings(DEFAULT_LIGHTING_SETTINGS, options.lighting);
+
+    this.mapAdapter.configureViewMode(this.viewMode);
+    this.mapAdapter.configureAtmosphere(this.atmosphereSettings);
+    this.mapAdapter.configureLighting(this.lightingSettings);
 
     this.mapAdapter.configureTerrain(
       this.terrainEnabled,
@@ -421,6 +452,78 @@ export class AtlasEngine implements AtlasEngineContract {
     return this.findPlaceMarkupAtScreen(x, y, thresholdPx);
   }
 
+  getViewMode(): AtlasViewMode {
+    return this.viewMode;
+  }
+
+  setViewMode(mode: AtlasViewMode): void {
+    if (this.viewMode === mode) {
+      return;
+    }
+
+    const previousViewMode = this.viewMode;
+    this.viewMode = mode;
+    this.mapAdapter.setViewMode(mode);
+    this.emitViewModeChange({ viewMode: mode, previousViewMode });
+  }
+
+  listViewModes(): readonly AtlasViewMode[] {
+    return ATLAS_VIEW_MODES;
+  }
+
+  onViewModeChange(listener: ViewModeChangeListener): () => void {
+    this.viewModeListeners.add(listener);
+    return () => {
+      this.viewModeListeners.delete(listener);
+    };
+  }
+
+  getAtmosphereSettings(): AtmosphereSettings {
+    return { ...this.atmosphereSettings };
+  }
+
+  setAtmosphereSettings(settings: Partial<AtmosphereSettings>): void {
+    this.atmosphereSettings = mergeAtmosphereSettings(this.atmosphereSettings, settings);
+    this.mapAdapter.configureAtmosphere(this.atmosphereSettings);
+    this.mapAdapter.setAtmosphereSettings(this.atmosphereSettings);
+    this.emitAtmosphereChange({ settings: this.getAtmosphereSettings() });
+  }
+
+  onAtmosphereChange(listener: AtmosphereChangeListener): () => void {
+    this.atmosphereListeners.add(listener);
+    listener({ settings: this.getAtmosphereSettings() });
+    return () => {
+      this.atmosphereListeners.delete(listener);
+    };
+  }
+
+  getLightingSettings(): LightingSettings {
+    return { ...this.lightingSettings };
+  }
+
+  setLightingSettings(settings: Partial<LightingSettings>): void {
+    this.lightingSettings = mergeLightingSettings(this.lightingSettings, settings);
+    this.mapAdapter.configureLighting(this.lightingSettings);
+    this.mapAdapter.setLightingSettings(this.lightingSettings);
+    this.emitLightingChange({ settings: this.getLightingSettings() });
+  }
+
+  onLightingChange(listener: LightingChangeListener): () => void {
+    this.lightingListeners.add(listener);
+    listener({ settings: this.getLightingSettings() });
+    return () => {
+      this.lightingListeners.delete(listener);
+    };
+  }
+
+  queryGroundElevation(lng: number, lat: number): number | null {
+    if (!this.attached) {
+      return null;
+    }
+
+    return this.mapAdapter.queryGroundElevation(lng, lat);
+  }
+
   private findPlaceMarkupAtScreen(x: number, y: number, thresholdPx?: number): string | null {
     const anchors = this.worldMarkups
       .filter((markup) => markup.kind === "sphere")
@@ -488,6 +591,24 @@ export class AtlasEngine implements AtlasEngineContract {
 
   private emitCameraChange(event: CameraChangeEvent): void {
     for (const listener of this.cameraChangeListeners) {
+      listener(event);
+    }
+  }
+
+  private emitViewModeChange(event: ViewModeChangeEvent): void {
+    for (const listener of this.viewModeListeners) {
+      listener(event);
+    }
+  }
+
+  private emitAtmosphereChange(event: AtmosphereChangeEvent): void {
+    for (const listener of this.atmosphereListeners) {
+      listener(event);
+    }
+  }
+
+  private emitLightingChange(event: LightingChangeEvent): void {
+    for (const listener of this.lightingListeners) {
       listener(event);
     }
   }

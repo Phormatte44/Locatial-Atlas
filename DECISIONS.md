@@ -594,3 +594,57 @@ Foundation 28 added runtime basemap style registration; terrain sources still re
 - Module export: `registerTerrainSource` from `src/index.ts`; engine method mirrors it on `AtlasEngine`.
 - Lab labels updated to Foundation 30; no new Lab terrain UI beyond existing selector.
 - GitHub Actions `validate` workflow runs `npm run validate` on push/PR to `main`.
+
+---
+
+## 2026-08-15 — Foundation 31 view mode contract
+
+**Decision**
+
+Atlas exposes geographic presentation through `getViewMode()`, `setViewMode(mode)`, `listViewModes()`, and `onViewModeChange()`. Modes are `globe` (MapLibre globe projection), `map` (Mercator with full 3D pitch for editorial map work), and `mercator` (flat Mercator with pitch clamped to 0). The Three.js overlay tracks view mode for future globe-specific alignment; MapLibre applies projection and pitch policy in `viewModeSetup.ts`.
+
+**Reason**
+
+README and `RENDERING-SYSTEM.md` assign globe/map rendering to Atlas. Products need a renderer-agnostic view-mode contract before Studio can drive globe-to-street transitions through the public API.
+
+**Consequences**
+
+- Default view mode is `map` (preserves prior Lab behavior).
+- `AtlasEngineOptions.viewMode` sets the initial mode before attach.
+- Style reloads re-apply the active view mode and atmosphere.
+
+---
+
+## 2026-08-15 — Foundation 32 atmosphere and overlay lighting
+
+**Decision**
+
+Sky/atmosphere and Three.js overlay lighting live in `src/rendering/lighting/`. `AtmosphereSettings` drives MapLibre `setSky()` through `applyAtmosphereToMap()`; `LightingSettings` drives a shared `OverlayLightingRig` (ambient, hemisphere, directional) attached to each markup scene. Atlas exposes `get/setAtmosphereSettings`, `get/setLightingSettings`, and change listeners. Defaults ship in `atmosphereDefaults.ts`; engine options accept partial overrides.
+
+**Reason**
+
+Atlas owns lighting, materials, and atmosphere per README. MapLibre sky and a centralized overlay lighting rig establish the reusable visual-environment boundary without exposing shader or renderer internals.
+
+**Consequences**
+
+- Markup still uses basic materials; lighting rig is ready for future PBR materials.
+- Lab toggles atmosphere and lighting and applies a warm-sky preset.
+- Disabling atmosphere clears MapLibre sky.
+
+---
+
+## 2026-08-15 — Foundation 33 public ground elevation query
+
+**Decision**
+
+Atlas exposes `queryGroundElevation(lng, lat)` on `AtlasEngine`, returning terrain elevation in meters when terrain is enabled and the map is attached, otherwise `0` on flat maps or `null` when detached. The method wraps the existing MapLibre terrain query in `MapLibreAdapter.queryGroundElevation()`.
+
+**Reason**
+
+Products need programmatic elevation lookup separate from pointer unprojection. Lab readout shows query results alongside unproject ground height for comparison when terrain is toggled.
+
+**Consequences**
+
+- Module export is engine-only; no new provider types.
+- Elevation remains approximate until terrain tiles are fully loaded.
+- Lab label updated to Foundation 33.

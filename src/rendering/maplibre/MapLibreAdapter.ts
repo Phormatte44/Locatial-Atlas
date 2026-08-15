@@ -16,6 +16,11 @@ import { LAYER_ID, ThreeOverlayAdapter } from "../three/ThreeOverlayAdapter";
 import type { MapReadyReason } from "../../types/mapReady";
 import type { ClassifiedMapError } from "./classifyMapError";
 import { classifyMapLibreError } from "./classifyMapError";
+import type { AtlasViewMode } from "../../types/viewMode";
+import type { AtmosphereSettings } from "../../types/atmosphere";
+import type { LightingSettings } from "../../types/lighting";
+import { applyAtmosphereToMap } from "../lighting/applyAtmosphere";
+import { applyViewModeToMap } from "./viewModeSetup";
 
 type CameraChangeListener = (state: CameraState) => void;
 type MapReadyListener = (reason: MapReadyReason) => void;
@@ -33,6 +38,9 @@ export class MapLibreAdapter {
   private styleUrl = "";
   private terrainEnabled = false;
   private terrainSource: TerrainSourceDefinition | null = null;
+  private viewMode: AtlasViewMode = "map";
+  private atmosphereSettings: AtmosphereSettings | null = null;
+  private lightingSettings: LightingSettings | null = null;
 
   create(container: HTMLElement, initialCamera: CameraState, styleUrl: string): void {
     if (this.map) {
@@ -84,6 +92,54 @@ export class MapLibreAdapter {
   configureTerrain(enabled: boolean, source: TerrainSourceDefinition | null): void {
     this.terrainEnabled = enabled;
     this.terrainSource = source;
+  }
+
+  configureViewMode(mode: AtlasViewMode): void {
+    this.viewMode = mode;
+    this.threeOverlay.setViewMode(mode);
+  }
+
+  configureAtmosphere(settings: AtmosphereSettings): void {
+    this.atmosphereSettings = settings;
+  }
+
+  configureLighting(settings: LightingSettings): void {
+    this.lightingSettings = settings;
+    this.threeOverlay.setLightingSettings(settings);
+  }
+
+  setViewMode(mode: AtlasViewMode): void {
+    this.viewMode = mode;
+    this.threeOverlay.setViewMode(mode);
+
+    if (!this.map?.loaded()) {
+      return;
+    }
+
+    applyViewModeToMap(this.map, mode);
+    this.applyVisualEnvironment();
+    this.map.triggerRepaint();
+  }
+
+  setAtmosphereSettings(settings: AtmosphereSettings): void {
+    this.atmosphereSettings = settings;
+
+    if (!this.map?.loaded()) {
+      return;
+    }
+
+    this.applyVisualEnvironment();
+    this.map.triggerRepaint();
+  }
+
+  setLightingSettings(settings: LightingSettings): void {
+    this.lightingSettings = settings;
+    this.threeOverlay.setLightingSettings(settings);
+    this.map?.triggerRepaint();
+  }
+
+  getViewMode(): AtlasViewMode {
+    return this.viewMode;
   }
 
   isTerrainEnabled(): boolean {
@@ -241,8 +297,25 @@ export class MapLibreAdapter {
 
   private async onMapStyleReady(reason: MapReadyReason): Promise<void> {
     this.addThreeLayer();
+    this.applyVisualEnvironment();
     await this.applyTerrainState();
     this.emitReady(reason);
+  }
+
+  private applyVisualEnvironment(): void {
+    if (!this.map) {
+      return;
+    }
+
+    applyViewModeToMap(this.map, this.viewMode);
+
+    if (this.atmosphereSettings) {
+      applyAtmosphereToMap(this.map, this.atmosphereSettings);
+    }
+
+    if (this.lightingSettings) {
+      this.threeOverlay.setLightingSettings(this.lightingSettings);
+    }
   }
 
   private emitReady(reason: MapReadyReason): void {
