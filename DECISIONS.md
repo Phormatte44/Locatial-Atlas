@@ -1764,7 +1764,26 @@ Studio D-030 (Foundation 83) extends F76 style keyframes with seekable shape mot
 
 **Next**
 
-- Foundation 85: TBD — candidate: structure-level move duration editing, keyframe easing curves, or validation auto-fix actions.
+- Foundation 86: TBD — candidate: keyframe easing curves, move feel/arc editing, or validation auto-fix actions.
+
+## 2026-08-15 — Foundation 85 structure-level move duration editing stays Studio-side
+
+**Decision**
+
+Section storyline move duration overrides (slider/numeric edit on rail selection, localStorage persistence, relative cue re-resolution) live in Creator Studio. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-032 (Foundation 85) extends F73–F74 storyline rail authoring with structure-level move timing that propagates to cue anchors and camera seek. Fixture `MoveDefinition` data remains the default; authored overrides merge at `buildSectionStoryline` time in Studio.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-032 for `storylineMoveDraft.ts`, `useStorylineMoveDurations`, and `MoveDurationControls`.
+
+**Next**
+
+- Foundation 86: TBD — candidate: keyframe easing curves, move feel/arc editing, or validation auto-fix actions.
 
 ## 2026-08-15 — Foundation 84 markup motion validation stays Studio-side
 
