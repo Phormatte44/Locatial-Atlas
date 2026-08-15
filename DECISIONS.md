@@ -1614,6 +1614,26 @@ F67–F68 established motion preview and persisted specs on Studio markup drafts
 
 - Foundation 73: TBD — candidate: StorylinePlayhead scrub/seek wired to markup motion seek, or markup-cue rail items.
 
+## 2026-08-15 — Foundation 73 Studio StorylinePlayhead scrub and markup motion seek (doc-only)
+
+**Decision**
+
+Creator Studio wires `StorylinePlayhead` drag/scrub on the section `StorylineRail` to `useMarkupMotionPlayback.seek(elapsedMs)`. Seeking samples markup motion instantly via `markupMotionPlayback.ts` and updates the Director map through existing `setWorldMarkup` overrides — no intermediate frame replay (HEAD-003). Rail play/pause and Markup sequence Preview share one playback hook. Atlas public API is unchanged.
+
+**Reason**
+
+F72 resolved cue-anchored motion timing but left no scrub control. F73 connects the storyline rail playhead to the same sampler as sequence preview so authors can inspect markup state at any timestamp before camera seek (Build 4) and markup-cue rail items (Build 5).
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-020 for playhead wiring and pause/resume behavior.
+- HEAD-002 markup slice satisfied; camera seek on scrub remains Studio Build 4.
+
+**Next**
+
+- Foundation 74: TBD — candidate: camera seek on playhead scrub, markup-cue rail items, or hide-cue authoring.
+
 ## 2026-08-15 — Studio transition preview uses Atlas straight and high-arc
 
 **Decision**
