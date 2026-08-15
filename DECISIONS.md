@@ -1859,7 +1859,26 @@ Studio D-038 (Foundation 91) extends F76–F88 keyframe authoring with explicit 
 
 **Next**
 
-- Foundation 94: TBD — candidate: move feel preview on rail, keyframe drag on rail, or validation issue summary drill-down.
+- Foundation 95: TBD — candidate: keyframe drag on rail, validation issue summary drill-down, or move duration drag on rail.
+
+## 2026-08-15 — Foundation 94 move feel/arc preview on rail stays Studio-side
+
+**Decision**
+
+Compact feel/arc badges on Storyline rail move chips and instant seek preview with effective feel/arc merged at sample time live in Creator Studio. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-041 (Foundation 94) extends F86 feel/arc overrides and F90 type badges with at-a-glance feel/arc feedback on the rail. Mid-segment seek on move select and Frame **Preview move** stepping reuse existing `storylineCameraSeek` — no animated replay or renderer changes.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-041 for `moveFeelArcBadgeLabel.ts`, `resolveEffectiveMoveFeelArc` rail wiring, and stacked badge rendering in `MoveItem`.
+
+**Next**
+
+- Foundation 95: TBD — candidate: keyframe drag on rail, validation issue summary drill-down, or move duration drag on rail.
 
 ## 2026-08-15 — Foundation 93 bulk markup motion validation fix stays Studio-side
 
@@ -1878,7 +1897,7 @@ Studio D-040 (Foundation 93) extends F84 section validation and F89 per-element 
 
 **Next**
 
-- Foundation 94: TBD — candidate: move feel preview on rail, keyframe drag on rail, or validation issue summary drill-down.
+- Foundation 95: TBD — candidate: keyframe drag on rail, validation issue summary drill-down, or move duration drag on rail.
 
 ## 2026-08-15 — Foundation 92 keyframe rail markers stay Studio-side
 
@@ -1897,7 +1916,7 @@ Studio D-039 (Foundation 92) extends F91 keyframe timing with spatial markers on
 
 **Next**
 
-- Foundation 94: TBD — candidate: move feel preview on rail, keyframe drag on rail, or validation issue summary drill-down.
+- Foundation 95: TBD — candidate: keyframe drag on rail, validation issue summary drill-down, or move duration drag on rail.
 
 ## 2026-08-15 — Foundation 90 move type preview on rail stays Studio-side
 
