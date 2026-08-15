@@ -1859,7 +1859,7 @@ Studio D-038 (Foundation 91) extends F76–F88 keyframe authoring with explicit 
 
 **Next**
 
-- Foundation 95: TBD — candidate: keyframe drag on rail, validation issue summary drill-down, or move duration drag on rail.
+- Foundation 95: keyframe drag on rail (see Studio D-042).
 
 ## 2026-08-15 — Foundation 94 move feel/arc preview on rail stays Studio-side
 
@@ -1878,7 +1878,26 @@ Studio D-041 (Foundation 94) extends F86 feel/arc overrides and F90 type badges 
 
 **Next**
 
-- Foundation 95: TBD — candidate: keyframe drag on rail, validation issue summary drill-down, or move duration drag on rail.
+- Foundation 96: TBD — candidate: validation issue summary drill-down, move duration drag on rail, or keyframe multi-select retime.
+
+## 2026-08-15 — Foundation 95 keyframe drag on Storyline rail stays Studio-side
+
+**Decision**
+
+Horizontal drag on Storyline rail keyframe diamond markers to retime `MarkupKeyframe.atSeconds` (neighbor clamping, 0.1s rounding, live playhead seek preview, persist via `updateKeyframeTimestamp`) lives in Creator Studio. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-042 (Foundation 95) extends F91–F92 keyframe timing with on-rail drag on the shared storyline clock — same scrub/seek path as playhead and click-to-seek markers. No renderer-side keyframe rail or Atlas draw API is required.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-042 for `storylineKeyframeDrag.ts`, draggable `StorylineKeyframeMarkers`, and `DirectorMarkupPanel` preview/persist wiring.
+
+**Next**
+
+- Foundation 96: TBD — candidate: validation issue summary drill-down, move duration drag on rail, or keyframe multi-select retime.
 
 ## 2026-08-15 — Foundation 93 bulk markup motion validation fix stays Studio-side
 
@@ -1897,7 +1916,7 @@ Studio D-040 (Foundation 93) extends F84 section validation and F89 per-element 
 
 **Next**
 
-- Foundation 95: TBD — candidate: keyframe drag on rail, validation issue summary drill-down, or move duration drag on rail.
+- Foundation 95: keyframe drag on rail (see Studio D-042).
 
 ## 2026-08-15 — Foundation 92 keyframe rail markers stay Studio-side
 
