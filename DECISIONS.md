@@ -2257,7 +2257,26 @@ Studio D-062 (Foundation 115) completes the F112–F114 pin workflow with at-poi
 
 **Next**
 
-- Foundation 116: candidate — properties-panel snooze parity, or paste-preview keyboard focus ring on pinned ghosts.
+- Foundation 116: properties-panel validation snooze parity (see Studio D-063).
+
+## 2026-08-15 — Foundation 116 properties-panel validation snooze parity stays Studio-side
+
+**Decision**
+
+F111 validation snooze is available on **warning rows in `MarkupPropertiesPanel`** via the same fingerprint-based 24h localStorage store. Snoozing from the properties panel hides the issue in both inline banners and the F97 summary panel (shared `useMarkupValidationSnooze` state). Info-only preview divergence remains non-snoozeable. **Restore stays in the summary panel** — toggle "Show snoozed" and use per-row Restore; properties panel keeps `filterVisibleIssues` so snoozed warnings do not reappear there even when snoozed issues are expanded in the summary.
+
+**Reason**
+
+Studio D-063 (Foundation 116) closes the F111 gap for authors editing a single shape — they no longer need the validation summary open to snooze acknowledged warnings during iterative edits.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-063 for `useMarkupValidationSnooze.snoozeIssue`, `MarkupMotionValidationWarnings` Snooze control, and `DirectorMarkupPanel` properties-panel wiring.
+
+**Next**
+
+- Foundation 117: candidate — validation snooze expiry indicator in summary, or paste-preview keyboard focus ring on pinned ghosts.
 
 ## 2026-08-15 — Foundation 111 validation dismiss/snooze stays Studio-side
 
