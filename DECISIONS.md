@@ -2542,7 +2542,26 @@ Studio D-078 (Foundation 131) closes the keyboard paste-preview loop for rail-fi
 
 **Next**
 
-- Foundation 132: candidate — validation snooze keyboard restore on selected sequence row, or paste-preview focus after successful paste commit.
+- Foundation 133: candidate — validation snooze keyboard restore on selected sequence row, or paste-preview re-copy loop polish.
+
+## 2026-08-15 — Foundation 132 paste-preview focus after successful paste commit stays Studio-side
+
+**Decision**
+
+After **every successful timing paste commit** (preview cleared, pin cleared) — ⌘V, ⇧⌘V, toolbar paste, F125 Enter on pinned ghost, F112 second-click unpin+paste — focus routes to **Storyline playhead scrub** first, then first keyframe marker or move item on the rail, then **Copy timing** / **Copy move timing**. Double `requestAnimationFrame` scheduling via `scheduleFocusAfterPasteCommit`. Skip on paste failure; toolbar paste skips when focus is already on playhead or Storyline rail.
+
+**Reason**
+
+Studio D-079 (Foundation 132) closes the paste-preview keyboard loop exit after commit — authors land on timeline controls for continued work instead of stale ghost or paste-button focus.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-079 for `resolveTimingPasteCommitFocusTarget`, `scheduleFocusAfterPasteCommit`, and `DirectorMarkupPanel` paste commit handlers.
+
+**Next**
+
+- Foundation 133: candidate — validation snooze keyboard restore on selected sequence row, or paste-preview re-copy loop polish.
 
 ## 2026-08-15 — Foundation 119 validation snooze bulk-snooze by group stays Studio-side
 
