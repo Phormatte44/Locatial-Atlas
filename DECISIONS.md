@@ -738,7 +738,7 @@ Foundation 36 aligned overlays in settled globe or mercator states, but `setView
 
 **Limitations**
 
-- No Atlas-owned `transitionViewMode()` animation yet; projection timing follows MapLibre zoom and `setProjection` behavior.
+- No Atlas-owned `transitionViewMode()` animation yet; projection timing follows MapLibre zoom and `setProjection` behavior (addressed in Foundation 54).
 - Zoom-driven globe↔mercator blends do not emit view-mode events (view mode unchanged); only overlay matrices refresh.
 - Line/polygon geometry remains single-anchor mercator meters (Foundation 36 limitation).
 - `map↔mercator` pitch-only switches remain instant with no blend tracking.
@@ -1191,13 +1191,39 @@ Foundation 32 established atmosphere/lighting settings and Foundation 37 aligned
 
 **Limitations**
 
-- No Atlas-owned `transitionViewMode()` duration yet; blend timing still follows MapLibre zoom and `setProjection` behavior (Foundation 37 limitation).
+- Programmatic view-mode transition duration was not Atlas-owned; blend timing followed MapLibre zoom and `setProjection` behavior (addressed in Foundation 54).
 - Zoom-driven globe↔mercator blends update atmosphere/lighting but do not emit view-mode events.
 - Color channels are not lerped — only blend scalars and lighting intensities scale with transition.
 
 **Next**
 
-- Foundation 54: Studio Director wiring for 3D Tiles enable + hover property readout, or Atlas-owned view-mode transition timing / label globe alignment.
+- Foundation 54: Atlas-owned `transitionViewMode()` duration and Lab wiring.
+
+## 2026-08-15 — Foundation 54 view-mode transition timing
+
+**Decision**
+
+Atlas exposes `transitionViewMode(mode, options?)` with Atlas-owned duration (default 800ms) for globe↔map view-mode switches. Timing drives MapLibre globe↔mercator blend by updating `GlobeProjection` transition `type` each animation frame via `viewModeTransition.ts` — `['mercator', 'vertical-perspective', t]` while blend progress is strictly between 0 and 1, then `applyViewModeToMap()` settles projection and pitch policy. `setViewMode()` remains instant. `onViewModeChange` defers settle events and emits throttled `transitionProgress` during animated transitions (Foundation 37 pattern). Atmosphere and lighting continue to interpolate through F53 `interpolateVisualEnvironment` driven by the same globeness signal. Lab `ViewModeSelector` calls `transitionViewMode()` for mode changes; map↔mercator switches still use instant `setViewMode` internally.
+
+**Reason**
+
+Foundation 37 and 53 aligned overlays and atmosphere during MapLibre's default projection blend, but blend duration followed MapLibre zoom and `setProjection` behavior. Products need predictable, Atlas-owned timing for programmatic globe entry and exit.
+
+**Consequences**
+
+- Public contract adds `transitionViewMode()` and `ViewModeTransitionOptions`.
+- `MapLibreAdapter.transitionViewMode()` coordinates projection animation without recreating `GlobeProjection` each frame.
+- Lab labels advance to Foundation 54.
+
+**Limitations**
+
+- Zoom-driven globe↔mercator blends (view mode unchanged) still follow MapLibre internal timing; only programmatic `transitionViewMode()` uses Atlas duration.
+- Line/polygon geometry and label billboards remain single-anchor mercator meters (Foundation 36 limitation — Foundation 55 target).
+- No coordinated camera motion during view-mode transition yet; camera state is preserved.
+
+**Next**
+
+- Foundation 55: label globe alignment.
 
 ## 2026-08-15 — Studio transition preview uses Atlas straight and high-arc
 

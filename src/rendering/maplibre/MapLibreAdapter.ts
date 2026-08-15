@@ -39,6 +39,7 @@ import {
   isViewModeProjectionSettled,
   readProjectionTransition
 } from "./projectionBlend";
+import { runViewModeProjectionTransition } from "./viewModeTransition";
 import {
   queryBoundaryFeatureAtScreen,
   setBoundaryFeatureHighlight,
@@ -124,6 +125,7 @@ export class MapLibreAdapter {
   private atmosphereSettings: AtmosphereSettings | null = null;
   private lightingSettings: LightingSettings | null = null;
   private projectionBlendListeners = new Set<ProjectionBlendListener>();
+  private cancelViewModeTransition: (() => void) | null = null;
   private boundaryLayers: BoundaryLayerDefinition[] = [];
   private labelLayers: LabelLayerDefinition[] = [];
   private roadLayers: RoadLayerDefinition[] = [];
@@ -310,6 +312,7 @@ export class MapLibreAdapter {
   }
 
   setViewMode(mode: AtlasViewMode): void {
+    this.cancelActiveViewModeTransition();
     this.viewMode = mode;
     this.threeOverlay.setViewMode(mode);
     this.tileset3DOverlay.setViewMode(mode);
@@ -322,6 +325,53 @@ export class MapLibreAdapter {
     this.syncVisualEnvironment();
     this.refreshMarkupGrounding();
     this.map.triggerRepaint();
+  }
+
+  async transitionViewMode(
+    mode: AtlasViewMode,
+    durationMs: number,
+    onProgress?: (globeness: number) => void
+  ): Promise<void> {
+    this.cancelActiveViewModeTransition();
+    this.viewMode = mode;
+    this.threeOverlay.setViewMode(mode);
+    this.tileset3DOverlay.setViewMode(mode);
+
+    if (!this.map?.loaded()) {
+      return;
+    }
+
+    const { promise, cancel } = runViewModeProjectionTransition({
+      map: this.map,
+      targetMode: mode,
+      durationMs,
+      onProgress: (globeness) => {
+        this.syncVisualEnvironment();
+        this.refreshMarkupGrounding();
+        onProgress?.(globeness);
+      }
+    });
+
+    this.cancelViewModeTransition = cancel;
+
+    try {
+      await promise;
+    } finally {
+      if (this.cancelViewModeTransition === cancel) {
+        this.cancelViewModeTransition = null;
+      }
+
+      if (this.map?.loaded()) {
+        this.syncVisualEnvironment();
+        this.refreshMarkupGrounding();
+        this.map.triggerRepaint();
+      }
+    }
+  }
+
+  cancelActiveViewModeTransition(): void {
+    this.cancelViewModeTransition?.();
+    this.cancelViewModeTransition = null;
   }
 
   setAtmosphereSettings(settings: AtmosphereSettings): void {

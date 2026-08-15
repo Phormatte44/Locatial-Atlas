@@ -15,3 +15,8 @@ export type ProjectionBlendListener = (transition: number) => void;
 
 /** All view modes Atlas exposes through the public contract. */
 export const ATLAS_VIEW_MODES: readonly AtlasViewMode[] = ["globe", "map", "mercator"] as const;
+
+export interface ViewModeTransitionOptions {
+  /** Transition duration in milliseconds; `0` or less jumps instantly. */
+  durationMs?: number;
+}

@@ -94,7 +94,7 @@ import type {
   LayerLoadState
 } from "../types/layerLoadState";
 import type { CameraChangeEvent, CameraChangeListener } from "../types/cameraChange";
-import type { AtlasViewMode, ViewModeChangeEvent, ViewModeChangeListener, ProjectionBlendListener } from "../types/viewMode";
+import type { AtlasViewMode, ViewModeChangeEvent, ViewModeChangeListener, ProjectionBlendListener, ViewModeTransitionOptions } from "../types/viewMode";
 import { ATLAS_VIEW_MODES } from "../types/viewMode";
 import type {
   AtmosphereChangeEvent,
@@ -124,6 +124,7 @@ import {
   isProjectionBlendActive,
   viewModeSwitchUsesProjectionBlend
 } from "../rendering/maplibre/projectionBlend";
+import { DEFAULT_VIEW_MODE_TRANSITION_MS } from "../rendering/maplibre/viewModeTransition";
 
 export class AtlasEngine implements AtlasEngineContract {
   private readonly camera = new CameraController();
@@ -160,6 +161,7 @@ export class AtlasEngine implements AtlasEngineContract {
   private readonly projectionBlendListeners = new Set<ProjectionBlendListener>();
   private pendingViewModeChange: ViewModeChangeEvent | null = null;
   private lastViewModeProgressEmit = -1;
+  private viewModeTransitionGeneration = 0;
   private enabledBoundaryLayerIds: string[] = [];
   private enabledLabelLayerIds: string[] = [];
   private enabledRoadLayerIds: string[] = [];
@@ -309,6 +311,10 @@ export class AtlasEngine implements AtlasEngineContract {
     }
 
     this.cancelActiveTransition("cancelled");
+    this.mapAdapter.cancelActiveViewModeTransition();
+    this.pendingViewModeChange = null;
+    this.lastViewModeProgressEmit = -1;
+    this.viewModeTransitionGeneration += 1;
     this.lastGeoHoverKey = "";
     this.hoverFeatureId = null;
     this.selectedFeatureId = null;
@@ -854,9 +860,12 @@ export class AtlasEngine implements AtlasEngineContract {
   }
 
   setViewMode(mode: AtlasViewMode): void {
-    if (this.viewMode === mode) {
+    if (this.viewMode === mode && !this.pendingViewModeChange) {
       return;
     }
+
+    this.mapAdapter.cancelActiveViewModeTransition();
+    this.viewModeTransitionGeneration += 1;
 
     const previousViewMode = this.viewMode;
     this.viewMode = mode;
@@ -865,6 +874,7 @@ export class AtlasEngine implements AtlasEngineContract {
     const pendingChange: ViewModeChangeEvent = { viewMode: mode, previousViewMode };
 
     if (!viewModeSwitchUsesProjectionBlend(previousViewMode, mode)) {
+      this.pendingViewModeChange = null;
       this.emitViewModeChange(pendingChange);
       return;
     }
@@ -879,6 +889,51 @@ export class AtlasEngine implements AtlasEngineContract {
 
     if (isProjectionBlendActive(this.mapAdapter.readProjectionTransition())) {
       this.emitViewModeTransitionProgress(this.mapAdapter.readProjectionTransition());
+    }
+  }
+
+  async transitionViewMode(mode: AtlasViewMode, options?: ViewModeTransitionOptions): Promise<void> {
+    if (this.viewMode === mode && !this.pendingViewModeChange) {
+      return;
+    }
+
+    const durationMs = options?.durationMs ?? DEFAULT_VIEW_MODE_TRANSITION_MS;
+    const previousViewMode = this.viewMode;
+
+    if (
+      !viewModeSwitchUsesProjectionBlend(previousViewMode, mode) ||
+      durationMs <= 0 ||
+      !this.attached
+    ) {
+      this.setViewMode(mode);
+      return;
+    }
+
+    this.mapAdapter.cancelActiveViewModeTransition();
+    const generation = ++this.viewModeTransitionGeneration;
+
+    this.viewMode = mode;
+    this.mapAdapter.configureViewMode(mode);
+
+    const pendingChange: ViewModeChangeEvent = { viewMode: mode, previousViewMode };
+    this.pendingViewModeChange = pendingChange;
+    this.lastViewModeProgressEmit = -1;
+
+    await this.mapAdapter.transitionViewMode(mode, durationMs, (globeness) => {
+      if (generation !== this.viewModeTransitionGeneration) {
+        return;
+      }
+
+      this.handleProjectionBlendProgress(globeness);
+      this.emitProjectionBlendProgress(globeness);
+    });
+
+    if (generation !== this.viewModeTransitionGeneration) {
+      return;
+    }
+
+    if (this.pendingViewModeChange?.viewMode === mode) {
+      this.completePendingViewModeChange();
     }
   }
 

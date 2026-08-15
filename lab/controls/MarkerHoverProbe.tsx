@@ -350,7 +350,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
 
   return (
     <div style={readoutStyle}>
-      <div>Foundation 53 — view-mode atmosphere polish</div>
+      <div>Foundation 54 — view-mode transition timing</div>
       <div>
         View: {viewMode}
         {viewMode === "globe" || viewModeBlend !== "settled"

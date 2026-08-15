@@ -212,6 +212,10 @@ export interface AtlasEngineContract {
   findWorldMarkerAtScreen(x: number, y: number, thresholdPx?: number): string | null;
   getViewMode(): import("../types/viewMode").AtlasViewMode;
   setViewMode(mode: import("../types/viewMode").AtlasViewMode): void;
+  transitionViewMode(
+    mode: import("../types/viewMode").AtlasViewMode,
+    options?: import("../types/viewMode").ViewModeTransitionOptions
+  ): Promise<void>;
   listViewModes(): readonly import("../types/viewMode").AtlasViewMode[];
   onViewModeChange(listener: import("../types/viewMode").ViewModeChangeListener): () => void;
   getProjectionTransition(): number;

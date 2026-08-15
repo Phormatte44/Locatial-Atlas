@@ -85,15 +85,16 @@ export function PlaceSelector({ engine, places }: PlaceSelectorProps) {
 
   return (
     <div style={panelStyle}>
-      <strong style={{ fontSize: 14 }}>Atlas Lab — Foundation 53</strong>
+      <strong style={{ fontSize: 14 }}>Atlas Lab — Foundation 54</strong>
       <span style={{ fontSize: 12, color: "#555" }}>
         City buttons frame the center point via GSAP camera paths (local-glide within a city,
         orbit-reveal for regional hops, departure-arrival-arc for London ↔ Dubai). Path-family
         buttons override auto-select on the London ↔ Dubai pair. Area buttons frame metro bounds.
-        View-mode and globeness readouts show projection blend; atmosphere and lighting interpolate
-        smoothly during globe transitions. Enable 3D Tiles for Re:Earth Buildings — async mesh-feature
-        picks, structural metadata on hover, click-to-frame single features, emissive highlight.
-        Toggle POI layers for clustered landmarks — click a cluster to expand.
+        View-mode selector uses Atlas-owned `transitionViewMode()` for globe↔map blends; atmosphere
+        and lighting interpolate with globeness during the transition. Enable 3D Tiles for Re:Earth
+        Buildings — async mesh-feature picks, structural metadata on hover, click-to-frame single
+        features, emissive highlight. Toggle POI layers for clustered landmarks — click a cluster
+        to expand.
       </span>
       <ViewModeSelector engine={engine} />
       <VisualEnvironmentControls engine={engine} />
