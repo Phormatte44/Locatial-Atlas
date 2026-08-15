@@ -2086,7 +2086,26 @@ Studio D-053 (Foundation 106) extends F105 so authors cycle preview anchors from
 
 **Next**
 
-- Foundation 107: TBD — candidate: multi-move batch retime, validation dismiss/snooze, or paste-preview hover persistence.
+- Foundation 107: multi-move batch retime (see Studio D-054).
+
+## 2026-08-15 — Foundation 107 multi-move batch retime stays Studio-side
+
+**Decision**
+
+**Multi-move batch retime** on section Storyline rail move segments (cmd/ctrl-click and shift-click multi-select; uniform duration delta on trailing-edge batch drag; F85 group min/max clamp; live midpoint seek preview; persist via `updateMoveDuration`) lives in Creator Studio. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-054 (Foundation 107) extends F96 single-move duration drag with F98-style multi-select batch retime for structure-level moves on the shared storyline clock — no Atlas rendering or camera contract changes.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-054 for `storylineMoveSelection.ts`, `resolveMultiMoveDurationDragMoves`, `MoveItem` batch drag, and `DirectorMarkupPanel` move selection wiring.
+
+**Next**
+
+- Foundation 108: TBD — candidate: move timing copy/paste, validation dismiss/snooze, or paste-preview hover persistence.
 
 ## 2026-08-15 — Foundation 95 keyframe drag on Storyline rail stays Studio-side
 
