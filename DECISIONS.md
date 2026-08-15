@@ -2827,7 +2827,26 @@ Studio D-097 (Foundation 150) closes the gap after F145 show-snoozed expansion �
 
 **Next**
 
-- Foundation 155: candidate — paste-preview re-copy loop polish, or validation snooze keyboard restore on selected sequence row.
+- Foundation 155: validation snooze keyboard focus restore on selected sequence row (see Studio D-102).
+
+## 2026-08-15 — Foundation 155 validation snooze keyboard focus restore on selected sequence row stays Studio-side
+
+**Decision**
+
+After **⌥⌘S**, **⌥⌘R**, or **⌥⌘W** validation snooze actions on the **selected** Build Order / Motion Sequence row, Creator Studio restores keyboard focus to that row's primary select button using the F128 double `requestAnimationFrame` pattern. Validation-summary per-element **Snooze** / **Restore** clicks optionally restore focus when the acted-on element matches the current selection. Focus restore skips text inputs and contenteditable fields. Snooze behavior from F133–F135 is unchanged.
+
+**Reason**
+
+Studio D-102 (Foundation 155) closes the D-080 follow-up keyboard loop — authors snoozing or restoring warnings on a selected shape keep focus on the sequence row instead of relying on pointer recovery after toast or badge re-render.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-102 for `validationSnoozeSequenceRowFocus.ts`, `MarkupSequencePanel` row selectors, and `DirectorMarkupPanel` post-action focus scheduling.
+
+**Next**
+
+- Foundation 156: candidate — paste-preview re-copy loop polish after F128–F132 focus routing.
 
 ## 2026-08-15 — Foundation 154 keyboard-first snooze badge activation audit stays Studio-side
 
@@ -2854,7 +2873,7 @@ Studio D-101 (Foundation 154) reduces tab stops on the default horizontal rail a
 
 **Next**
 
-- Foundation 155: candidate — paste-preview re-copy loop polish, or validation snooze keyboard restore on selected sequence row.
+- Foundation 155: validation snooze keyboard focus restore on selected sequence row (see Studio D-102).
 
 ## 2026-08-15 — Foundation 153 original layout navigate-only snooze badge copy audit stays Studio-side
 
