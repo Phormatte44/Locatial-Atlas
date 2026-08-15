@@ -70,6 +70,10 @@ Lit mesh markup (`sphere`, `polygon`, `circle`) renders in a shared Three.js ove
 - Globe view mode uses MapLibre `getMatrixForModel` for overlay anchor transforms and shadow frustum alignment (Foundation 36).
 - During MapLibre projection blend (`projectionTransition` between 0 and 1), overlay matrices refresh each custom-layer frame so markup and shadows stay aligned (Foundation 37).
 
+### Boundary layers (F38)
+
+Registered boundary layers render as MapLibre fill + line GeoJSON layers inserted below symbol layers and below the Three.js overlay. Style tokens map to paint properties; hover/selection highlight uses feature-state. Applications register definitions through the public API; no demo boundaries live in `src`.
+
 ## Materials
 
 Materials should be defined centrally rather than repeatedly inside scenes.

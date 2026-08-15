@@ -1,4 +1,5 @@
 import maplibregl from "maplibre-gl";
+import type { BoundaryLayerDefinition } from "../../types/boundaryLayer";
 import type { TerrainSourceDefinition } from "../../types/terrain";
 import type { CameraState } from "../../types/camera";
 import { markupsFromMarkers } from "../../geometry/worldMarkup";
@@ -26,6 +27,12 @@ import {
   isViewModeProjectionSettled,
   readProjectionTransition
 } from "./projectionBlend";
+import {
+  queryBoundaryFeatureAtScreen,
+  setBoundaryFeatureHighlight,
+  syncBoundaryLayersOnMap
+} from "./boundarySetup";
+import { parseBoundaryFeatureId } from "../../interaction/boundaryFeatureIds";
 
 type CameraChangeListener = (state: CameraState) => void;
 type MapReadyListener = (reason: MapReadyReason) => void;
@@ -48,6 +55,8 @@ export class MapLibreAdapter {
   private atmosphereSettings: AtmosphereSettings | null = null;
   private lightingSettings: LightingSettings | null = null;
   private projectionBlendListeners = new Set<ProjectionBlendListener>();
+  private boundaryLayers: BoundaryLayerDefinition[] = [];
+  private highlightedBoundary: { layerId: string; featureKey: string } | null = null;
 
   create(container: HTMLElement, initialCamera: CameraState, styleUrl: string): void {
     if (this.map) {
@@ -98,6 +107,8 @@ export class MapLibreAdapter {
     this.styleUrl = "";
     this.terrainEnabled = false;
     this.terrainSource = null;
+    this.boundaryLayers = [];
+    this.highlightedBoundary = null;
   }
 
   configureTerrain(enabled: boolean, source: TerrainSourceDefinition | null): void {
@@ -245,6 +256,55 @@ export class MapLibreAdapter {
     this.highlightWorldMarkup(markerId);
   }
 
+  setBoundaryLayers(definitions: BoundaryLayerDefinition[]): void {
+    this.boundaryLayers = definitions;
+
+    if (!this.map?.loaded()) {
+      return;
+    }
+
+    syncBoundaryLayersOnMap(this.map, definitions);
+    this.moveThreeLayerToTop();
+    this.applyBoundaryHighlight(this.highlightedBoundary);
+  }
+
+  getEnabledBoundaryLayerIds(): string[] {
+    return this.boundaryLayers.map((layer) => layer.id);
+  }
+
+  queryBoundaryFeatureAtScreen(x: number, y: number): string | null {
+    if (!this.map?.loaded()) {
+      return null;
+    }
+
+    const pick = queryBoundaryFeatureAtScreen(
+      this.map,
+      x,
+      y,
+      this.getEnabledBoundaryLayerIds()
+    );
+
+    return pick?.featureId ?? null;
+  }
+
+  highlightBoundaryFeature(featureId: string | null): void {
+    const parsed = featureId ? parseBoundaryFeatureId(featureId) : null;
+    this.applyBoundaryHighlight(parsed);
+  }
+
+  private applyBoundaryHighlight(
+    next: { layerId: string; featureKey: string } | null
+  ): void {
+    if (!this.map?.loaded()) {
+      this.highlightedBoundary = next;
+      return;
+    }
+
+    setBoundaryFeatureHighlight(this.map, next?.layerId ?? "", next?.featureKey ?? null, this.highlightedBoundary);
+    this.highlightedBoundary = next;
+    this.map.triggerRepaint();
+  }
+
   isReady(): boolean {
     return this.map?.loaded() ?? false;
   }
@@ -334,6 +394,11 @@ export class MapLibreAdapter {
     this.addThreeLayer();
     this.applyVisualEnvironment();
     await this.applyTerrainState();
+    if (this.boundaryLayers.length > 0) {
+      syncBoundaryLayersOnMap(this.map!, this.boundaryLayers);
+      this.moveThreeLayerToTop();
+      this.applyBoundaryHighlight(this.highlightedBoundary);
+    }
     this.emitReady(reason);
   }
 

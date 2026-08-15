@@ -27,6 +27,17 @@ function describeFeatureId(featureId: string | null): string {
     return "none";
   }
 
+  if (featureId.startsWith("boundary:")) {
+    const layerId = featureId.split(":")[1];
+    if (layerId === "london-metro") {
+      return "London metro boundary";
+    }
+    if (layerId === "dubai-metro") {
+      return "Dubai metro boundary";
+    }
+    return layerId ?? featureId;
+  }
+
   if (featureId.endsWith("-label")) {
     const placeId = featureId.slice(0, -"-label".length);
     const place = TEST_PLACES.find((candidate) => candidate.id === placeId);
@@ -192,7 +203,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
 
   return (
     <div style={readoutStyle}>
-      <div>Foundation 37 — view-mode projection blend</div>
+      <div>Foundation 38 — boundary layer registry</div>
       <div>
         View: {viewMode}
         {viewMode === "globe" || viewModeBlend !== "settled"

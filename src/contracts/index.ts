@@ -28,6 +28,13 @@ export type {
 export type { GeographicPoint, ScreenPoint } from "../types/projection";
 export type { MapStyleDefinition } from "../types/mapStyle";
 export type { TerrainSourceDefinition } from "../types/terrain";
+export type {
+  BoundaryGeoJsonInline,
+  BoundaryGeoJsonSource,
+  BoundaryLayerDefinition,
+  BoundarySemanticType,
+  BoundaryStyleTokens
+} from "../types/boundaryLayer";
 export type { CameraTransitionEvent, CameraTransitionListener } from "../types/cameraTransition";
 export type { CameraPathFamily } from "../types/cameraTransition";
 export type { GeoHoverEvent, GeoHoverListener } from "../types/geoHover";
@@ -66,6 +73,10 @@ export interface AtlasEngineContract {
   getTerrainSourceId(): string;
   setTerrainSource(sourceId: string): Promise<void>;
   setTerrainEnabled(enabled: boolean): Promise<void>;
+  listBoundaryLayers(): import("../types/boundaryLayer").BoundaryLayerDefinition[];
+  registerBoundaryLayer(def: import("../types/boundaryLayer").BoundaryLayerDefinition): void;
+  getEnabledBoundaryLayerIds(): string[];
+  setBoundaryLayers(layerIds: string[]): void;
   getTransitionPathFamily(to: import("../types/place").AtlasPlace): CameraPathFamily;
   isMapReady(): boolean;
   onMapReady(listener: import("../types/mapReady").MapReadyListener): () => void;

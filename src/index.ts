@@ -37,9 +37,17 @@ export {
 } from "./data/mapStyles/builtinMapStyles";
 export { registerMapStyle } from "./data/providers/mapStyle/resolveMapStyle";
 export { registerTerrainSource } from "./data/providers/terrain/resolveTerrain";
+export { registerBoundaryLayer } from "./data/providers/boundary/resolveBoundaryLayer";
 export type { GeographicPoint, ScreenPoint } from "./types/projection";
 export type { MapStyleDefinition } from "./types/mapStyle";
 export type { TerrainSourceDefinition } from "./types/terrain";
+export type {
+  BoundaryGeoJsonInline,
+  BoundaryGeoJsonSource,
+  BoundaryLayerDefinition,
+  BoundarySemanticType,
+  BoundaryStyleTokens
+} from "./types/boundaryLayer";
 export type {
   CameraPathFamily,
   CameraTransitionEvent,

@@ -6,6 +6,7 @@ import type { AtlasPlace } from "../types/place";
 import type { GeographicBounds } from "../types/bounds";
 import type { MapStyleDefinition } from "../types/mapStyle";
 import type { TerrainSourceDefinition } from "../types/terrain";
+import type { BoundaryLayerDefinition } from "../types/boundaryLayer";
 import { markupsFromMarkers } from "../geometry/worldMarkup";
 import type { WorldMarker } from "../types/worldMarker";
 import { getMarkupAnchor, type WorldMarkup } from "../types/worldMarkup";
@@ -25,6 +26,12 @@ import {
   registerTerrainSource as registerTerrainSourceDefinition,
   resolveTerrainSource
 } from "../data/providers/terrain/resolveTerrain";
+import {
+  listAvailableBoundaryLayers,
+  registerBoundaryLayer as registerBoundaryLayerDefinition,
+  resolveBoundaryLayers
+} from "../data/providers/boundary/resolveBoundaryLayer";
+import { isBoundaryFeatureId } from "../interaction/boundaryFeatureIds";
 import { DEFAULT_MAP_STYLE_ID } from "../data/mapStyles/builtinMapStyles";
 import { DEFAULT_TERRAIN_SOURCE_ID } from "../data/terrain/builtinTerrainSources";
 import type { GeoHoverEvent, GeoHoverListener } from "../types/geoHover";
@@ -90,6 +97,7 @@ export class AtlasEngine implements AtlasEngineContract {
   private readonly lightingListeners = new Set<LightingChangeListener>();
   private pendingViewModeChange: ViewModeChangeEvent | null = null;
   private lastViewModeProgressEmit = -1;
+  private enabledBoundaryLayerIds: string[] = [];
 
   constructor(options: AtlasEngineOptions = {}) {
     this.mapStyleId = options.mapStyleId ?? DEFAULT_MAP_STYLE_ID;
@@ -204,7 +212,8 @@ export class AtlasEngine implements AtlasEngineContract {
     this.hoverFeatureId = null;
     this.selectedFeatureId = null;
     this.explicitHighlightId = null;
-    this.syncMarkupHighlight();
+    this.enabledBoundaryLayerIds = [];
+    this.syncFeatureHighlight();
     this.emitMapReady({
       ready: false,
       reason: "detached",
@@ -287,8 +296,10 @@ export class AtlasEngine implements AtlasEngineContract {
 
   updateGeoHover(screenX: number, screenY: number, thresholdPx?: number): void {
     const geo = this.unproject(screenX, screenY);
-    this.hoverFeatureId = this.findInteractiveMarkupAtScreen(screenX, screenY, thresholdPx);
-    this.syncMarkupHighlight();
+    this.hoverFeatureId =
+      this.findInteractiveMarkupAtScreen(screenX, screenY, thresholdPx) ??
+      this.mapAdapter.queryBoundaryFeatureAtScreen(screenX, screenY);
+    this.syncFeatureHighlight();
     this.emitGeoHover({
       featureId: this.hoverFeatureId,
       screen: { x: screenX, y: screenY },
@@ -299,7 +310,7 @@ export class AtlasEngine implements AtlasEngineContract {
   clearGeoHover(): void {
     this.hoverFeatureId = null;
     this.lastGeoHoverKey = "";
-    this.syncMarkupHighlight();
+    this.syncFeatureHighlight();
     this.emitGeoHover({
       featureId: null,
       screen: null,
@@ -320,8 +331,10 @@ export class AtlasEngine implements AtlasEngineContract {
 
   selectGeoAt(screenX: number, screenY: number): void {
     const geo = this.unproject(screenX, screenY);
-    this.selectedFeatureId = this.findInteractiveMarkupAtScreen(screenX, screenY);
-    this.syncMarkupHighlight();
+    this.selectedFeatureId =
+      this.findInteractiveMarkupAtScreen(screenX, screenY) ??
+      this.mapAdapter.queryBoundaryFeatureAtScreen(screenX, screenY);
+    this.syncFeatureHighlight();
     this.emitGeoSelect({
       featureId: this.selectedFeatureId,
       screen: { x: screenX, y: screenY },
@@ -331,7 +344,7 @@ export class AtlasEngine implements AtlasEngineContract {
 
   clearGeoSelection(): void {
     this.selectedFeatureId = null;
-    this.syncMarkupHighlight();
+    this.syncFeatureHighlight();
     this.emitGeoSelect({
       featureId: null,
       screen: null,
@@ -423,9 +436,27 @@ export class AtlasEngine implements AtlasEngineContract {
     await this.mapAdapter.setTerrainEnabled(enabled, source);
   }
 
+  listBoundaryLayers(): BoundaryLayerDefinition[] {
+    return listAvailableBoundaryLayers();
+  }
+
+  registerBoundaryLayer(def: BoundaryLayerDefinition): void {
+    registerBoundaryLayerDefinition(def);
+  }
+
+  getEnabledBoundaryLayerIds(): string[] {
+    return [...this.enabledBoundaryLayerIds];
+  }
+
+  setBoundaryLayers(layerIds: string[]): void {
+    const definitions = resolveBoundaryLayers(layerIds);
+    this.enabledBoundaryLayerIds = definitions.map((layer) => layer.id);
+    this.mapAdapter.setBoundaryLayers(definitions);
+  }
+
   highlightFeature(featureId: string | null): void {
     this.explicitHighlightId = featureId;
-    this.syncMarkupHighlight();
+    this.syncFeatureHighlight();
   }
 
   getHighlightedFeatureId(): string | null {
@@ -581,9 +612,17 @@ export class AtlasEngine implements AtlasEngineContract {
     );
   }
 
-  private syncMarkupHighlight(): void {
+  private syncFeatureHighlight(): void {
     const activeFeatureId =
       this.selectedFeatureId ?? this.hoverFeatureId ?? this.explicitHighlightId;
+
+    if (activeFeatureId && isBoundaryFeatureId(activeFeatureId)) {
+      this.mapAdapter.highlightWorldMarkup(null);
+      this.mapAdapter.highlightBoundaryFeature(activeFeatureId);
+      return;
+    }
+
+    this.mapAdapter.highlightBoundaryFeature(null);
     this.mapAdapter.highlightWorldMarkup(activeFeatureId);
   }
 

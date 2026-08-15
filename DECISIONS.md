@@ -743,3 +743,28 @@ Foundation 36 aligned overlays in settled globe or mercator states, but `setView
 - Line/polygon geometry remains single-anchor mercator meters (Foundation 36 limitation).
 - `map↔mercator` pitch-only switches remain instant with no blend tracking.
 - High-frequency zoom transitions may refresh matrices every frame; acceptable for current markup counts but not yet batched.
+
+---
+
+## 2026-08-15 — Foundation 38 boundary layer registry
+
+**Decision**
+
+Boundary polygons render through a provider-agnostic registry in `src/data/boundaries`. Applications register `BoundaryLayerDefinition` entries (GeoJSON url or inline data, semantic type, style tokens) via `registerBoundaryLayer()` or `AtlasEngine.registerBoundaryLayer()`, then enable layers with `setBoundaryLayers(ids[])`. MapLibre fill and line layers are composed in `boundarySetup.ts` behind `MapLibreAdapter`; consumers never touch MapLibre source or layer ids.
+
+**Reason**
+
+Studio and future products need jurisdictional overlays without hard-coded demo geometry in `src` or direct MapLibre coupling. The registry mirrors map-style and terrain patterns established in Foundations 5 and 7.
+
+**Consequences**
+
+- Hover and selection extend the existing `onGeoHover` / `onGeoSelect` pipeline: markup picks first, then `queryRenderedFeatures` on enabled boundary layers.
+- Boundary feature ids use the `boundary:{layerId}:{featureKey}` prefix; highlight uses MapLibre feature-state on registered GeoJSON sources.
+- No built-in boundary layers ship in `src`; Lab registers demo metro polygons at runtime.
+- Style swaps re-sync enabled boundary layers after the basemap reloads.
+
+**Limitations**
+
+- Polygon-only GeoJSON sources in this foundation; MultiPolygon and line boundaries deferred.
+- Multiple enabled layers re-add on every `setBoundaryLayers` call; diffing and incremental updates can follow if layer counts grow.
+- Boundary hover does not yet participate in place-id expansion (`placeHighlightIds`); explicit boundary ids only.
