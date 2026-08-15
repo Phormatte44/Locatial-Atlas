@@ -9,6 +9,7 @@ import { RoadLayerToggle } from "./RoadLayerToggle";
 import { AreaLayerToggle } from "./AreaLayerToggle";
 import { BuildingLayerToggle } from "./BuildingLayerToggle";
 import { PoiLayerToggle } from "./PoiLayerToggle";
+import { RasterLayerToggle } from "./RasterLayerToggle";
 import { ViewModeSelector } from "./ViewModeSelector";
 import { VisualEnvironmentControls } from "./VisualEnvironmentControls";
 
@@ -82,17 +83,18 @@ export function PlaceSelector({ engine, places }: PlaceSelectorProps) {
 
   return (
     <div style={panelStyle}>
-      <strong style={{ fontSize: 14 }}>Atlas Lab — Foundation 44</strong>
+      <strong style={{ fontSize: 14 }}>Atlas Lab — Foundation 45</strong>
       <span style={{ fontSize: 12, color: "#555" }}>
-        City buttons frame the center point; area buttons frame metro bounds. Enable POI layers to
-        see clustered landmarks — click a cluster to expand. Try the Paris async URL POI layer for
-        load lifecycle (loading → ready, retry on error).
+        City buttons frame the center point; area buttons frame metro bounds. Enable raster imagery to
+        see satellite or thematic tile overlays beneath vector layers. Toggle POI layers for
+        clustered landmarks — click a cluster to expand.
       </span>
       <ViewModeSelector engine={engine} />
       <VisualEnvironmentControls engine={engine} />
       <MapStyleSelector engine={engine} />
       <TerrainSourceSelector engine={engine} />
       <TerrainToggle engine={engine} />
+      <RasterLayerToggle engine={engine} />
       <BoundaryLayerToggle engine={engine} />
       <LabelLayerToggle engine={engine} />
       <RoadLayerToggle engine={engine} />

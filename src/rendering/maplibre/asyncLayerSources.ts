@@ -35,6 +35,8 @@ export function sourceIdForLayer(family: LayerFamily, layerId: string): string {
       return buildingSourceId(layerId);
     case "poi":
       return poiSourceId(layerId);
+    case "raster":
+      throw new Error("Raster layers do not use GeoJSON source ids");
   }
 }
 

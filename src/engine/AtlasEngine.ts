@@ -12,6 +12,7 @@ import type { RoadLayerDefinition } from "../types/roadLayer";
 import type { AreaLayerDefinition } from "../types/areaLayer";
 import type { BuildingLayerDefinition } from "../types/buildingLayer";
 import type { PoiLayerDefinition } from "../types/poiLayer";
+import type { RasterLayerDefinition } from "../types/rasterLayer";
 import { markupsFromMarkers } from "../geometry/worldMarkup";
 import type { WorldMarker } from "../types/worldMarker";
 import { getMarkupAnchor, type WorldMarkup } from "../types/worldMarkup";
@@ -61,6 +62,11 @@ import {
   registerPoiLayer as registerPoiLayerDefinition,
   resolvePoiLayers
 } from "../data/providers/poi/resolvePoiLayer";
+import {
+  listAvailableRasterLayers,
+  registerRasterLayer as registerRasterLayerDefinition,
+  resolveRasterLayers
+} from "../data/providers/raster/resolveRasterLayer";
 import { isBoundaryFeatureId } from "../interaction/boundaryFeatureIds";
 import { isLabelFeatureId } from "../interaction/labelFeatureIds";
 import { isRoadFeatureId } from "../interaction/roadFeatureIds";
@@ -145,6 +151,7 @@ export class AtlasEngine implements AtlasEngineContract {
   private enabledAreaLayerIds: string[] = [];
   private enabledBuildingLayerIds: string[] = [];
   private enabledPoiLayerIds: string[] = [];
+  private enabledRasterLayerIds: string[] = [];
 
   constructor(options: AtlasEngineOptions = {}) {
     this.mapStyleId = options.mapStyleId ?? DEFAULT_MAP_STYLE_ID;
@@ -639,6 +646,24 @@ export class AtlasEngine implements AtlasEngineContract {
     const definitions = resolvePoiLayers(layerIds);
     this.enabledPoiLayerIds = definitions.map((layer) => layer.id);
     this.mapAdapter.setPoiLayers(definitions);
+  }
+
+  listRasterLayers(): RasterLayerDefinition[] {
+    return listAvailableRasterLayers();
+  }
+
+  registerRasterLayer(def: RasterLayerDefinition): void {
+    registerRasterLayerDefinition(def);
+  }
+
+  getEnabledRasterLayerIds(): string[] {
+    return [...this.enabledRasterLayerIds];
+  }
+
+  setRasterLayers(layerIds: string[]): void {
+    const definitions = resolveRasterLayers(layerIds);
+    this.enabledRasterLayerIds = definitions.map((layer) => layer.id);
+    this.mapAdapter.setRasterLayers(definitions);
   }
 
   async expandClusterAt(screenX: number, screenY: number): Promise<boolean> {

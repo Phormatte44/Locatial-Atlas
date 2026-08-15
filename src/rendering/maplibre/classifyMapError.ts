@@ -1,5 +1,6 @@
 import type { ErrorEvent } from "maplibre-gl";
 import type { MapErrorKind } from "../../types/mapError";
+import { isAtlasRasterSourceId, parseRasterLayerIdFromSourceId } from "./rasterSetup";
 import { ATLAS_TERRAIN_SOURCE_ID } from "./terrainSetup";
 
 export interface ClassifiedMapError {
@@ -27,6 +28,18 @@ export function classifyMapLibreError(event: MapLibreErrorPayload): ClassifiedMa
       message,
       recoverable: true,
       sourceId
+    };
+  }
+
+  if (sourceId && isAtlasRasterSourceId(sourceId)) {
+    const layerId = parseRasterLayerIdFromSourceId(sourceId) ?? undefined;
+    return {
+      kind: "tile-load",
+      message,
+      recoverable: true,
+      sourceId,
+      layerId,
+      layerFamily: "raster"
     };
   }
 

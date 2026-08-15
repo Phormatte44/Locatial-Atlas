@@ -43,6 +43,7 @@ export { registerRoadLayer } from "./data/providers/road/resolveRoadLayer";
 export { registerAreaLayer } from "./data/providers/area/resolveAreaLayer";
 export { registerBuildingLayer } from "./data/providers/building/resolveBuildingLayer";
 export { registerPoiLayer } from "./data/providers/poi/resolvePoiLayer";
+export { registerRasterLayer } from "./data/providers/raster/resolveRasterLayer";
 export type { GeographicPoint, ScreenPoint } from "./types/projection";
 export type { MapStyleDefinition } from "./types/mapStyle";
 export type { TerrainSourceDefinition } from "./types/terrain";
@@ -89,6 +90,12 @@ export type {
   PoiSemanticType,
   PoiStyleTokens
 } from "./types/poiLayer";
+export type {
+  RasterLayerDefinition,
+  RasterSemanticType,
+  RasterStyleTokens,
+  RasterTileSource
+} from "./types/rasterLayer";
 export type {
   CameraPathFamily,
   CameraTransitionEvent,

@@ -5,6 +5,7 @@ import type { RoadLayerDefinition } from "../../types/roadLayer";
 import type { AreaLayerDefinition } from "../../types/areaLayer";
 import type { BuildingLayerDefinition } from "../../types/buildingLayer";
 import type { PoiLayerDefinition } from "../../types/poiLayer";
+import type { RasterLayerDefinition } from "../../types/rasterLayer";
 import type { TerrainSourceDefinition } from "../../types/terrain";
 import type { CameraState } from "../../types/camera";
 import { markupsFromMarkers } from "../../geometry/worldMarkup";
@@ -64,6 +65,15 @@ import {
   setPoiFeatureHighlight,
   syncPoiLayersOnMap
 } from "./poiSetup";
+import {
+  addRasterLayerToMap,
+  getRasterLayerDefinitionBySourceId,
+  isAtlasRasterSourceId,
+  parseRasterLayerIdFromSourceId,
+  rasterSourceId,
+  resolveRasterSourceUrlForTracking,
+  syncRasterLayersOnMap
+} from "./rasterSetup";
 import { parseBoundaryFeatureId } from "../../interaction/boundaryFeatureIds";
 import { parseLabelFeatureId } from "../../interaction/labelFeatureIds";
 import { parseRoadFeatureId } from "../../interaction/roadFeatureIds";
@@ -71,6 +81,7 @@ import { parseAreaFeatureId } from "../../interaction/areaFeatureIds";
 import { parseBuildingFeatureId } from "../../interaction/buildingFeatureIds";
 import { parsePoiFeatureId } from "../../interaction/poiFeatureIds";
 import { LayerSourceLoader } from "../../data/layerSourceLoader";
+import { RasterSourceLoadTracker } from "../../data/rasterSourceLoadTracker";
 import type { LayerFamily, LayerLoadChangeListener, LayerLoadState } from "../../types/layerLoadState";
 import {
   applyGeoJsonToLayerSource,
@@ -105,6 +116,7 @@ export class MapLibreAdapter {
   private areaLayers: AreaLayerDefinition[] = [];
   private buildingLayers: BuildingLayerDefinition[] = [];
   private poiLayers: PoiLayerDefinition[] = [];
+  private rasterLayers: RasterLayerDefinition[] = [];
   private highlightedBoundary: { layerId: string; featureKey: string } | null = null;
   private highlightedLabel: { layerId: string; featureKey: string } | null = null;
   private highlightedRoad: { layerId: string; featureKey: string } | null = null;
@@ -112,6 +124,7 @@ export class MapLibreAdapter {
   private highlightedBuilding: { layerId: string; featureKey: string } | null = null;
   private highlightedPoi: { layerId: string; featureKey: string } | null = null;
   private readonly layerSourceLoader = new LayerSourceLoader();
+  private readonly rasterLoadTracker = new RasterSourceLoadTracker();
   private readonly layerLoadChangeListeners = new Set<LayerLoadChangeListener>();
 
   create(container: HTMLElement, initialCamera: CameraState, styleUrl: string): void {
@@ -160,8 +173,60 @@ export class MapLibreAdapter {
       }
     });
 
+    this.rasterLoadTracker.onChange(({ state }) => {
+      this.emitLayerLoadChange(state);
+
+      if (state.status === "error" && state.error) {
+        this.emitLayerLoadError({
+          kind: "tile-load",
+          message: state.error,
+          recoverable: true,
+          layerId: state.layerId,
+          layerFamily: "raster"
+        });
+      }
+    });
+
+    this.map.on("sourcedata", (event) => {
+      if (!event.sourceId || !isAtlasRasterSourceId(event.sourceId)) {
+        return;
+      }
+
+      const layerId = parseRasterLayerIdFromSourceId(event.sourceId);
+      if (!layerId) {
+        return;
+      }
+
+      const definition = getRasterLayerDefinitionBySourceId(this.rasterLayers, event.sourceId);
+      const url = definition ? resolveRasterSourceUrlForTracking(definition) : undefined;
+
+      if (event.isSourceLoaded) {
+        this.rasterLoadTracker.markReady(layerId, url);
+        return;
+      }
+
+      const current = this.rasterLoadTracker.getState(layerId);
+      if (!current || current.status === "idle") {
+        this.rasterLoadTracker.markLoading(layerId, url);
+      }
+    });
+
     this.map.on("error", (event) => {
-      this.emitError(classifyMapLibreError(event));
+      const classified = classifyMapLibreError(event);
+      this.emitError(classified);
+
+      if (
+        classified.layerFamily === "raster" &&
+        classified.layerId &&
+        classified.kind === "tile-load"
+      ) {
+        const definition = this.rasterLayers.find((layer) => layer.id === classified.layerId);
+        this.rasterLoadTracker.markError(
+          classified.layerId,
+          classified.message,
+          definition ? resolveRasterSourceUrlForTracking(definition) : undefined
+        );
+      }
     });
 
     this.map.on("render", () => {
@@ -180,10 +245,13 @@ export class MapLibreAdapter {
     this.boundaryLayers = [];
     this.labelLayers = [];
     this.roadLayers = [];
+    this.poiLayers = [];
+    this.rasterLayers = [];
     this.highlightedBoundary = null;
     this.highlightedLabel = null;
     this.highlightedRoad = null;
     this.layerSourceLoader.cancelAll();
+    this.rasterLoadTracker.cancelAll();
   }
 
   configureTerrain(enabled: boolean, source: TerrainSourceDefinition | null): void {
@@ -293,6 +361,7 @@ export class MapLibreAdapter {
     this.styleUrl = styleUrl;
     this.threeLayerAdded = false;
     this.layerSourceLoader.invalidateAll();
+    this.rasterLoadTracker.cancelAll();
 
     await new Promise<void>((resolve, reject) => {
       const onIdle = () => {
@@ -530,6 +599,31 @@ export class MapLibreAdapter {
     this.syncLayerSourceLoads();
   }
 
+  setRasterLayers(definitions: RasterLayerDefinition[]): void {
+    const previousIds = new Set(this.rasterLayers.map((layer) => layer.id));
+    const nextIds = new Set(definitions.map((layer) => layer.id));
+
+    for (const layerId of previousIds) {
+      if (!nextIds.has(layerId)) {
+        this.rasterLoadTracker.markIdle(layerId);
+      }
+    }
+
+    this.rasterLayers = definitions;
+
+    if (!this.map?.loaded()) {
+      return;
+    }
+
+    syncRasterLayersOnMap(this.map, definitions);
+    this.moveThreeLayerToTop();
+    this.syncRasterLoadStates();
+  }
+
+  getEnabledRasterLayerIds(): string[] {
+    return this.rasterLayers.map((layer) => layer.id);
+  }
+
   getEnabledPoiLayerIds(): string[] {
     return this.poiLayers.map((layer) => layer.id);
   }
@@ -764,14 +858,31 @@ export class MapLibreAdapter {
   }
 
   getLayerLoadState(layerId: string): LayerLoadState | undefined {
-    return this.layerSourceLoader.findState(layerId);
+    return (
+      this.layerSourceLoader.findState(layerId) ?? this.rasterLoadTracker.findState(layerId)
+    );
   }
 
   getLayerLoadStates(): LayerLoadState[] {
-    return this.layerSourceLoader.getStates();
+    return [...this.layerSourceLoader.getStates(), ...this.rasterLoadTracker.getStates()];
   }
 
   retryLayerLoad(layerId: string, family?: LayerFamily): boolean {
+    if (family === "raster" || (!family && this.rasterLoadTracker.getState(layerId))) {
+      const definition = this.rasterLayers.find((layer) => layer.id === layerId);
+      if (!definition || !this.map?.loaded()) {
+        return false;
+      }
+
+      this.rasterLoadTracker.markLoading(
+        layerId,
+        resolveRasterSourceUrlForTracking(definition)
+      );
+      addRasterLayerToMap(this.map, definition);
+      this.moveThreeLayerToTop();
+      return true;
+    }
+
     if (family) {
       return this.layerSourceLoader.retry(family, layerId);
     }
@@ -783,6 +894,11 @@ export class MapLibreAdapter {
     this.addThreeLayer();
     this.applyVisualEnvironment();
     await this.applyTerrainState();
+    if (this.rasterLayers.length > 0) {
+      syncRasterLayersOnMap(this.map!, this.rasterLayers);
+      this.moveThreeLayerToTop();
+      this.syncRasterLoadStates();
+    }
     if (this.boundaryLayers.length > 0) {
       syncBoundaryLayersOnMap(this.map!, this.boundaryLayers);
       this.moveThreeLayerToTop();
@@ -909,6 +1025,28 @@ export class MapLibreAdapter {
           this.map.triggerRepaint();
         }
       );
+    }
+  }
+
+  private syncRasterLoadStates(): void {
+    const enabledIds = new Set(this.rasterLayers.map((layer) => layer.id));
+
+    for (const state of this.rasterLoadTracker.getStates()) {
+      if (!enabledIds.has(state.layerId)) {
+        this.rasterLoadTracker.markIdle(state.layerId);
+      }
+    }
+
+    for (const definition of this.rasterLayers) {
+      const sourceId = rasterSourceId(definition.id);
+      const source = this.map?.getSource(sourceId);
+      const url = resolveRasterSourceUrlForTracking(definition);
+
+      if (source && this.map?.isSourceLoaded(sourceId)) {
+        this.rasterLoadTracker.markReady(definition.id, url);
+      } else if (!this.rasterLoadTracker.getState(definition.id)) {
+        this.rasterLoadTracker.markLoading(definition.id, url);
+      }
     }
   }
 

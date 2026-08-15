@@ -71,6 +71,12 @@ export type {
   PoiSemanticType,
   PoiStyleTokens
 } from "../types/poiLayer";
+export type {
+  RasterLayerDefinition,
+  RasterSemanticType,
+  RasterStyleTokens,
+  RasterTileSource
+} from "../types/rasterLayer";
 export type { CameraTransitionEvent, CameraTransitionListener } from "../types/cameraTransition";
 export type { CameraPathFamily } from "../types/cameraTransition";
 export type { GeoHoverEvent, GeoHoverListener } from "../types/geoHover";
@@ -142,6 +148,10 @@ export interface AtlasEngineContract {
   setPoiLayers(layerIds: string[]): void;
   expandClusterAt(screenX: number, screenY: number): Promise<boolean>;
   frameCluster(layerId: string, clusterId: number): Promise<void>;
+  listRasterLayers(): import("../types/rasterLayer").RasterLayerDefinition[];
+  registerRasterLayer(def: import("../types/rasterLayer").RasterLayerDefinition): void;
+  getEnabledRasterLayerIds(): string[];
+  setRasterLayers(layerIds: string[]): void;
   getTransitionPathFamily(to: import("../types/place").AtlasPlace): CameraPathFamily;
   isMapReady(): boolean;
   onMapReady(listener: import("../types/mapReady").MapReadyListener): () => void;

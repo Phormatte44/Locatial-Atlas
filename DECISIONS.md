@@ -923,3 +923,33 @@ Studio and future products need interactive landmark and amenity markers with op
 **Next**
 
 - Foundation 45: raster / imagery overlay registry with tile URL sources, opacity tokens, and z-order relative to vector layers.
+
+## 2026-08-15 — Foundation 45 raster / imagery overlay registry
+
+**Decision**
+
+Raster imagery layers render through a provider-agnostic registry in `src/data/rasters`. Applications register `RasterLayerDefinition` entries (XYZ tile templates or TileJSON URL, semantic type, opacity/brightness/contrast tokens, optional zoom range and bounds) via `registerRasterLayer()` or `AtlasEngine.registerRasterLayer()`, then enable layers with `setRasterLayers(ids[])`. MapLibre raster sources and layers are composed in `rasterSetup.ts` behind `MapLibreAdapter`; consumers never touch MapLibre source or layer ids.
+
+**Reason**
+
+Studio and future products need satellite, hillshade, and thematic imagery overlays composited beneath vector editorial layers, without hard-coded tile URLs in `src` or direct MapLibre coupling. The registry mirrors vector layer patterns from Foundations 39–44 while using native MapLibre raster sources for GPU compositing with the basemap.
+
+**Consequences**
+
+- Render stack (bottom → top): raster imagery → boundaries → areas → buildings → roads → POIs → labels → Three overlay. Raster layers insert below the first boundary layer (or below symbol layers when no boundaries are enabled).
+- Tile source lifecycle tracks `loading | ready | error` per enabled raster id through `RasterSourceLoadTracker`; query via existing `getLayerLoadState` / `onLayerLoadChange` with family `raster`.
+- Tile failures on registered raster sources emit recoverable `onMapError` events with kind `tile-load` and `layerFamily: "raster"`. Retry via `retryLayerLoad(layerId, "raster")`.
+- No built-in raster layers ship in `src`; Lab registers Esri World Imagery and Stamen Toner presets at runtime.
+- Style swaps re-sync enabled raster layers after the basemap reloads.
+
+**Limitations**
+
+- Raster layers are display-only; no hover, selection, or feature ids.
+- XYZ templates and TileJSON URLs only; WMS, COG, and dynamic mosaic sources deferred.
+- Opacity and raster paint tokens apply at layer level; per-tile styling and temporal sequences deferred.
+- Lab demo tiles depend on third-party endpoints (Esri, Stadia); production apps should register their own sources with appropriate attribution.
+- Multiple raster layers stack in registration order but share the same z-anchor below vector overlays; explicit per-layer z-index policy deferred.
+
+**Next**
+
+- Foundation 46: GSAP camera path integration, 3D Tiles overlay registry, or Studio integration documentation update.
