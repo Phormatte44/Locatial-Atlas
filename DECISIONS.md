@@ -2143,7 +2143,26 @@ Studio D-056 (Foundation 109) extends F108 so authors see proposed move duration
 
 **Next**
 
-- Foundation 110: TBD — candidate: unified paste-preview toggle, validation dismiss/snooze, or paste-preview hover persistence.
+- Foundation 110: unified paste-preview toggle component (see Studio D-057).
+
+## 2026-08-15 — Foundation 110 unified paste-preview toggle stays Studio-side
+
+**Decision**
+
+**Unified paste-preview toggle** for keyframe (F105/F106) and move (F109) timing contexts consolidates duplicate segmented controls and ⌥⌘P cycle helpers into shared Studio modules (`TimingPastePreviewToggle`, `timingPastePreviewModeCore.ts`, `timingPastePreviewCycleRouter.ts`). Separate localStorage keys per context are preserved to avoid cross-context preference bleed. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-057 (Foundation 110) removes near-duplicate toggle UI and keyboard routing while keeping F104–F106 and F108–F109 author-visible behavior identical.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-057 for `TimingPastePreviewToggle`, shared cycle core/router, and `DirectorMarkupPanel` wiring.
+
+**Next**
+
+- Foundation 111: TBD — candidate: validation dismiss/snooze, paste-preview hover persistence, or paste-preview keyboard focus ring.
 
 ## 2026-08-15 — Foundation 95 keyframe drag on Storyline rail stays Studio-side
 
