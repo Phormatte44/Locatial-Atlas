@@ -14,6 +14,7 @@ export type {
   WorldLabelMarkup,
   WorldLineMarkup,
   WorldMarkup,
+  WorldMarkupStyle,
   WorldPolygonMarkup,
   WorldSphereMarkup
 } from "./types/worldMarkup";

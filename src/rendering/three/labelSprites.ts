@@ -16,6 +16,7 @@ export interface LabelSpriteOptions {
   accentColor: number;
   highlighted?: boolean;
   fontSizePx?: number;
+  strokeWidth?: number;
 }
 
 function hexToCss(color: number): string {
@@ -41,8 +42,9 @@ function createLabelCanvas(options: LabelSpriteOptions): HTMLCanvasElement | nul
   context.fillStyle = options.highlighted ? "rgba(20, 20, 20, 0.94)" : "rgba(20, 20, 20, 0.82)";
   context.fillRect(0, 0, canvas.width, canvas.height);
   context.strokeStyle = hexToCss(options.accentColor);
-  context.lineWidth = options.highlighted ? 4 : 3;
-  context.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
+  const borderWidth = options.strokeWidth ?? (options.highlighted ? 4 : 3);
+  context.lineWidth = borderWidth;
+  context.strokeRect(borderWidth / 2 + 1, borderWidth / 2 + 1, canvas.width - borderWidth - 2, canvas.height - borderWidth - 2);
   context.fillStyle = "#ffffff";
   context.fillText(options.text, LABEL_PADDING_PX, fontSizePx + LABEL_PADDING_PX / 2);
 

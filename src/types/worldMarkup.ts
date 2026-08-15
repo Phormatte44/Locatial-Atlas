@@ -1,9 +1,23 @@
+/** Optional author style tokens consumed by the Three.js overlay renderer. */
+export interface WorldMarkupStyle {
+  /** CSS hex fill/tint color (e.g. "#C6FF3C"). */
+  fillColor?: string;
+  /** CSS hex stroke or line color. */
+  strokeColor?: string;
+  /** Fill or line opacity in 0–1 when the renderer supports it. */
+  opacity?: number;
+  /** Stroke width in CSS pixels where supported (lines, label borders). */
+  strokeWidth?: number;
+}
+
 /** Base fields shared by all world-space markup items. */
 export interface WorldMarkupBase {
   id: string;
   lng: number;
   lat: number;
   altitudeMeters?: number;
+  /** Author style; omitted means renderer defaults (palette tint by id). */
+  style?: WorldMarkupStyle;
 }
 
 /** Spherical markup anchored to a geographic point. */

@@ -1455,6 +1455,26 @@ Foundation 63 proved Atlas rendering and pick for `WorldEllipseMarkup`. F64 prom
 
 - Foundation 65: TBD — candidate: markup style passthrough to Atlas world markup, ellipse drag handles on map, or line topology cache if profiling warrants it.
 
+## 2026-08-15 — Foundation 65 markup style passthrough
+
+**Decision**
+
+`WorldMarkupBase` accepts optional author style tokens (`fillColor`, `strokeColor`, `opacity`, `strokeWidth` as CSS hex and scalar values). `ThreeOverlayAdapter` and `markupMaterials.ts` resolve authored styles before falling back to palette tints by id. Creator Studio maps `MarkupElement.style` in `worldMarkupFromStudio` so properties-panel stroke/fill edits reach the map without new public API surface.
+
+**Reason**
+
+Foundation 64 made ellipses first-class authored markup; authors still saw palette defaults on map because Studio never forwarded style. Passthrough keeps Atlas renderer-agnostic (optional fields on existing types) while closing the Studio → map visual loop.
+
+**Consequences**
+
+- Public contract shape unchanged — only optional fields on existing `WorldMarkup` variants.
+- Lines and labels use `strokeColor`; fills use `fillColor` and `opacity`. `strokeWidth` applies to lines and label borders where WebGL/canvas supports it.
+- Highlight still brightens authored colors slightly; omitted style keeps prior palette behavior.
+
+**Next**
+
+- Foundation 66: TBD — candidate: ellipse drag handles on map, markup motion playback on Atlas overlay, or line topology cache if profiling warrants it.
+
 ## 2026-08-15 — Studio transition preview uses Atlas straight and high-arc
 
 **Decision**

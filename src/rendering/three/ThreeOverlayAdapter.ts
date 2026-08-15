@@ -30,17 +30,15 @@ import {
   resetOverlayRendererState
 } from "./overlayDepthCompositing";
 import {
-  highlightedMarkerColorForId,
-  HIGHLIGHTED_MARKER_SCALE,
-  markerColorForId
-} from "./markerColors";
-import {
   applyMarkupMaterialAppearance,
   applyOverlayShadowFlags,
   createMarkupMaterial,
-  defaultOpacityForMarkup,
   getTintableMarkupMaterial,
   replaceMeshMarkupMaterial,
+  resolveMarkupFillColor,
+  resolveMarkupOpacity,
+  resolveMarkupStrokeColor,
+  resolveMarkupStrokeWidth,
   type LitMarkupKind
 } from "./markupMaterials";
 import { markupMatchesHighlight } from "../../interaction/placeHighlightIds";
@@ -49,6 +47,7 @@ import type { LightingSettings } from "../../types/lighting";
 import { OverlayLightingRig } from "../lighting/OverlayLightingRig";
 import { DEFAULT_LIGHTING_SETTINGS } from "../lighting/atmosphereDefaults";
 import { createOverlayShadowGroundReceiver } from "../lighting/overlayShadowConfig";
+import { HIGHLIGHTED_MARKER_SCALE } from "./markerColors";
 
 const LAYER_ID = "atlas-three-overlay";
 
@@ -365,21 +364,21 @@ export class ThreeOverlayAdapter {
       return this.createLabelObjectForMarkup(markup, false);
     }
 
-    const color = markerColorForId(markup.id);
     const lightingEnabled = this.lightingSettings.enabled;
     const context = this.getOverlayTransformContext();
     const globeness = resolveLabelGlobeness(context);
     const altitudeMeters = markup.altitudeMeters ?? 0;
 
     if (markup.kind === "line") {
-      const opacity = defaultOpacityForMarkup("line", false) * lineLegibilityForGlobeness(globeness);
+      const legibility = lineLegibilityForGlobeness(globeness);
       return new THREE.Line(
         createGlobeAwareLineGeometry(markup.path, markup.lng, markup.lat, altitudeMeters, context),
         createMarkupMaterial({
           kind: "line",
-          color,
-          opacity,
-          lightingEnabled
+          color: resolveMarkupStrokeColor(markup, false),
+          opacity: resolveMarkupOpacity(markup, "line", false, legibility),
+          lightingEnabled,
+          strokeWidth: resolveMarkupStrokeWidth(markup)
         })
       );
     }
@@ -395,8 +394,8 @@ export class ThreeOverlayAdapter {
         ),
         createMarkupMaterial({
           kind: "polygon",
-          color,
-          opacity: defaultOpacityForMarkup("polygon", false),
+          color: resolveMarkupFillColor(markup, false),
+          opacity: resolveMarkupOpacity(markup, "polygon", false),
           lightingEnabled
         })
       );
@@ -418,8 +417,8 @@ export class ThreeOverlayAdapter {
         ),
         createMarkupMaterial({
           kind: "circle",
-          color,
-          opacity: defaultOpacityForMarkup("circle", false),
+          color: resolveMarkupFillColor(markup, false),
+          opacity: resolveMarkupOpacity(markup, "circle", false),
           lightingEnabled
         })
       );
@@ -443,8 +442,8 @@ export class ThreeOverlayAdapter {
         ),
         createMarkupMaterial({
           kind: "ellipse",
-          color,
-          opacity: defaultOpacityForMarkup("ellipse", false),
+          color: resolveMarkupFillColor(markup, false),
+          opacity: resolveMarkupOpacity(markup, "ellipse", false),
           lightingEnabled
         })
       );
@@ -457,8 +456,8 @@ export class ThreeOverlayAdapter {
       new THREE.SphereGeometry(1, 24, 24),
       createMarkupMaterial({
         kind: "sphere",
-        color,
-        opacity: defaultOpacityForMarkup("sphere", false),
+        color: resolveMarkupFillColor(markup, false),
+        opacity: resolveMarkupOpacity(markup, "sphere", false),
         lightingEnabled
       })
     );
@@ -484,14 +483,13 @@ export class ThreeOverlayAdapter {
     isHighlighted: boolean
   ): THREE.Object3D {
     const globeness = resolveLabelGlobeness(this.getOverlayTransformContext());
-    const accentColor = isHighlighted
-      ? highlightedMarkerColorForId(markup.id)
-      : markerColorForId(markup.id);
+    const accentColor = resolveMarkupStrokeColor(markup, isHighlighted);
 
     const options = {
       text: markup.text,
       accentColor,
-      highlighted: isHighlighted
+      highlighted: isHighlighted,
+      strokeWidth: resolveMarkupStrokeWidth(markup)
     };
 
     return labelUsesTangentPlane(globeness)
@@ -526,7 +524,10 @@ export class ThreeOverlayAdapter {
       entry.labelHighlighted = isHighlighted;
     }
 
-    applyLabelOpacity(entry.object, labelLegibilityForGlobeness(globeness).opacity);
+    applyLabelOpacity(
+      entry.object,
+      resolveMarkupOpacity(markup, "label", isHighlighted, labelLegibilityForGlobeness(globeness).opacity)
+    );
 
     entry.object.renderOrder = isHighlighted
       ? markupRenderPriority(entry.kind) + 10
@@ -601,11 +602,16 @@ export class ThreeOverlayAdapter {
       const material = getTintableMarkupMaterial(entry.object);
       if (material) {
         const isHighlighted = this.isMarkupHighlighted(entry.id);
-        const color = isHighlighted ? highlightedMarkerColorForId(entry.id) : markerColorForId(entry.id);
         applyMarkupMaterialAppearance(
           material,
-          color,
-          defaultOpacityForMarkup("line", isHighlighted) * lineLegibilityForGlobeness(globeness)
+          resolveMarkupStrokeColor(markup, isHighlighted),
+          resolveMarkupOpacity(
+            markup,
+            "line",
+            isHighlighted,
+            lineLegibilityForGlobeness(globeness)
+          ),
+          resolveMarkupStrokeWidth(markup)
         );
       }
       return;
@@ -673,6 +679,7 @@ export class ThreeOverlayAdapter {
 
     for (const entry of this.markupEntries) {
       const isHighlighted = this.isMarkupHighlighted(entry.id);
+      const markup = this.markups.find((candidate) => candidate.id === entry.id);
 
       if (entry.kind === "label") {
         this.syncLabelPresentation(entry);
@@ -685,12 +692,24 @@ export class ThreeOverlayAdapter {
 
       const material = getTintableMarkupMaterial(entry.object);
 
-      if (!material) {
+      if (!material || !markup) {
         continue;
       }
 
-      const color = isHighlighted ? highlightedMarkerColorForId(entry.id) : markerColorForId(entry.id);
-      applyMarkupMaterialAppearance(material, color, defaultOpacityForMarkup(entry.kind, isHighlighted));
+      const color =
+        entry.kind === "line"
+          ? resolveMarkupStrokeColor(markup, isHighlighted)
+          : resolveMarkupFillColor(markup, isHighlighted);
+      const legibility =
+        entry.kind === "line" && entry.linePolygonGlobeness !== undefined
+          ? lineLegibilityForGlobeness(entry.linePolygonGlobeness)
+          : 1;
+      applyMarkupMaterialAppearance(
+        material,
+        color,
+        resolveMarkupOpacity(markup, entry.kind, isHighlighted, legibility),
+        resolveMarkupStrokeWidth(markup)
+      );
       entry.object.renderOrder = isHighlighted
         ? markupRenderPriority(entry.kind) + 10
         : markupRenderPriority(entry.kind);
@@ -718,11 +737,20 @@ export class ThreeOverlayAdapter {
         continue;
       }
 
-      const isHighlighted = this.isMarkupHighlighted(entry.id);
-      const color = isHighlighted ? highlightedMarkerColorForId(entry.id) : markerColorForId(entry.id);
-      const opacity = defaultOpacityForMarkup(entry.kind, isHighlighted);
+      const markup = this.markups.find((candidate) => candidate.id === entry.id);
+      if (!markup) {
+        continue;
+      }
 
-      replaceMeshMarkupMaterial(entry.object, entry.kind, color, opacity, lightingEnabled);
+      const isHighlighted = this.isMarkupHighlighted(entry.id);
+      replaceMeshMarkupMaterial(
+        entry.object,
+        entry.kind,
+        resolveMarkupFillColor(markup, isHighlighted),
+        resolveMarkupOpacity(markup, entry.kind, isHighlighted),
+        lightingEnabled,
+        resolveMarkupStrokeWidth(markup)
+      );
     }
   }
 
