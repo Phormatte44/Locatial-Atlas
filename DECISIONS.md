@@ -2865,7 +2865,26 @@ Studio D-103 (Foundation 156) closes the re-copy + pin interaction gap — keybo
 
 **Next**
 
-- Foundation 157: candidate — paste-preview Enter paste after re-copy pattern change validation, or validation snooze keyboard restore extensions.
+- Foundation 158: candidate — validation snooze keyboard restore extensions, or paste-preview re-copy loop move-context parity audit.
+
+## 2026-08-15 — Foundation 157 paste-preview Enter paste after re-copy pattern validation stays Studio-side
+
+**Decision**
+
+After **re-copy → re-pin → Enter/Space** (F125), Creator Studio paste-preview ghost commit must use the **updated clipboard pattern** — proposal times, bounds validity, and tooltip metadata refresh synchronously on re-copy (F156). F125 Enter commit **re-validates the focused ghost's `valid` flag against live preview math** before resolving the paste action so stale DOM attrs from a pre-recopy pin session cannot block a valid post-recopy paste.
+
+**Reason**
+
+Studio D-104 (Foundation 157) closes the re-copy + Enter paste validation gap — keyboard authors re-copying while pinned could hit Enter on a ghost whose DOM `valid` flag lagged behind the refreshed clipboard pattern.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-104 for `timingPasteRecopyPatternValidation.ts` and `DirectorMarkupPanel` F125 live-preview guard.
+
+**Next**
+
+- Foundation 158: candidate — validation snooze keyboard restore extensions, or paste-preview re-copy loop move-context parity audit.
 
 ## 2026-08-15 — Foundation 154 keyboard-first snooze badge activation audit stays Studio-side
 
