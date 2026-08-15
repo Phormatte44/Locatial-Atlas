@@ -2734,6 +2734,25 @@ Studio D-091 (Foundation 144) closes the navigation gap after F141 — authors c
 
 - Foundation 145: candidate — paste-preview re-copy loop polish, or validation-summary jump from StructureTree badge when a layout exposes both surfaces.
 
+## 2026-08-15 — Foundation 145 StructureTree snooze badge show-snoozed expansion in hybrid layouts stays Studio-side
+
+**Decision**
+
+When a Creator Studio shell exposes **both** StructureTree section-header snooze badges (F142/F143) **and** the F97 validation summary via `DirectorMarkupPanel`, badge clicks also expand **Show snoozed** — matching F144 chip behavior. `?layoutTest=bottom-structure` is the hybrid prototype. `?layoutTest=original` and the default Director+SceneRail shell keep navigate-only badge behavior (no markup validation summary beside Structure).
+
+**Reason**
+
+Studio D-092 (Foundation 145) closes the show-snoozed gap for hybrid layouts after F143 navigation-only wiring and F144 chip expansion in the default layout.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-092 for `navigateToSectionSnooze`, `DirectorMarkupPanel.onRegisterExpandShowSnoozed`, and `WorkspaceLayoutBottomStructure` hybrid wiring.
+
+**Next**
+
+- Foundation 146: candidate — paste-preview re-copy loop polish, or lift shared structure draft so default SceneRail and StructurePanel stay in sync.
+
 ## 2026-08-15 — Foundation 134 validation snooze keyboard snooze on selected sequence row stays Studio-side
 
 **Decision**
