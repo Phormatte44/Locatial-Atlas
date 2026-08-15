@@ -792,3 +792,27 @@ Studio and future products need basemap-aligned text overlays (city names, POIs,
 - Point-only GeoJSON sources in this foundation; line-following labels and clustered labels deferred.
 - Default font stack assumes Noto Sans from OpenFreeMap glyphs; custom fonts require matching glyph hosting.
 - Label hover does not yet participate in place-id expansion (`placeHighlightIds`); explicit label ids only.
+
+## 2026-08-15 — Foundation 40 road layer registry
+
+**Decision**
+
+Road and path layers render through a provider-agnostic registry in `src/data/roads`. Applications register `RoadLayerDefinition` entries (GeoJSON LineString or MultiLineString, semantic type, style tokens) via `registerRoadLayer()` or `AtlasEngine.registerRoadLayer()`, then enable layers with `setRoadLayers(ids[])`. MapLibre line layers with optional casing are composed in `roadSetup.ts` behind `MapLibreAdapter`; consumers never touch MapLibre source or layer ids.
+
+**Reason**
+
+Studio and future products need route corridors, transit paths, and highway overlays without hard-coded demo geometry in `src` or direct MapLibre coupling. The registry mirrors the boundary and label layer patterns from Foundations 38 and 39.
+
+**Consequences**
+
+- Hover and selection extend the existing `onGeoHover` / `onGeoSelect` pipeline: world markup picks first, then registered label layers, then road layers, then boundary layers.
+- Road feature ids use the `road:{layerId}:{featureKey}` prefix; highlight uses MapLibre feature-state on registered GeoJSON sources.
+- Optional casing renders as a wider underlying line when `casingWidth` exceeds `width`; dashed routes use `dashArray` style tokens.
+- No built-in road layers ship in `src`; Lab registers a London–Dubai geodesic corridor at runtime.
+- Style swaps re-sync enabled road layers after the basemap reloads.
+
+**Limitations**
+
+- LineString and MultiLineString GeoJSON only; polygon buffers and animated paths deferred.
+- Road hover does not yet participate in place-id expansion; explicit road ids only.
+- Casing is a single pass; multi-layer cartographic casings (e.g. highway shields) deferred.

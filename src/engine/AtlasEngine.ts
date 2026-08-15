@@ -8,6 +8,7 @@ import type { MapStyleDefinition } from "../types/mapStyle";
 import type { TerrainSourceDefinition } from "../types/terrain";
 import type { BoundaryLayerDefinition } from "../types/boundaryLayer";
 import type { LabelLayerDefinition } from "../types/labelLayer";
+import type { RoadLayerDefinition } from "../types/roadLayer";
 import { markupsFromMarkers } from "../geometry/worldMarkup";
 import type { WorldMarker } from "../types/worldMarker";
 import { getMarkupAnchor, type WorldMarkup } from "../types/worldMarkup";
@@ -37,8 +38,14 @@ import {
   registerLabelLayer as registerLabelLayerDefinition,
   resolveLabelLayers
 } from "../data/providers/label/resolveLabelLayer";
+import {
+  listAvailableRoadLayers,
+  registerRoadLayer as registerRoadLayerDefinition,
+  resolveRoadLayers
+} from "../data/providers/road/resolveRoadLayer";
 import { isBoundaryFeatureId } from "../interaction/boundaryFeatureIds";
 import { isLabelFeatureId } from "../interaction/labelFeatureIds";
+import { isRoadFeatureId } from "../interaction/roadFeatureIds";
 import { DEFAULT_MAP_STYLE_ID } from "../data/mapStyles/builtinMapStyles";
 import { DEFAULT_TERRAIN_SOURCE_ID } from "../data/terrain/builtinTerrainSources";
 import type { GeoHoverEvent, GeoHoverListener } from "../types/geoHover";
@@ -106,6 +113,7 @@ export class AtlasEngine implements AtlasEngineContract {
   private lastViewModeProgressEmit = -1;
   private enabledBoundaryLayerIds: string[] = [];
   private enabledLabelLayerIds: string[] = [];
+  private enabledRoadLayerIds: string[] = [];
 
   constructor(options: AtlasEngineOptions = {}) {
     this.mapStyleId = options.mapStyleId ?? DEFAULT_MAP_STYLE_ID;
@@ -222,6 +230,7 @@ export class AtlasEngine implements AtlasEngineContract {
     this.explicitHighlightId = null;
     this.enabledBoundaryLayerIds = [];
     this.enabledLabelLayerIds = [];
+    this.enabledRoadLayerIds = [];
     this.syncFeatureHighlight();
     this.emitMapReady({
       ready: false,
@@ -308,6 +317,7 @@ export class AtlasEngine implements AtlasEngineContract {
     this.hoverFeatureId =
       this.findInteractiveMarkupAtScreen(screenX, screenY, thresholdPx) ??
       this.mapAdapter.queryLabelFeatureAtScreen(screenX, screenY) ??
+      this.mapAdapter.queryRoadFeatureAtScreen(screenX, screenY) ??
       this.mapAdapter.queryBoundaryFeatureAtScreen(screenX, screenY);
     this.syncFeatureHighlight();
     this.emitGeoHover({
@@ -344,6 +354,7 @@ export class AtlasEngine implements AtlasEngineContract {
     this.selectedFeatureId =
       this.findInteractiveMarkupAtScreen(screenX, screenY) ??
       this.mapAdapter.queryLabelFeatureAtScreen(screenX, screenY) ??
+      this.mapAdapter.queryRoadFeatureAtScreen(screenX, screenY) ??
       this.mapAdapter.queryBoundaryFeatureAtScreen(screenX, screenY);
     this.syncFeatureHighlight();
     this.emitGeoSelect({
@@ -481,6 +492,24 @@ export class AtlasEngine implements AtlasEngineContract {
     const definitions = resolveLabelLayers(layerIds);
     this.enabledLabelLayerIds = definitions.map((layer) => layer.id);
     this.mapAdapter.setLabelLayers(definitions);
+  }
+
+  listRoadLayers(): RoadLayerDefinition[] {
+    return listAvailableRoadLayers();
+  }
+
+  registerRoadLayer(def: RoadLayerDefinition): void {
+    registerRoadLayerDefinition(def);
+  }
+
+  getEnabledRoadLayerIds(): string[] {
+    return [...this.enabledRoadLayerIds];
+  }
+
+  setRoadLayers(layerIds: string[]): void {
+    const definitions = resolveRoadLayers(layerIds);
+    this.enabledRoadLayerIds = definitions.map((layer) => layer.id);
+    this.mapAdapter.setRoadLayers(definitions);
   }
 
   highlightFeature(featureId: string | null): void {
@@ -655,12 +684,22 @@ export class AtlasEngine implements AtlasEngineContract {
     if (activeFeatureId && isLabelFeatureId(activeFeatureId)) {
       this.mapAdapter.highlightWorldMarkup(null);
       this.mapAdapter.highlightBoundaryFeature(null);
+      this.mapAdapter.highlightRoadFeature(null);
       this.mapAdapter.highlightLabelFeature(activeFeatureId);
+      return;
+    }
+
+    if (activeFeatureId && isRoadFeatureId(activeFeatureId)) {
+      this.mapAdapter.highlightWorldMarkup(null);
+      this.mapAdapter.highlightBoundaryFeature(null);
+      this.mapAdapter.highlightLabelFeature(null);
+      this.mapAdapter.highlightRoadFeature(activeFeatureId);
       return;
     }
 
     this.mapAdapter.highlightBoundaryFeature(null);
     this.mapAdapter.highlightLabelFeature(null);
+    this.mapAdapter.highlightRoadFeature(null);
     this.mapAdapter.highlightWorldMarkup(activeFeatureId);
   }
 

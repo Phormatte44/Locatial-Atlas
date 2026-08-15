@@ -42,6 +42,13 @@ export type {
   LabelSemanticType,
   LabelStyleTokens
 } from "../types/labelLayer";
+export type {
+  RoadGeoJsonInline,
+  RoadGeoJsonSource,
+  RoadLayerDefinition,
+  RoadSemanticType,
+  RoadStyleTokens
+} from "../types/roadLayer";
 export type { CameraTransitionEvent, CameraTransitionListener } from "../types/cameraTransition";
 export type { CameraPathFamily } from "../types/cameraTransition";
 export type { GeoHoverEvent, GeoHoverListener } from "../types/geoHover";
@@ -88,6 +95,10 @@ export interface AtlasEngineContract {
   registerLabelLayer(def: import("../types/labelLayer").LabelLayerDefinition): void;
   getEnabledLabelLayerIds(): string[];
   setLabelLayers(layerIds: string[]): void;
+  listRoadLayers(): import("../types/roadLayer").RoadLayerDefinition[];
+  registerRoadLayer(def: import("../types/roadLayer").RoadLayerDefinition): void;
+  getEnabledRoadLayerIds(): string[];
+  setRoadLayers(layerIds: string[]): void;
   getTransitionPathFamily(to: import("../types/place").AtlasPlace): CameraPathFamily;
   isMapReady(): boolean;
   onMapReady(listener: import("../types/mapReady").MapReadyListener): () => void;

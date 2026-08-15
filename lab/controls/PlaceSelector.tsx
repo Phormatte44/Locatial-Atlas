@@ -5,6 +5,7 @@ import { TerrainSourceSelector } from "./TerrainSourceSelector";
 import { TerrainToggle } from "./TerrainToggle";
 import { BoundaryLayerToggle } from "./BoundaryLayerToggle";
 import { LabelLayerToggle } from "./LabelLayerToggle";
+import { RoadLayerToggle } from "./RoadLayerToggle";
 import { ViewModeSelector } from "./ViewModeSelector";
 import { VisualEnvironmentControls } from "./VisualEnvironmentControls";
 
@@ -78,7 +79,7 @@ export function PlaceSelector({ engine, places }: PlaceSelectorProps) {
 
   return (
     <div style={panelStyle}>
-      <strong style={{ fontSize: 14 }}>Atlas Lab — Foundation 39</strong>
+      <strong style={{ fontSize: 14 }}>Atlas Lab — Foundation 40</strong>
       <span style={{ fontSize: 12, color: "#555" }}>
         City buttons frame the center point; area buttons frame metro bounds.
       </span>
@@ -89,12 +90,13 @@ export function PlaceSelector({ engine, places }: PlaceSelectorProps) {
       <TerrainToggle engine={engine} />
       <BoundaryLayerToggle engine={engine} />
       <LabelLayerToggle engine={engine} />
+      <RoadLayerToggle engine={engine} />
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         <button
           type="button"
           style={secondaryButtonStyle}
           onClick={() => {
-            engine.highlightFeature("london-dubai-route");
+            engine.highlightFeature("road:lab-london-dubai-route:london-dubai-route");
           }}
         >
           Highlight route

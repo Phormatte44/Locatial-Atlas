@@ -27,6 +27,16 @@ function describeFeatureId(featureId: string | null): string {
     return "none";
   }
 
+  if (featureId.startsWith("road:")) {
+    const parts = featureId.split(":");
+    const layerId = parts[1];
+    const featureKey = parts[2];
+    if (layerId === "lab-london-dubai-route" || featureKey === "london-dubai-route") {
+      return "London–Dubai corridor";
+    }
+    return featureKey ?? layerId ?? featureId;
+  }
+
   if (featureId.startsWith("label:")) {
     const parts = featureId.split(":");
     const layerId = parts[1];
@@ -218,7 +228,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
 
   return (
     <div style={readoutStyle}>
-      <div>Foundation 39 — label layer registry</div>
+      <div>Foundation 40 — road layer registry</div>
       <div>
         View: {viewMode}
         {viewMode === "globe" || viewModeBlend !== "settled"

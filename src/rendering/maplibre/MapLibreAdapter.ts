@@ -1,6 +1,7 @@
 import maplibregl from "maplibre-gl";
 import type { BoundaryLayerDefinition } from "../../types/boundaryLayer";
 import type { LabelLayerDefinition } from "../../types/labelLayer";
+import type { RoadLayerDefinition } from "../../types/roadLayer";
 import type { TerrainSourceDefinition } from "../../types/terrain";
 import type { CameraState } from "../../types/camera";
 import { markupsFromMarkers } from "../../geometry/worldMarkup";
@@ -38,8 +39,14 @@ import {
   setLabelFeatureHighlight,
   syncLabelLayersOnMap
 } from "./labelSetup";
+import {
+  queryRoadFeatureAtScreen,
+  setRoadFeatureHighlight,
+  syncRoadLayersOnMap
+} from "./roadSetup";
 import { parseBoundaryFeatureId } from "../../interaction/boundaryFeatureIds";
 import { parseLabelFeatureId } from "../../interaction/labelFeatureIds";
+import { parseRoadFeatureId } from "../../interaction/roadFeatureIds";
 
 type CameraChangeListener = (state: CameraState) => void;
 type MapReadyListener = (reason: MapReadyReason) => void;
@@ -64,8 +71,10 @@ export class MapLibreAdapter {
   private projectionBlendListeners = new Set<ProjectionBlendListener>();
   private boundaryLayers: BoundaryLayerDefinition[] = [];
   private labelLayers: LabelLayerDefinition[] = [];
+  private roadLayers: RoadLayerDefinition[] = [];
   private highlightedBoundary: { layerId: string; featureKey: string } | null = null;
   private highlightedLabel: { layerId: string; featureKey: string } | null = null;
+  private highlightedRoad: { layerId: string; featureKey: string } | null = null;
 
   create(container: HTMLElement, initialCamera: CameraState, styleUrl: string): void {
     if (this.map) {
@@ -118,8 +127,10 @@ export class MapLibreAdapter {
     this.terrainSource = null;
     this.boundaryLayers = [];
     this.labelLayers = [];
+    this.roadLayers = [];
     this.highlightedBoundary = null;
     this.highlightedLabel = null;
+    this.highlightedRoad = null;
   }
 
   configureTerrain(enabled: boolean, source: TerrainSourceDefinition | null): void {
@@ -339,6 +350,53 @@ export class MapLibreAdapter {
     this.applyLabelHighlight(parsed);
   }
 
+  setRoadLayers(definitions: RoadLayerDefinition[]): void {
+    this.roadLayers = definitions;
+
+    if (!this.map?.loaded()) {
+      return;
+    }
+
+    syncRoadLayersOnMap(this.map, definitions);
+    this.moveThreeLayerToTop();
+    this.applyRoadHighlight(this.highlightedRoad);
+  }
+
+  getEnabledRoadLayerIds(): string[] {
+    return this.roadLayers.map((layer) => layer.id);
+  }
+
+  queryRoadFeatureAtScreen(x: number, y: number): string | null {
+    if (!this.map?.loaded()) {
+      return null;
+    }
+
+    const pick = queryRoadFeatureAtScreen(
+      this.map,
+      x,
+      y,
+      this.getEnabledRoadLayerIds()
+    );
+
+    return pick?.featureId ?? null;
+  }
+
+  highlightRoadFeature(featureId: string | null): void {
+    const parsed = featureId ? parseRoadFeatureId(featureId) : null;
+    this.applyRoadHighlight(parsed);
+  }
+
+  private applyRoadHighlight(next: { layerId: string; featureKey: string } | null): void {
+    if (!this.map?.loaded()) {
+      this.highlightedRoad = next;
+      return;
+    }
+
+    setRoadFeatureHighlight(this.map, next?.layerId ?? "", next?.featureKey ?? null, this.highlightedRoad);
+    this.highlightedRoad = next;
+    this.map.triggerRepaint();
+  }
+
   private applyLabelHighlight(next: { layerId: string; featureKey: string } | null): void {
     if (!this.map?.loaded()) {
       this.highlightedLabel = next;
@@ -461,6 +519,11 @@ export class MapLibreAdapter {
       syncLabelLayersOnMap(this.map!, this.labelLayers);
       this.moveThreeLayerToTop();
       this.applyLabelHighlight(this.highlightedLabel);
+    }
+    if (this.roadLayers.length > 0) {
+      syncRoadLayersOnMap(this.map!, this.roadLayers);
+      this.moveThreeLayerToTop();
+      this.applyRoadHighlight(this.highlightedRoad);
     }
     this.emitReady(reason);
   }
