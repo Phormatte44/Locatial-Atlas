@@ -2523,7 +2523,26 @@ Studio D-077 (Foundation 130) completes the paste-preview keyboard loop entry pa
 
 **Next**
 
-- Foundation 131: candidate — rail ⌘C focus override or validation snooze keyboard restore on selected sequence row.
+- Foundation 131: rail ⌘C focus override for paste-preview (see Studio D-078).
+
+## 2026-08-15 — Foundation 131 rail ⌘C focus override for paste-preview stays Studio-side
+
+**Decision**
+
+F130 skips copy-focus when focus is on the Storyline rail. **F131 overrides that guard for keyboard ⌘C only:** after a successful timing copy via the shortcut handler, focus routes to **Paste timing** / **Paste move timing** even when the active element is on the rail — completing rail select → ⌘C → Paste timing → pin. Toolbar **Copy timing** from the rail keeps the F130 skip. Timing-toolbar and text-input guards unchanged.
+
+**Reason**
+
+Studio D-078 (Foundation 131) closes the keyboard paste-preview loop for rail-first authors without breaking toolbar copy focus stability on the same surface.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-078 for `copySource`, `shouldSkipTimingPastePreviewCopyFocus`, and `DirectorMarkupPanel` ⌘C vs toolbar copy paths.
+
+**Next**
+
+- Foundation 132: candidate — validation snooze keyboard restore on selected sequence row, or paste-preview focus after successful paste commit.
 
 ## 2026-08-15 — Foundation 119 validation snooze bulk-snooze by group stays Studio-side
 
