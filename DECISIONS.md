@@ -2751,7 +2751,26 @@ Studio D-092 (Foundation 145) closes the show-snoozed gap for hybrid layouts aft
 
 **Next**
 
-- Foundation 146: candidate — paste-preview re-copy loop polish, or lift shared structure draft so default SceneRail and StructurePanel stay in sync.
+- Foundation 147: candidate — default layout with StructureTree badges + validation summary on unified draft, or paste-preview re-copy loop polish.
+
+## 2026-08-15 — Foundation 146 shared structure draft for SceneRail and StructurePanel stays Studio-side
+
+**Decision**
+
+Creator Studio Structure authoring uses one in-memory draft store (`structureDraftStore.ts`) via `useStructureDraft()`, shared by default `SceneRail` (`useStructureAuthoring`) and `StructurePanel` (original + hybrid layouts). Draft persists under `locatial.structure-panel.draft.v1`. Place selection lifted at layout shells syncs `selectedSectionId` through the hook so SceneRail and StructurePanel stay aligned when both are mounted.
+
+**Reason**
+
+Studio D-093 (Foundation 146) lifts duplicated React draft state so default SceneRail filmstrip and StructurePanel tree read/write the same source — enabling future default layouts with StructureTree badges and validation summary without prototype-only mirrors.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-093 for `useStructureDraft`, `structureDraftStore`, layout consumers, and Vitest coverage.
+
+**Next**
+
+- Foundation 147: candidate — default layout exposing StructureTree badges + validation summary on unified draft, or paste-preview re-copy loop polish.
 
 ## 2026-08-15 — Foundation 134 validation snooze keyboard snooze on selected sequence row stays Studio-side
 
