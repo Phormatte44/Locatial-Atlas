@@ -1992,7 +1992,26 @@ Studio D-048 (Foundation 101) extends F97 drill-down with targeted remediation a
 
 **Next**
 
-- Foundation 102: TBD — candidate: keyframe copy/paste timing, multi-move batch retime, or validation dismiss/snooze.
+- Foundation 102: keyframe copy/paste timing (see Studio D-049).
+
+## 2026-08-15 — Foundation 102 keyframe timing copy/paste stays Studio-side
+
+**Decision**
+
+Copy/paste of keyframe **timing patterns** on the Storyline rail (relative offsets from the first copied keyframe, paste onto matching keyframe count with F91 bounds enforcement, ⌘C/⌘V and toolbar actions) lives in Creator Studio. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-049 (Foundation 102) extends F95–F98 on-rail keyframe editing with a timing-only clipboard — authors duplicate motion rhythm across shapes without geometry copy or Atlas API changes.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-049 for `markupKeyframeTimingClipboard.ts`, `KeyframeTimingFeedback`, and `DirectorMarkupPanel` copy/paste wiring.
+
+**Next**
+
+- Foundation 103: TBD — candidate: paste-at-playhead anchor, multi-move batch retime, or validation dismiss/snooze.
 
 ## 2026-08-15 — Foundation 95 keyframe drag on Storyline rail stays Studio-side
 
