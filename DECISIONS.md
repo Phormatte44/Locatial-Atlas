@@ -2390,7 +2390,26 @@ Studio D-070 (Foundation 123) extends F121/F122 aggregate temporal context to se
 
 **Next**
 
-- Foundation 124: candidate — paste-preview keyboard focus ring on pinned ghosts, or validation snooze keyboard shortcuts for row restore.
+- Foundation 124: paste-preview keyboard focus ring on pinned ghosts (see Studio D-071).
+
+## 2026-08-15 — Foundation 124 paste-preview keyboard focus ring on pinned ghosts stays Studio-side
+
+**Decision**
+
+F113 **pin-state glow** on rail ghosts is persistent visual chrome — it does **not** replace keyboard focus. F124 makes **pinned-anchor ghosts keyboard-focusable** when paste preview is active in the winning context (keyframe over move, mirroring F110/F114): **Tab** reaches pinned keyframe diamonds and move connectors in storyline order; **`:focus-visible`** shows a **white ring with offset** distinct from the F113 lime pin glow. Pinned ghosts use **button** semantics with **aria-label** reusing F115 tooltip copy. **⌥⌘L** or toolbar pin click focuses the first pinned ghost. Hover-only and inactive-context ghosts stay non-focusable.
+
+**Reason**
+
+Studio D-071 (Foundation 124) closes the F112–F115 accessibility gap for keyboard authors — Tab and ⌥⌘L now have a focus affordance separate from the always-on F113 pin ring.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-071 for `timingPastePreviewPinnedGhostFocusClass`, `focusFirstPinnedPastePreviewGhost`, `StorylineKeyframeMarkers`, `MoveItem`, and `DirectorMarkupPanel` context routing.
+
+**Next**
+
+- Foundation 125: candidate — paste-preview ghost Enter-to-paste on focused pinned ghost, or validation snooze keyboard restore on selected sequence row.
 
 ## 2026-08-15 — Foundation 119 validation snooze bulk-snooze by group stays Studio-side
 
