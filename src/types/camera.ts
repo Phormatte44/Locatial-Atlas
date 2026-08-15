@@ -9,4 +9,6 @@ export interface CameraState {
   targetLng?: number;
   targetLat?: number;
   targetAltitudeMeters?: number;
+  /** 0–1 progress through an active Atlas camera transition, when applicable. */
+  transitionProgress?: number;
 }
