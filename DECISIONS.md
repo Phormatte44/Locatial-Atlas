@@ -2009,9 +2009,27 @@ Studio D-049 (Foundation 102) extends F95–F98 on-rail keyframe editing with a 
 - No Atlas engine changes required.
 - Cross-reference Studio D-049 for `markupKeyframeTimingClipboard.ts`, `KeyframeTimingFeedback`, and `DirectorMarkupPanel` copy/paste wiring.
 
+### Next
+- Foundation 103: paste-at-playhead anchor (see D-050).
+
+## 2026-08-15 — Foundation 103 paste-at-playhead keyframe timing stays Studio-side
+
+**Decision**
+
+Optional **paste-at-playhead** for keyframe timing patterns on the Storyline rail (⇧⌘V and toolbar action; first copied keyframe anchors at playhead `elapsedMs`, F91 bounds preflight, F98 subset support) lives in Creator Studio. Default F102 paste-at-first-keyframe is unchanged. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-050 (Foundation 103) extends F102 with playhead-anchored paste so authors reposition copied timing patterns at the scrub position without batch drag or Atlas API changes.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-050 for `canPasteKeyframeTimingAtPlayhead`, `KeyframeTimingPasteAnchor`, and `DirectorMarkupPanel` paste-at-playhead wiring.
+
 **Next**
 
-- Foundation 103: TBD — candidate: paste-at-playhead anchor, multi-move batch retime, or validation dismiss/snooze.
+- Foundation 104: TBD — candidate: multi-move batch retime, validation dismiss/snooze, or cross-element timing paste preview.
 
 ## 2026-08-15 — Foundation 95 keyframe drag on Storyline rail stays Studio-side
 
