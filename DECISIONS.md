@@ -1859,7 +1859,26 @@ Studio D-038 (Foundation 91) extends F76–F88 keyframe authoring with explicit 
 
 **Next**
 
-- Foundation 93: TBD — candidate: bulk validation fix across section, move feel preview on rail, or keyframe drag on rail.
+- Foundation 94: TBD — candidate: move feel preview on rail, keyframe drag on rail, or validation issue summary drill-down.
+
+## 2026-08-15 — Foundation 93 bulk markup motion validation fix stays Studio-side
+
+**Decision**
+
+Section-scoped markup motion validation aggregation (`validateSectionMarkupMotion`) and batch **Fix all (N issues)** applying F89 safe autofixes per element live in Creator Studio. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-040 (Foundation 93) extends F84 section validation and F89 per-element autofix with a sequence-panel banner and chained `applyAllMarkupMotionAutofixes` — no playback merge order or Atlas rendering changes.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-040 for `applyAllMarkupMotionAutofixes`, `MarkupSequencePanel` banner, and `DirectorMarkupPanel.applyAllSectionMarkupAutofixes`.
+
+**Next**
+
+- Foundation 94: TBD — candidate: move feel preview on rail, keyframe drag on rail, or validation issue summary drill-down.
 
 ## 2026-08-15 — Foundation 92 keyframe rail markers stay Studio-side
 
@@ -1878,7 +1897,7 @@ Studio D-039 (Foundation 92) extends F91 keyframe timing with spatial markers on
 
 **Next**
 
-- Foundation 93: TBD — candidate: bulk validation fix across section, move feel preview on rail, or keyframe drag on rail.
+- Foundation 94: TBD — candidate: move feel preview on rail, keyframe drag on rail, or validation issue summary drill-down.
 
 ## 2026-08-15 — Foundation 90 move type preview on rail stays Studio-side
 
