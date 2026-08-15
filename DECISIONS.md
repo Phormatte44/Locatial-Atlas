@@ -1513,7 +1513,27 @@ F65–F66 closed style passthrough and ellipse edit on Atlas. The sequence panel
 
 **Next**
 
-- Foundation 68: TBD — candidate: persist `MotionSpec` on `MarkupElement`, rectangle/polygon drag handles, or line topology cache if profiling warrants it.
+- Foundation 69: TBD — candidate: rectangle/polygon drag handles, storyline cue integration, or line topology cache if profiling warrants it.
+
+## 2026-08-15 — Foundation 68 motion spec on MarkupElement (Studio-only)
+
+**Decision**
+
+Creator Studio persists markup motion specs on `MarkupElement.motion` (`effect`, `durationSeconds`, `start`, `ease`, `delaySeconds`) plus `sequenceIndex` for build order. Drafts round-trip through Studio localStorage (`markupDraft.ts`). Atlas public API and engine are unchanged — motion is Studio-owned authoring state consumed at preview time via existing F67 playback.
+
+**Reason**
+
+F67 preview worked but motion lived in ephemeral hook state and was lost on reload. Authors need motion edits in the properties panel and sequence table to survive refresh before storyline cue integration.
+
+**Consequences**
+
+- Contract change in Studio `packages/contracts/Markup.ts` only; Atlas `WorldMarkup` unchanged.
+- No Atlas code changes required.
+- Full storyline cue/keyframe graph remains out of scope (Studio D-018).
+
+**Next**
+
+- Foundation 69: TBD — candidate: rectangle/polygon drag handles, storyline cue integration, or motion validation UX.
 
 ## 2026-08-15 — Studio transition preview uses Atlas straight and high-arc
 
