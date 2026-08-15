@@ -2675,7 +2675,26 @@ Studio D-088 (Foundation 141) closes the gap when authors switch sections — F1
 
 **Next**
 
-- Foundation 142: candidate — StructureTree section-header snooze badges, or paste-preview re-copy loop polish.
+- Foundation 142: StructureTree section-header snooze badges for `?layoutTest=original` (see Studio D-089).
+
+## 2026-08-15 — Foundation 142 StructureTree section-header snooze badges stays Studio-side
+
+**Decision**
+
+The original list-row Structure shell (`?layoutTest=original`) shows muted snooze badges on every **StructureTree section header** when that section has active snoozed validation warnings — count plus F121-style earliest expiry on the shared 60s tick. Rollup reuses F141 cross-section helpers and the global snooze store; default Director+Markup layout F141 **Other sections** chips unchanged.
+
+**Reason**
+
+Studio D-089 (Foundation 142) closes the cross-section snooze awareness gap for authors using the original Structure side rail — section headers show snooze state at a glance without opening Markup sequence.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-089 for `summarizeAllSectionSnoozes`, `useCrossSectionSnoozeSummaries`, `SectionSnoozeHeaderBadge`, and `StructureTree` header wiring.
+
+**Next**
+
+- Foundation 143: candidate — paste-preview re-copy loop polish, or StructureTree badge click-to-switch-section.
 
 ## 2026-08-15 — Foundation 134 validation snooze keyboard snooze on selected sequence row stays Studio-side
 
