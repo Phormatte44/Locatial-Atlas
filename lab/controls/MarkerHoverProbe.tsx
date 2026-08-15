@@ -216,6 +216,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
   const [lightingEnabled, setLightingEnabled] = useState(engine.getLightingSettings().enabled);
   const [shadowEnabled, setShadowEnabled] = useState(engine.getLightingSettings().shadowEnabled);
   const [queryElevation, setQueryElevation] = useState<string>("—");
+  const [pickIndexStats, setPickIndexStats] = useState<string>("—");
 
   useEffect(() => {
     return engine.onGeoHover((event) => {
@@ -233,6 +234,9 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
       } else {
         setQueryElevation("—");
       }
+
+      const pickStats = engine.getMarkupPickIndexStats();
+      setPickIndexStats(`${pickStats.lastCandidateCount}/${pickStats.totalCount}`);
     });
   }, [engine]);
 
@@ -350,7 +354,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
 
   return (
     <div style={readoutStyle}>
-      <div>Foundation 61 — earcut-stable fill mesh + in-place blend updates</div>
+      <div>Foundation 62 — overlay spatial index for pick performance</div>
       <div>
         View: {viewMode}
         {viewMode === "globe" || viewModeBlend !== "settled"
@@ -362,6 +366,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
       <div>Lighting: {lightingEnabled ? "on" : "off"}</div>
       <div>Shadows: {shadowEnabled ? "on" : "off"}</div>
       <div>Query elev: {queryElevation}</div>
+      <div>Pick index: {pickIndexStats} candidates</div>
       <div>Highlight: {describeFeatureId(highlightedFeatureId === "none" ? null : highlightedFeatureId)}</div>
       <div>Camera: {cameraChange}</div>
       <div>Map: {mapReady}</div>

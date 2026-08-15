@@ -3,6 +3,7 @@ import type { ProjectGeoFn, ScreenPoint } from "../types/projection";
 import type { GeoRing, WorldCircleMarkup, WorldEllipseMarkup, WorldLabelMarkup, WorldMarkup } from "../types/worldMarkup";
 import { sampleGeodesicCircleRing } from "../geometry/circleMarkup";
 import { sampleGeodesicEllipseRing } from "../geometry/ellipseMarkup";
+import type { MarkupPickSpatialIndex } from "./markupPickSpatialIndex";
 
 const DEFAULT_POINT_PICK_RADIUS_PX = 36;
 const DEFAULT_LINE_PICK_RADIUS_PX = 14;
@@ -263,13 +264,18 @@ export function findNearestInteractiveMarkup(
   screenY: number,
   project: ProjectGeoFn,
   pointThresholdPx = DEFAULT_POINT_PICK_RADIUS_PX,
-  lineThresholdPx = DEFAULT_LINE_PICK_RADIUS_PX
+  lineThresholdPx = DEFAULT_LINE_PICK_RADIUS_PX,
+  spatialIndex?: MarkupPickSpatialIndex
 ): string | null {
   let nearest: PickCandidate | null = null;
   const pointThresholdSquared = pointThresholdPx * pointThresholdPx;
   const lineThresholdSquared = lineThresholdPx * lineThresholdPx;
+  const pickThresholdPx = Math.max(pointThresholdPx, lineThresholdPx);
+  const candidates = spatialIndex
+    ? spatialIndex.query(screenX, screenY, pickThresholdPx)
+    : markups;
 
-  for (const markup of markups) {
+  for (const markup of candidates) {
     if (markup.kind === "sphere") {
       const projected = project(markup.lng, markup.lat, markup.altitudeMeters);
       if (!projected) {

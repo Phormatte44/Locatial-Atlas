@@ -1410,6 +1410,31 @@ Foundation 60 eliminated per-frame ring resampling and matrix work but still pai
 
 - Foundation 62: TBD — candidate: Studio ellipse area-authoring integration, overlay spatial index for pick performance, or line topology cache mirroring fill stability if profiling warrants it.
 
+## 2026-08-15 — Foundation 62 overlay spatial index for pick performance
+
+**Decision**
+
+World markup hover/selection uses a uniform-grid spatial index of screen-space axis-aligned bounds built from projected markup geometry. `findNearestInteractiveMarkup()` queries the index around the pointer threshold before running precise pick tests. `AtlasEngine` invalidates the index on `setWorldMarkup()`, significant camera moves (same thresholds as `MarkupVertexCache`), and view-mode settle; the index rebuilds lazily on the next pick when camera signature or projection globeness drifts.
+
+**Reason**
+
+Foundation 61 stabilized fill rendering, but hover/click still scanned every overlay markup on each pointer event. Lab scenes with dense metro polygons and route lines need coarse culling without changing pick priority or public contracts.
+
+**Consequences**
+
+- `MarkupPickSpatialIndex` lives in `src/interaction/markupPickSpatialIndex.ts`.
+- `AtlasEngine.getMarkupPickIndexStats()` exposes last candidate count for Lab readout.
+- Lab labels read Foundation 62.
+
+**Limitations**
+
+- Index AABBs approximate geodesic circles/ellipses via sampled rings at build time; extreme projection shear during blend may require rebuild mid-transition when globeness shifts.
+- Grid cell size (128 px) is fixed; very dense single-cell clusters still fall back to full candidate scan within that cell.
+
+**Next**
+
+- Foundation 63: TBD — candidate: Studio ellipse area-authoring integration, line topology cache mirroring fill stability if profiling warrants it, or tile/feature pick spatial index parity for vector layers.
+
 ## 2026-08-15 — Studio transition preview uses Atlas straight and high-arc
 
 **Decision**

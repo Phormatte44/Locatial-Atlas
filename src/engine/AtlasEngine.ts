@@ -118,6 +118,12 @@ import {
 } from "../rendering/lighting/interpolateVisualEnvironment";
 import { findNearestGeoFeature } from "../interaction/pickGeoFeature";
 import { findNearestInteractiveMarkup } from "../interaction/pickInteractiveMarkup";
+import { MarkupPickSpatialIndex } from "../interaction/markupPickSpatialIndex";
+import { altitudeToZoom } from "../camera/altitudeZoom";
+import {
+  hasSignificantCameraMove,
+  type CameraSignature
+} from "../geometry/markupVertexCache";
 import { MapLibreAdapter } from "../rendering/maplibre/MapLibreAdapter";
 import { snapCameraStateForMapLibre } from "../rendering/maplibre/cameraToMapLibre";
 import {
@@ -136,6 +142,9 @@ export class AtlasEngine implements AtlasEngineContract {
   private readonly mapAdapter = new MapLibreAdapter();
   private readonly transitionRunner = new CameraTransitionRunner();
   private worldMarkups: WorldMarkup[] = [];
+  private readonly markupPickSpatialIndex = new MarkupPickSpatialIndex();
+  private markupPickIndexCameraSignature: CameraSignature | null = null;
+  private markupPickIndexGlobeness = -1;
   private mapStyleId: string;
   private terrainSourceId: string;
   private terrainEnabled: boolean;
@@ -522,6 +531,7 @@ export class AtlasEngine implements AtlasEngineContract {
 
   setWorldMarkup(markups: WorldMarkup[]): void {
     this.worldMarkups = markups;
+    this.invalidateMarkupPickIndex();
     this.mapAdapter.setWorldMarkup(markups);
   }
 
@@ -1079,13 +1089,77 @@ export class AtlasEngine implements AtlasEngineContract {
     y: number,
     pointThresholdPx?: number
   ): string | null {
+    this.ensureMarkupPickIndex(pointThresholdPx);
+
     return findNearestInteractiveMarkup(
       this.worldMarkups,
       x,
       y,
       (lng, lat, altitudeMeters) => this.project(lng, lat, altitudeMeters ?? 0),
+      pointThresholdPx,
+      undefined,
+      this.markupPickSpatialIndex
+    );
+  }
+
+  getMarkupPickIndexStats(): {
+    totalCount: number;
+    lastCandidateCount: number;
+    indexValid: boolean;
+  } {
+    return {
+      totalCount: this.worldMarkups.length,
+      lastCandidateCount: this.markupPickSpatialIndex.lastCandidateCount,
+      indexValid: this.markupPickSpatialIndex.isValid()
+    };
+  }
+
+  private cameraStateToSignature(state: CameraState): CameraSignature {
+    return {
+      lng: state.lng,
+      lat: state.lat,
+      zoom: altitudeToZoom(state.altitudeMeters, state.lat),
+      bearing: state.headingDegrees,
+      pitch: state.pitchDegrees
+    };
+  }
+
+  private invalidateMarkupPickIndex(): void {
+    this.markupPickSpatialIndex.invalidate();
+    this.markupPickIndexCameraSignature = null;
+    this.markupPickIndexGlobeness = -1;
+  }
+
+  private ensureMarkupPickIndex(pointThresholdPx?: number): void {
+    const currentSignature = this.cameraStateToSignature(this.camera.getState());
+    const currentGlobeness = this.mapAdapter.readProjectionTransition();
+
+    if (
+      this.markupPickSpatialIndex.isValid() &&
+      this.markupPickIndexCameraSignature &&
+      !hasSignificantCameraMove(this.markupPickIndexCameraSignature, currentSignature) &&
+      Math.abs(this.markupPickIndexGlobeness - currentGlobeness) < 0.05
+    ) {
+      return;
+    }
+
+    this.markupPickSpatialIndex.build(
+      this.worldMarkups,
+      (lng, lat, altitudeMeters) => this.project(lng, lat, altitudeMeters ?? 0),
       pointThresholdPx
     );
+    this.markupPickIndexCameraSignature = currentSignature;
+    this.markupPickIndexGlobeness = currentGlobeness;
+  }
+
+  private maybeInvalidateMarkupPickIndexOnCameraChange(state: CameraState): void {
+    if (!this.markupPickIndexCameraSignature) {
+      return;
+    }
+
+    if (hasSignificantCameraMove(this.markupPickIndexCameraSignature, this.cameraStateToSignature(state))) {
+      this.invalidateMarkupPickIndex();
+    }
   }
 
   private syncFeatureHighlight(): void {
@@ -1287,6 +1361,8 @@ export class AtlasEngine implements AtlasEngineContract {
   }
 
   private emitCameraChange(event: CameraChangeEvent): void {
+    this.maybeInvalidateMarkupPickIndexOnCameraChange(event.state);
+
     for (const listener of this.cameraChangeListeners) {
       listener(event);
     }
@@ -1341,6 +1417,7 @@ export class AtlasEngine implements AtlasEngineContract {
     };
     this.pendingViewModeChange = null;
     this.lastViewModeProgressEmit = -1;
+    this.invalidateMarkupPickIndex();
     this.emitViewModeChange(settled);
   }
 
