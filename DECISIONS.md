@@ -2542,7 +2542,26 @@ Studio D-078 (Foundation 131) closes the keyboard paste-preview loop for rail-fi
 
 **Next**
 
-- Foundation 134: candidate — validation snooze keyboard snooze on selected row, or paste-preview re-copy loop polish.
+- Foundation 134: validation snooze keyboard snooze on selected sequence row (see Studio D-081).
+
+## 2026-08-15 — Foundation 134 validation snooze keyboard snooze on selected sequence row stays Studio-side
+
+**Decision**
+
+When a markup element is **selected** in Build Order / Motion Sequence and has **one or more** visible snoozeable warnings (warning severity, not info), **⌥⌘S** snoozes every visible warning fingerprint for that element via the F111 localStorage store. Brief inline feedback shows **Snoozed N warnings**. Shortcut skips text inputs; no-op with no feedback when selection has no visible snoozeable warnings. F123 sequence-row badge tooltips document both ⌥⌘S and ⌥⌘R.
+
+**Reason**
+
+Studio D-081 (Foundation 134) closes the symmetric keyboard gap to F133 — authors bulk-snooze visible warnings on the selected shape without opening the validation summary.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-081 for `snoozeVisibleIssuesForElement`, `validationSnoozeRestoreShortcut`, `snoozeIssuesForElement`, and `DirectorMarkupPanel` ⌥⌘S wiring.
+
+**Next**
+
+- Foundation 135: candidate — validation snooze keyboard toggle (snooze visible / restore snoozed) on selected row, or paste-preview re-copy loop polish.
 
 ## 2026-08-15 — Foundation 133 validation snooze keyboard restore on selected sequence row stays Studio-side
 
@@ -2561,7 +2580,7 @@ Studio D-080 (Foundation 133) closes the keyboard gap between F123 sequence-row 
 
 **Next**
 
-- Foundation 134: candidate — validation snooze keyboard snooze on selected row, or paste-preview re-copy loop polish.
+- Foundation 134: validation snooze keyboard snooze on selected sequence row (see Studio D-081).
 
 ## 2026-08-15 — Foundation 132 paste-preview focus after successful paste commit stays Studio-side
 
