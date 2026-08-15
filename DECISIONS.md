@@ -1728,6 +1728,25 @@ Studio D-026 (Foundation 79) extends F78 title-card authoring with post-placemen
 
 - Foundation 80: TBD — candidate: keyframe vs Terra Draw conflict UX, relative `afterItemId` authoring, or markup-cue rail selection.
 
+## 2026-08-15 — Foundation 80 keyframe vs draw conflict stays Studio-side
+
+**Decision**
+
+Keyframe authoring conflict with markup draw tools and on-map geometry edit is handled in Creator Studio via draw-tool lock, banner UX, and disabled edit overlays when a shape has keyframes or the keyframes panel is active. No Atlas draw API or Terra Draw integration.
+
+**Reason**
+
+Studio D-027 (Foundation 80) implements INTERACTION-PRD R10 — keyframed shapes must not silently accept Terra Draw or overlay geometry edits that would invalidate authored keyframe samples.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-027 for `markupKeyframeConflict`, `KeyframeEditBanner`, and `DirectorMarkupPanel` lock wiring.
+
+**Next**
+
+- Foundation 81: TBD — candidate: relative `afterItemId` authoring, markup-cue rail selection, or keyframe geometry capture at playhead.
+
 ## 2026-08-15 — Foundation 74 camera transition sampling on public API
 
 **Decision**
