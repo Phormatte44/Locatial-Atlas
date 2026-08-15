@@ -22,16 +22,19 @@ import {
 } from "./markerColors";
 import {
   applyMarkupMaterialAppearance,
+  applyOverlayShadowFlags,
   createMarkupMaterial,
   defaultOpacityForMarkup,
   getTintableMarkupMaterial,
-  replaceMeshMarkupMaterial
+  replaceMeshMarkupMaterial,
+  type LitMarkupKind
 } from "./markupMaterials";
 import { markupMatchesHighlight } from "../../interaction/placeHighlightIds";
 import type { AtlasViewMode } from "../../types/viewMode";
 import type { LightingSettings } from "../../types/lighting";
 import { OverlayLightingRig } from "../lighting/OverlayLightingRig";
 import { DEFAULT_LIGHTING_SETTINGS } from "../lighting/atmosphereDefaults";
+import { createOverlayShadowGroundReceiver } from "../lighting/overlayShadowConfig";
 
 const LAYER_ID = "atlas-three-overlay";
 
@@ -51,11 +54,17 @@ function markupRenderPriority(kind: WorldMarkup["kind"]): number {
   }
 }
 
+function isLitMeshKind(kind: WorldMarkup["kind"]): kind is LitMarkupKind {
+  return kind === "sphere" || kind === "polygon" || kind === "circle";
+}
+
 interface MarkupEntry {
   id: string;
   kind: WorldMarkup["kind"];
   scene: THREE.Scene;
+  anchor: THREE.Group | null;
   object: THREE.Object3D;
+  groundReceiver: THREE.Mesh | null;
   baseMatrix: THREE.Matrix4;
   modelMatrix: THREE.Matrix4;
 }
@@ -70,6 +79,7 @@ export class ThreeOverlayAdapter {
   private viewMode: AtlasViewMode = "map";
   private lightingSettings: LightingSettings = DEFAULT_LIGHTING_SETTINGS;
   private readonly lightingRig = new OverlayLightingRig();
+  private litScene: THREE.Scene | null = null;
 
   getLayer(): CustomLayerInterface {
     return {
@@ -79,6 +89,8 @@ export class ThreeOverlayAdapter {
       onAdd: (map, gl) => {
         this.map = map;
         this.camera = new THREE.Camera();
+        this.litScene = new THREE.Scene();
+        this.lightingRig.attachToScene(this.litScene);
 
         this.renderer = new THREE.WebGLRenderer({
           canvas: map.getCanvas(),
@@ -86,6 +98,8 @@ export class ThreeOverlayAdapter {
           antialias: true
         });
         this.renderer.autoClear = false;
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
         this.rebuildMarkups();
       },
@@ -94,6 +108,7 @@ export class ThreeOverlayAdapter {
       },
       onRemove: () => {
         this.disposeMarkups();
+        this.litScene = null;
         this.renderer?.dispose();
         this.renderer = null;
         this.camera = null;
@@ -124,15 +139,29 @@ export class ThreeOverlayAdapter {
 
   setLightingSettings(settings: LightingSettings): void {
     const lightingModeChanged = this.lightingSettings.enabled !== settings.enabled;
+    const shadowModeChanged =
+      this.lightingSettings.shadowEnabled !== settings.shadowEnabled ||
+      this.lightingSettings.shadowIntensity !== settings.shadowIntensity;
+
     this.lightingSettings = settings;
     this.lightingRig.applySettings(settings);
 
+    if (this.litScene) {
+      this.lightingRig.attachToScene(this.litScene);
+    }
+
     for (const entry of this.markupEntries) {
-      this.lightingRig.attachToScene(entry.scene);
+      if (!entry.scene.children.includes(this.lightingRig.getDirectionalLight())) {
+        this.lightingRig.attachToScene(entry.scene);
+      }
     }
 
     if (lightingModeChanged) {
       this.refreshMarkupMaterialModes();
+    }
+
+    if (shadowModeChanged || lightingModeChanged) {
+      this.refreshOverlayShadowState();
     }
 
     this.map?.triggerRepaint();
@@ -176,12 +205,33 @@ export class ThreeOverlayAdapter {
     }
 
     const mapMatrix = new THREE.Matrix4().fromArray(options.defaultProjectionData.mainMatrix);
+    const litEntries = this.markupEntries.filter((entry) => entry.anchor !== null);
+    const unlitEntries = this.markupEntries.filter((entry) => entry.anchor === null);
 
     this.renderer.resetState();
     gl.disable(gl.DEPTH_TEST);
     gl.depthMask(false);
 
-    for (const entry of this.markupEntries) {
+    if (this.litScene && litEntries.length > 0) {
+      for (const entry of litEntries) {
+        if (!entry.anchor) {
+          continue;
+        }
+
+        entry.anchor.matrix.copy(entry.modelMatrix);
+        entry.anchor.matrixAutoUpdate = false;
+        entry.anchor.updateMatrixWorld(true);
+      }
+
+      this.lightingRig.updateShadowTargets(
+        litEntries.flatMap((entry) => (entry.anchor ? [entry.anchor] : []))
+      );
+
+      this.camera.projectionMatrix.copy(mapMatrix);
+      this.renderer.render(this.litScene, this.camera);
+    }
+
+    for (const entry of unlitEntries) {
       this.camera.projectionMatrix = mapMatrix.clone().multiply(entry.modelMatrix);
       this.renderer.render(entry.scene, this.camera);
     }
@@ -192,12 +242,34 @@ export class ThreeOverlayAdapter {
   private rebuildMarkups(): void {
     this.disposeMarkups();
 
+    if (this.litScene) {
+      this.clearLitScene();
+      this.lightingRig.attachToScene(this.litScene);
+      this.lightingRig.applySettings(this.lightingSettings);
+    }
+
     for (const markup of this.markups) {
       const scene = new THREE.Scene();
       this.lightingRig.attachToScene(scene);
       this.lightingRig.applySettings(this.lightingSettings);
+
       const object = this.createObjectForMarkup(markup);
-      scene.add(object);
+      let anchor: THREE.Group | null = null;
+      let groundReceiver: THREE.Mesh | null = null;
+
+      if (isLitMeshKind(markup.kind) && this.litScene) {
+        anchor = new THREE.Group();
+        anchor.add(object);
+
+        if (this.lightingRig.shadowsEnabled()) {
+          groundReceiver = createOverlayShadowGroundReceiver();
+          anchor.add(groundReceiver);
+        }
+
+        this.litScene.add(anchor);
+      } else {
+        scene.add(object);
+      }
 
       const baseMatrix = this.createMatrixForMarkup(markup, 0);
 
@@ -205,7 +277,9 @@ export class ThreeOverlayAdapter {
         id: markup.id,
         kind: markup.kind,
         scene,
+        anchor,
         object,
+        groundReceiver,
         baseMatrix,
         modelMatrix: baseMatrix.clone()
       });
@@ -216,6 +290,7 @@ export class ThreeOverlayAdapter {
     );
 
     this.applyHighlightStyles();
+    this.refreshOverlayShadowState();
     this.map?.triggerRepaint();
   }
 
@@ -243,7 +318,7 @@ export class ThreeOverlayAdapter {
     }
 
     if (markup.kind === "polygon") {
-      return new THREE.Mesh(
+      const mesh = new THREE.Mesh(
         createPolygonShapeGeometry(markup.ring, markup.lng, markup.lat),
         createMarkupMaterial({
           kind: "polygon",
@@ -252,10 +327,13 @@ export class ThreeOverlayAdapter {
           lightingEnabled
         })
       );
+      applyOverlayShadowFlags(mesh, "polygon", this.lightingRig.shadowsEnabled());
+      mesh.renderOrder = markupRenderPriority("polygon");
+      return mesh;
     }
 
     if (markup.kind === "circle") {
-      return new THREE.Mesh(
+      const mesh = new THREE.Mesh(
         new THREE.CircleGeometry(1, 64),
         createMarkupMaterial({
           kind: "circle",
@@ -264,9 +342,12 @@ export class ThreeOverlayAdapter {
           lightingEnabled
         })
       );
+      applyOverlayShadowFlags(mesh, "circle", this.lightingRig.shadowsEnabled());
+      mesh.renderOrder = markupRenderPriority("circle");
+      return mesh;
     }
 
-    return new THREE.Mesh(
+    const mesh = new THREE.Mesh(
       new THREE.SphereGeometry(1, 24, 24),
       createMarkupMaterial({
         kind: "sphere",
@@ -275,6 +356,9 @@ export class ThreeOverlayAdapter {
         lightingEnabled
       })
     );
+    applyOverlayShadowFlags(mesh, "sphere", this.lightingRig.shadowsEnabled());
+    mesh.renderOrder = markupRenderPriority("sphere");
+    return mesh;
   }
 
   private createMatrixForMarkup(markup: WorldMarkup, terrainElevationMeters: number): THREE.Matrix4 {
@@ -381,7 +465,7 @@ export class ThreeOverlayAdapter {
     const lightingEnabled = this.lightingSettings.enabled;
 
     for (const entry of this.markupEntries) {
-      if (entry.kind !== "sphere" && entry.kind !== "polygon" && entry.kind !== "circle") {
+      if (!isLitMeshKind(entry.kind)) {
         continue;
       }
 
@@ -397,24 +481,79 @@ export class ThreeOverlayAdapter {
     }
   }
 
+  private refreshOverlayShadowState(): void {
+    const shadowsEnabled = this.lightingRig.shadowsEnabled();
+
+    for (const entry of this.markupEntries) {
+      if (!isLitMeshKind(entry.kind) || !(entry.object instanceof THREE.Mesh)) {
+        continue;
+      }
+
+      applyOverlayShadowFlags(entry.object, entry.kind, shadowsEnabled);
+
+      if (shadowsEnabled) {
+        if (!entry.groundReceiver && entry.anchor) {
+          entry.groundReceiver = createOverlayShadowGroundReceiver();
+          entry.anchor.add(entry.groundReceiver);
+        }
+        continue;
+      }
+
+      if (entry.groundReceiver && entry.anchor) {
+        entry.anchor.remove(entry.groundReceiver);
+        entry.groundReceiver.geometry.dispose();
+        const groundMaterial = entry.groundReceiver.material;
+        if (groundMaterial instanceof THREE.Material) {
+          groundMaterial.dispose();
+        }
+        entry.groundReceiver = null;
+      }
+    }
+  }
+
+  private clearLitScene(): void {
+    if (!this.litScene) {
+      return;
+    }
+
+    for (const child of [...this.litScene.children]) {
+      if (
+        child instanceof THREE.AmbientLight ||
+        child instanceof THREE.HemisphereLight ||
+        child instanceof THREE.DirectionalLight
+      ) {
+        continue;
+      }
+
+      this.litScene.remove(child);
+    }
+  }
+
   private disposeMarkups(): void {
     for (const entry of this.markupEntries) {
-      for (const child of entry.scene.children) {
-        if (child instanceof THREE.Sprite) {
-          disposeLabelSprite(child);
-          continue;
+      if (entry.groundReceiver) {
+        entry.groundReceiver.geometry.dispose();
+        const groundMaterial = entry.groundReceiver.material;
+        if (groundMaterial instanceof THREE.Material) {
+          groundMaterial.dispose();
         }
+      }
 
-        if (child instanceof THREE.Line || child instanceof THREE.Mesh) {
-          child.geometry.dispose();
+      if (entry.anchor && this.litScene) {
+        this.litScene.remove(entry.anchor);
+      }
 
-          if (Array.isArray(child.material)) {
-            child.material.forEach((material) => {
-              material.dispose();
-            });
-          } else {
-            child.material.dispose();
-          }
+      if (entry.object instanceof THREE.Sprite) {
+        disposeLabelSprite(entry.object);
+      } else if (entry.object instanceof THREE.Line || entry.object instanceof THREE.Mesh) {
+        entry.object.geometry.dispose();
+
+        if (Array.isArray(entry.object.material)) {
+          entry.object.material.forEach((material) => {
+            material.dispose();
+          });
+        } else {
+          entry.object.material.dispose();
         }
       }
     }

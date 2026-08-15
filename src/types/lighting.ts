@@ -9,6 +9,10 @@ export interface LightingSettings {
   sunAzimuthDegrees: number;
   /** Sun elevation in degrees above the horizon. */
   sunElevationDegrees: number;
+  /** When true (and lighting enabled), lit mesh markup casts directional shadows. */
+  shadowEnabled: boolean;
+  /** 0–1 darkness of overlay shadow map contribution. */
+  shadowIntensity: number;
 }
 
 export interface LightingChangeEvent {

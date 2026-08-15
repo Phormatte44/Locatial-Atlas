@@ -75,6 +75,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
   const [viewMode, setViewMode] = useState(engine.getViewMode());
   const [atmosphereEnabled, setAtmosphereEnabled] = useState(engine.getAtmosphereSettings().enabled);
   const [lightingEnabled, setLightingEnabled] = useState(engine.getLightingSettings().enabled);
+  const [shadowEnabled, setShadowEnabled] = useState(engine.getLightingSettings().shadowEnabled);
   const [queryElevation, setQueryElevation] = useState<string>("—");
 
   useEffect(() => {
@@ -164,6 +165,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
   useEffect(() => {
     return engine.onLightingChange((event) => {
       setLightingEnabled(event.settings.enabled);
+      setShadowEnabled(event.settings.shadowEnabled);
     });
   }, [engine]);
 
@@ -184,10 +186,11 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
 
   return (
     <div style={readoutStyle}>
-      <div>Foundation 34 — PBR markup materials</div>
+      <div>Foundation 35 — overlay shadow foundation</div>
       <div>View: {viewMode}</div>
       <div>Atmosphere: {atmosphereEnabled ? "on" : "off"}</div>
       <div>Lighting: {lightingEnabled ? "on" : "off"}</div>
+      <div>Shadows: {shadowEnabled ? "on" : "off"}</div>
       <div>Query elev: {queryElevation}</div>
       <div>Highlight: {describeFeatureId(highlightedFeatureId === "none" ? null : highlightedFeatureId)}</div>
       <div>Camera: {cameraChange}</div>

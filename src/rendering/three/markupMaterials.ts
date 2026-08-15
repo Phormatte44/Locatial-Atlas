@@ -53,6 +53,26 @@ export function usesLitMeshMaterial(kind: WorldMarkup["kind"], lightingEnabled: 
   return lightingEnabled && (kind === "sphere" || kind === "polygon" || kind === "circle");
 }
 
+/** Whether a lit mesh kind participates in overlay shadow casting. */
+export function markupCastsOverlayShadow(kind: LitMarkupKind): boolean {
+  return kind === "sphere";
+}
+
+/** Whether a lit mesh kind participates in overlay shadow receiving. */
+export function markupReceivesOverlayShadow(kind: LitMarkupKind): boolean {
+  return kind === "polygon" || kind === "circle";
+}
+
+/** Apply cast/receive shadow flags for lit mesh markup. */
+export function applyOverlayShadowFlags(
+  mesh: THREE.Mesh,
+  kind: LitMarkupKind,
+  shadowsEnabled: boolean
+): void {
+  mesh.castShadow = shadowsEnabled && markupCastsOverlayShadow(kind);
+  mesh.receiveShadow = shadowsEnabled && markupReceivesOverlayShadow(kind);
+}
+
 /** Create overlay material for line or mesh markup. Labels use SpriteMaterial separately. */
 export function createMarkupMaterial(options: MarkupMaterialCreateOptions): THREE.Material {
   const { kind, color, opacity, lightingEnabled } = options;

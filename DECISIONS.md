@@ -666,3 +666,28 @@ World-space overlay materials are defined centrally in `src/rendering/three/mark
 - `ThreeOverlayAdapter` creates and updates materials through the shared factory; toggling lighting swaps mesh material mode in place.
 - Studio continues to drive material appearance indirectly via `setLightingSettings({ enabled })` and existing atmosphere/lighting options.
 - Lab label updated to Foundation 34.
+
+---
+
+## 2026-08-15 — Foundation 35 overlay shadow foundation
+
+**Decision**
+
+Directional overlay shadows are configured in `src/rendering/lighting/overlayShadowConfig.ts` and driven through extended `LightingSettings` (`shadowEnabled`, `shadowIntensity`). `OverlayLightingRig` enables PCF soft shadow maps on the shared directional light; lit mesh markup renders in a composite `litScene` with anchor-group world matrices so shadow maps align with MapLibre projection. Spheres cast shadows; polygons and circles receive; optional per-anchor `ShadowMaterial` ground planes provide contact shadows.
+
+**Reason**
+
+`RENDERING-SYSTEM.md` and `ARCHITECTURE.md` assign shadow systems to `src/rendering`. Foundation 32–34 established atmosphere, overlay lighting, and PBR mesh materials; Foundation 35 connects directional shadows to that rig without exposing Three.js types through the public API.
+
+**Consequences**
+
+- `setLightingSettings({ shadowEnabled })` and `onLightingChange` refresh shadow cast/receive flags and ground receivers.
+- MapLibre terrain remains a non-receiver for now; overlay-on-overlay and ground-plane contact shadows are supported.
+- Lab adds a shadow toggle and Foundation 35 labels.
+- Studio continues to use the public lighting API only.
+
+**Limitations**
+
+- Basemap/terrain shadow receiving deferred until MapLibre/Three depth integration is defined.
+- Lines and labels are excluded from the shadow pass.
+- Single ortho frustum per frame; cascaded shadows not yet implemented.

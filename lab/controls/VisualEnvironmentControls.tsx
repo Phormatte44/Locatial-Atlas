@@ -17,6 +17,7 @@ const buttonStyle: React.CSSProperties = {
 export function VisualEnvironmentControls({ engine }: VisualEnvironmentControlsProps) {
   const [atmosphereEnabled, setAtmosphereEnabled] = useState(engine.getAtmosphereSettings().enabled);
   const [lightingEnabled, setLightingEnabled] = useState(engine.getLightingSettings().enabled);
+  const [shadowEnabled, setShadowEnabled] = useState(engine.getLightingSettings().shadowEnabled);
 
   useEffect(() => {
     return engine.onAtmosphereChange((event) => {
@@ -27,6 +28,7 @@ export function VisualEnvironmentControls({ engine }: VisualEnvironmentControlsP
   useEffect(() => {
     return engine.onLightingChange((event) => {
       setLightingEnabled(event.settings.enabled);
+      setShadowEnabled(event.settings.shadowEnabled);
     });
   }, [engine]);
 
@@ -49,6 +51,15 @@ export function VisualEnvironmentControls({ engine }: VisualEnvironmentControlsP
         }}
       >
         Lighting: {lightingEnabled ? "on" : "off"}
+      </button>
+      <button
+        type="button"
+        style={buttonStyle}
+        onClick={() => {
+          engine.setLightingSettings({ shadowEnabled: !shadowEnabled });
+        }}
+      >
+        Shadows: {shadowEnabled ? "on" : "off"}
       </button>
       <button
         type="button"

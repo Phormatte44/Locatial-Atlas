@@ -16,7 +16,9 @@ export const DEFAULT_LIGHTING_SETTINGS: LightingSettings = {
   ambientIntensity: 0.55,
   directionalIntensity: 0.75,
   sunAzimuthDegrees: 135,
-  sunElevationDegrees: 45
+  sunElevationDegrees: 45,
+  shadowEnabled: true,
+  shadowIntensity: 0.65
 };
 
 export function mergeAtmosphereSettings(

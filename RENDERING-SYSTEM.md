@@ -58,6 +58,17 @@ Support a path toward:
 
 Avoid screen-space tricks that break geographic/world consistency unless explicitly isolated as optional effects.
 
+### Overlay shadow foundation (F35)
+
+Lit mesh markup (`sphere`, `polygon`, `circle`) renders in a shared Three.js overlay scene with directional shadow maps configured in `src/rendering/lighting/overlayShadowConfig.ts`. Spheres cast; polygons and circles receive; each anchor may include a local `ShadowMaterial` ground receiver for contact detail.
+
+**Limitations (current foundation):**
+
+- MapLibre terrain and basemap tiles are not shadow receivers yet — shadows appear on overlay geometry and ground receivers only.
+- Lines and labels do not participate in the shadow pass.
+- Shadow frustum is fitted to visible lit anchors; very wide multi-city markup spreads may need cascaded shadow work later.
+- Globe view mode uses the same overlay path; full globe-scale shadow alignment is deferred to F36+ work.
+
 ## Materials
 
 Materials should be defined centrally rather than repeatedly inside scenes.
