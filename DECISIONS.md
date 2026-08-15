@@ -2466,7 +2466,26 @@ Studio D-074 (Foundation 127) completes the F112–F126 paste-preview pin keyboa
 
 **Next**
 
-- Foundation 128: candidate — validation snooze keyboard restore on selected sequence row, or paste-preview ghost blur-on-unpin focus management.
+- Foundation 128: paste-preview ghost blur-on-unpin focus management (see Studio D-075).
+
+## 2026-08-15 — Foundation 128 paste-preview ghost blur-on-unpin focus management stays Studio-side
+
+**Decision**
+
+When a **pinned paste-preview ghost** loses pin while keyboard-focused (F127 Escape unpin, F125 Enter paste, or **⌥⌘L** toggle off with ghost focused), focus moves to the **matching toolbar paste button** for the last pinned anchor in the active context. Fallbacks: first enabled button in the context timing toolbar, then Storyline playhead scrub. Double `requestAnimationFrame` schedules focus after React removes ghost focusability.
+
+**Reason**
+
+Studio D-075 (Foundation 128) prevents keyboard users from being stranded on stale ghost focus targets after unpin without pasting.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-075 for `timingPastePreviewGhostUnpinFocus`, toolbar `data-paste-preview-*` attributes, and `DirectorMarkupPanel` focus routing after unpin/paste/**⌥⌘L**.
+
+**Next**
+
+- Foundation 129: candidate — validation snooze keyboard restore on selected sequence row, or paste-preview ghost focus after global Escape pin clear.
 
 ## 2026-08-15 — Foundation 119 validation snooze bulk-snooze by group stays Studio-side
 
