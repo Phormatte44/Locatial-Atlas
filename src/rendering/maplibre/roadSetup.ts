@@ -1,7 +1,7 @@
 import type { Map as MapLibreMap, MapGeoJSONFeature } from "maplibre-gl";
-import type { GeoJSON } from "geojson";
 import type { RoadLayerDefinition } from "../../types/roadLayer";
 import { mergeRoadStyle, roadStyleUsesCasing } from "../../data/roads/roadDefaults";
+import { resolveInitialGeoJsonData } from "../../data/geoJsonLayerSource";
 import { formatRoadFeatureId } from "../../interaction/roadFeatureIds";
 
 export const ATLAS_ROAD_PREFIX = "atlas-road";
@@ -57,10 +57,7 @@ export function addRoadLayerToMap(map: MapLibreMap, definition: RoadLayerDefinit
   const lineLayerId = roadLineLayerId(definition.id);
   const style = mergeRoadStyle(definition.style);
   const useCasing = roadStyleUsesCasing(style);
-  const geoJsonData =
-    typeof definition.source.data === "string"
-      ? definition.source.data
-      : (definition.source.data as GeoJSON.FeatureCollection);
+  const geoJsonData = resolveInitialGeoJsonData(definition.source.data);
 
   map.addSource(sourceId, {
     type: "geojson",

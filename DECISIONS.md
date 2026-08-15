@@ -868,3 +868,27 @@ Studio and future products need extruded building footprints for editorial city 
 - Height requires numeric meters on features or a fixed layer fallback; no automatic OSM or 3D Tiles ingestion ships in Atlas.
 - Building hover does not yet participate in place-id expansion; explicit building ids only.
 - Picking uses 2D footprint queries; vertical face hits on extruded walls are not distinguished from footprint fills.
+
+## 2026-08-15 — Foundation 43 async layer loading
+
+**Decision**
+
+GeoJSON layers that declare a remote URL load through a centralized `LayerSourceLoader` in `src/data`. MapLibre sources mount immediately with an empty `FeatureCollection`; fetched data is applied via `setData` when ready. Inline GeoJSON remains synchronous. `AtlasEngine` exposes `getLayerLoadState(layerId)`, `getLayerLoadStates()`, `onLayerLoadChange`, and `retryLayerLoad(layerId, family?)`. Failed URL loads emit recoverable `onMapError` events with kind `layer-load`. `onMapReady` fires when the basemap style is ready (partial ready); enabled URL layers continue loading progressively afterward.
+
+**Reason**
+
+All five layer registries (boundary, label, road, area, building) accepted GeoJSON URLs but delegated fetch lifecycle to MapLibre with no loading/error/retry surface, no cancellation on style swap, and no visibility into load progress for Studio consumers.
+
+**Consequences**
+
+- `LayerLoadStatus` tracks `idle | loading | ready | error` per enabled layer id.
+- Style swaps invalidate in-flight fetches via `AbortController`; layers re-sync after the basemap reloads.
+- Progressive enable: map layers appear immediately (empty) and populate when data arrives.
+- Lab registers `paris-metro-url` boundary layer loading from `/lab/geojson/paris-metro.geojson`.
+- Inline GeoJSON layers report `ready` immediately without a network round trip.
+
+**Limitations**
+
+- No request deduplication across duplicate URLs; each layer id loads independently.
+- No caching layer beyond the current map session; revisiting a layer re-fetches unless the browser cache hits.
+- POI and cluster layers deferred to Foundation 44.

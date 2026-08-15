@@ -1,0 +1,25 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "paris-metro-url",
+      "properties": {
+        "id": "paris-metro-url",
+        "name": "Paris metro (URL)"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [2.15, 48.97],
+            [2.55, 48.97],
+            [2.55, 48.77],
+            [2.15, 48.77],
+            [2.15, 48.97]
+          ]
+        ]
+      }
+    }
+  ]
+}

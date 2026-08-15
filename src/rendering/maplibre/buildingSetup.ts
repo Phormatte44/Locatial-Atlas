@@ -1,7 +1,7 @@
 import type { Map as MapLibreMap, MapGeoJSONFeature } from "maplibre-gl";
-import type { GeoJSON } from "geojson";
 import type { BuildingLayerDefinition } from "../../types/buildingLayer";
 import { mergeBuildingStyle } from "../../data/buildings/buildingDefaults";
+import { resolveInitialGeoJsonData } from "../../data/geoJsonLayerSource";
 import { formatBuildingFeatureId } from "../../interaction/buildingFeatureIds";
 import { ATLAS_LABEL_PREFIX } from "./labelSetup";
 import { ATLAS_ROAD_PREFIX } from "./roadSetup";
@@ -80,10 +80,7 @@ export function addBuildingLayerToMap(map: MapLibreMap, definition: BuildingLaye
   const extrusionLayerId = buildingExtrusionLayerId(definition.id);
   const style = mergeBuildingStyle(definition.style);
   const beforeId = findBuildingInsertBeforeLayerId(map);
-  const geoJsonData =
-    typeof definition.source.data === "string"
-      ? definition.source.data
-      : (definition.source.data as GeoJSON.FeatureCollection);
+  const geoJsonData = resolveInitialGeoJsonData(definition.source.data);
 
   map.addSource(sourceId, {
     type: "geojson",

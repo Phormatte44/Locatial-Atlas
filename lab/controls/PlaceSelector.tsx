@@ -81,10 +81,10 @@ export function PlaceSelector({ engine, places }: PlaceSelectorProps) {
 
   return (
     <div style={panelStyle}>
-      <strong style={{ fontSize: 14 }}>Atlas Lab — Foundation 42</strong>
+      <strong style={{ fontSize: 14 }}>Atlas Lab — Foundation 43</strong>
       <span style={{ fontSize: 12, color: "#555" }}>
-        City buttons frame the center point; area buttons frame metro bounds. Enable building
-        layers and pitch the camera to see fill-extrusion footprints.
+        City buttons frame the center point; area buttons frame metro bounds. Enable the Paris
+        async URL boundary layer to observe load lifecycle (loading → ready, retry on error).
       </span>
       <ViewModeSelector engine={engine} />
       <VisualEnvironmentControls engine={engine} />

@@ -7,6 +7,8 @@ export interface ClassifiedMapError {
   message: string;
   recoverable: boolean;
   sourceId?: string;
+  layerId?: string;
+  layerFamily?: import("../../types/layerLoadState").LayerFamily;
 }
 
 /** MapLibre merges source/tile metadata onto error events at runtime. */

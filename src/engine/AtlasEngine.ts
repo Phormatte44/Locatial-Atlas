@@ -66,6 +66,12 @@ import type { GeoHoverEvent, GeoHoverListener } from "../types/geoHover";
 import type { GeoSelectEvent, GeoSelectListener } from "../types/geoSelect";
 import type { MapReadyEvent, MapReadyListener } from "../types/mapReady";
 import type { MapErrorEvent, MapErrorListener } from "../types/mapError";
+import type {
+  LayerFamily,
+  LayerLoadChangeEvent,
+  LayerLoadChangeListener,
+  LayerLoadState
+} from "../types/layerLoadState";
 import type { CameraChangeEvent, CameraChangeListener } from "../types/cameraChange";
 import type { AtlasViewMode, ViewModeChangeEvent, ViewModeChangeListener } from "../types/viewMode";
 import { ATLAS_VIEW_MODES } from "../types/viewMode";
@@ -109,6 +115,7 @@ export class AtlasEngine implements AtlasEngineContract {
   private readonly geoSelectListeners = new Set<GeoSelectListener>();
   private readonly mapReadyListeners = new Set<MapReadyListener>();
   private readonly mapErrorListeners = new Set<MapErrorListener>();
+  private readonly layerLoadChangeListeners = new Set<LayerLoadChangeListener>();
   private readonly cameraChangeListeners = new Set<CameraChangeListener>();
   private lastGeoHoverKey = "";
   private hoverFeatureId: string | null = null;
@@ -175,6 +182,10 @@ export class AtlasEngine implements AtlasEngineContract {
       });
     });
 
+    this.mapAdapter.onLayerLoadChange((event) => {
+      this.emitLayerLoadChange(event);
+    });
+
     this.mapAdapter.onProjectionBlendProgress((transition) => {
       this.handleProjectionBlendProgress(transition);
     });
@@ -205,6 +216,30 @@ export class AtlasEngine implements AtlasEngineContract {
     return () => {
       this.mapErrorListeners.delete(listener);
     };
+  }
+
+  getLayerLoadState(layerId: string): LayerLoadState | undefined {
+    return this.mapAdapter.getLayerLoadState(layerId);
+  }
+
+  getLayerLoadStates(): LayerLoadState[] {
+    return this.mapAdapter.getLayerLoadStates();
+  }
+
+  onLayerLoadChange(listener: LayerLoadChangeListener): () => void {
+    this.layerLoadChangeListeners.add(listener);
+
+    for (const state of this.getLayerLoadStates()) {
+      listener({ state });
+    }
+
+    return () => {
+      this.layerLoadChangeListeners.delete(listener);
+    };
+  }
+
+  retryLayerLoad(layerId: string, family?: LayerFamily): boolean {
+    return this.mapAdapter.retryLayerLoad(layerId, family);
   }
 
   onCameraChange(listener: CameraChangeListener): () => void {
@@ -816,6 +851,12 @@ export class AtlasEngine implements AtlasEngineContract {
 
   private emitMapError(event: MapErrorEvent): void {
     for (const listener of this.mapErrorListeners) {
+      listener(event);
+    }
+  }
+
+  private emitLayerLoadChange(event: LayerLoadChangeEvent): void {
+    for (const listener of this.layerLoadChangeListeners) {
       listener(event);
     }
   }

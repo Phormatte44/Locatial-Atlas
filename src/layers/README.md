@@ -19,3 +19,5 @@ Applications register provider-agnostic layer definitions at runtime and enable 
 **Pick order (first match wins):** world markup → labels → roads → buildings → areas → boundaries.
 
 Building layers use MapLibre `fill-extrusion` for native 3D footprints aligned with the basemap. See `DECISIONS.md` Foundation 42 for globe and height-data limitations.
+
+**Async URL loading (Foundation 43):** layers with a GeoJSON URL load through `LayerSourceLoader`; query lifecycle via `getLayerLoadState` / `onLayerLoadChange`. Inline GeoJSON is synchronous.

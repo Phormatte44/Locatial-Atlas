@@ -69,6 +69,13 @@ export type { GeoHoverEvent, GeoHoverListener } from "../types/geoHover";
 export type { GeoSelectEvent, GeoSelectListener } from "../types/geoSelect";
 export type { MapReadyEvent, MapReadyListener, MapReadyReason } from "../types/mapReady";
 export type { MapErrorEvent, MapErrorKind, MapErrorListener } from "../types/mapError";
+export type {
+  LayerFamily,
+  LayerLoadChangeEvent,
+  LayerLoadChangeListener,
+  LayerLoadState,
+  LayerLoadStatus
+} from "../types/layerLoadState";
 export type { CameraChangeEvent, CameraChangeListener, CameraChangeReason } from "../types/cameraChange";
 export type { AtlasViewMode, ViewModeChangeEvent, ViewModeChangeListener } from "../types/viewMode";
 export { ATLAS_VIEW_MODES } from "../types/viewMode";
@@ -125,6 +132,15 @@ export interface AtlasEngineContract {
   isMapReady(): boolean;
   onMapReady(listener: import("../types/mapReady").MapReadyListener): () => void;
   onMapError(listener: import("../types/mapError").MapErrorListener): () => void;
+  getLayerLoadState(layerId: string): import("../types/layerLoadState").LayerLoadState | undefined;
+  getLayerLoadStates(): import("../types/layerLoadState").LayerLoadState[];
+  onLayerLoadChange(
+    listener: import("../types/layerLoadState").LayerLoadChangeListener
+  ): () => void;
+  retryLayerLoad(
+    layerId: string,
+    family?: import("../types/layerLoadState").LayerFamily
+  ): boolean;
   onCameraChange(listener: import("../types/cameraChange").CameraChangeListener): () => void;
   onCameraTransition(listener: CameraTransitionListener): () => void;
   onGeoHover(listener: import("../types/geoHover").GeoHoverListener): () => void;

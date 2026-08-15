@@ -1,7 +1,7 @@
 import type { Map as MapLibreMap, MapGeoJSONFeature } from "maplibre-gl";
-import type { GeoJSON } from "geojson";
 import type { BoundaryLayerDefinition } from "../../types/boundaryLayer";
 import { mergeBoundaryStyle } from "../../data/boundaries/boundaryDefaults";
+import { resolveInitialGeoJsonData } from "../../data/geoJsonLayerSource";
 import { formatBoundaryFeatureId } from "../../interaction/boundaryFeatureIds";
 
 export const ATLAS_BOUNDARY_PREFIX = "atlas-boundary";
@@ -57,10 +57,7 @@ export function addBoundaryLayerToMap(map: MapLibreMap, definition: BoundaryLaye
   const lineLayerId = boundaryLineLayerId(definition.id);
   const style = mergeBoundaryStyle(definition.style);
   const beforeId = findInsertBeforeLayerId(map);
-  const geoJsonData =
-    typeof definition.source.data === "string"
-      ? definition.source.data
-      : (definition.source.data as GeoJSON.FeatureCollection);
+  const geoJsonData = resolveInitialGeoJsonData(definition.source.data);
 
   map.addSource(sourceId, {
     type: "geojson",

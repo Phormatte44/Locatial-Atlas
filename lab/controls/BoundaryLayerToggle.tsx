@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { AtlasEngine } from "../../src";
+import type { AtlasEngine, LayerLoadState } from "../../src";
 import {
   DEFAULT_LAB_BOUNDARY_LAYER_ID,
   LAB_BOUNDARY_LAYERS
@@ -35,9 +35,28 @@ const checkboxRowStyle: React.CSSProperties = {
   fontSize: 12
 };
 
+const statusStyle: React.CSSProperties = {
+  fontSize: 11,
+  color: "#666",
+  fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace"
+};
+
+function describeLoadState(state: LayerLoadState | undefined): string {
+  if (!state) {
+    return "idle";
+  }
+
+  if (state.status === "error") {
+    return `error: ${state.error ?? "unknown"}`;
+  }
+
+  return state.url ? `${state.status} (${state.url})` : state.status;
+}
+
 export function BoundaryLayerToggle({ engine }: BoundaryLayerToggleProps) {
   const [enabled, setEnabled] = useState(false);
   const [selectedLayerId, setSelectedLayerId] = useState(DEFAULT_LAB_BOUNDARY_LAYER_ID);
+  const [loadState, setLoadState] = useState<LayerLoadState | undefined>();
 
   useEffect(() => {
     for (const layer of LAB_BOUNDARY_LAYERS) {
@@ -48,6 +67,20 @@ export function BoundaryLayerToggle({ engine }: BoundaryLayerToggleProps) {
   useEffect(() => {
     engine.setBoundaryLayers(enabled ? [selectedLayerId] : []);
   }, [engine, enabled, selectedLayerId]);
+
+  useEffect(() => {
+    return engine.onLayerLoadChange(({ state }) => {
+      if (state.layerId === selectedLayerId) {
+        setLoadState(state);
+      }
+    });
+  }, [engine, selectedLayerId]);
+
+  useEffect(() => {
+    setLoadState(engine.getLayerLoadState(selectedLayerId));
+  }, [engine, selectedLayerId, enabled]);
+
+  const showRetry = loadState?.status === "error";
 
   return (
     <div style={rowStyle}>
@@ -76,6 +109,26 @@ export function BoundaryLayerToggle({ engine }: BoundaryLayerToggleProps) {
           </option>
         ))}
       </select>
+      {enabled ? <span style={statusStyle}>Load: {describeLoadState(loadState)}</span> : null}
+      {showRetry ? (
+        <button
+          type="button"
+          style={{
+            border: "1px solid #d0d0d0",
+            borderRadius: 6,
+            padding: "4px 8px",
+            fontSize: 11,
+            background: "#fff",
+            cursor: "pointer",
+            alignSelf: "flex-start"
+          }}
+          onClick={() => {
+            engine.retryLayerLoad(selectedLayerId, "boundary");
+          }}
+        >
+          Retry URL load
+        </button>
+      ) : null}
     </div>
   );
 }

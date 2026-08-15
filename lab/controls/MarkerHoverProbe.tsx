@@ -102,6 +102,9 @@ function describeFeatureId(featureId: string | null): string {
     if (layerId === "dubai-metro") {
       return "Dubai metro boundary";
     }
+    if (layerId === "paris-metro-url") {
+      return "Paris metro boundary (URL)";
+    }
     return layerId ?? featureId;
   }
 
@@ -147,6 +150,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
   const [transitionPhase, setTransitionPhase] = useState<string>("idle");
   const [mapReady, setMapReady] = useState<string>("waiting");
   const [mapError, setMapError] = useState<string>("none");
+  const [layerLoadSummary, setLayerLoadSummary] = useState<string>("none");
   const [cameraChange, setCameraChange] = useState<string>("waiting");
   const [highlightedFeatureId, setHighlightedFeatureId] = useState<string>("none");
   const [transitionRunning, setTransitionRunning] = useState(false);
@@ -190,6 +194,25 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
   useEffect(() => {
     return engine.onMapError((event) => {
       setMapError(`${event.kind}${event.recoverable ? "" : " (fatal)"}: ${event.message}`);
+    });
+  }, [engine]);
+
+  useEffect(() => {
+    const summarize = () => {
+      const states = engine.getLayerLoadStates();
+      if (states.length === 0) {
+        setLayerLoadSummary("none");
+        return;
+      }
+
+      setLayerLoadSummary(
+        states.map((state) => `${state.layerId}:${state.status}`).join(", ")
+      );
+    };
+
+    summarize();
+    return engine.onLayerLoadChange(() => {
+      summarize();
     });
   }, [engine]);
 
@@ -270,7 +293,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
 
   return (
     <div style={readoutStyle}>
-      <div>Foundation 42 — building layer registry</div>
+      <div>Foundation 43 — async layer loading</div>
       <div>
         View: {viewMode}
         {viewMode === "globe" || viewModeBlend !== "settled"
@@ -285,6 +308,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
       <div>Highlight: {describeFeatureId(highlightedFeatureId === "none" ? null : highlightedFeatureId)}</div>
       <div>Camera: {cameraChange}</div>
       <div>Map: {mapReady}</div>
+      <div>Layer load: {layerLoadSummary}</div>
       <div>Error: {mapError}</div>
       <div>Hover: {describeFeatureId(hoveredMarkerId)}</div>
       <div>Selected: {describeFeatureId(selectedFeatureId)}</div>

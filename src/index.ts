@@ -90,6 +90,13 @@ export type { GeoHoverEvent, GeoHoverListener } from "./types/geoHover";
 export type { GeoSelectEvent, GeoSelectListener } from "./types/geoSelect";
 export type { MapReadyEvent, MapReadyListener, MapReadyReason } from "./types/mapReady";
 export type { MapErrorEvent, MapErrorKind, MapErrorListener } from "./types/mapError";
+export type {
+  LayerFamily,
+  LayerLoadChangeEvent,
+  LayerLoadChangeListener,
+  LayerLoadState,
+  LayerLoadStatus
+} from "./types/layerLoadState";
 export type { CameraChangeEvent, CameraChangeListener, CameraChangeReason } from "./types/cameraChange";
 export type { AtlasViewMode, ViewModeChangeEvent, ViewModeChangeListener } from "./types/viewMode";
 export { ATLAS_VIEW_MODES } from "./types/viewMode";

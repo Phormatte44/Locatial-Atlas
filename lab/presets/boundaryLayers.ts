@@ -16,6 +16,23 @@ function cityBoundaryRing(lng: number, lat: number, radiusKm: number, sides: num
 /** Lab-only demo boundary layers registered at runtime. */
 export const LAB_BOUNDARY_LAYERS: BoundaryLayerDefinition[] = [
   {
+    id: "paris-metro-url",
+    label: "Paris metro (async URL)",
+    semanticType: "district",
+    source: {
+      type: "geojson",
+      data: "/lab/geojson/paris-metro.geojson"
+    },
+    style: {
+      fillColor: "#a855f7",
+      fillOpacity: 0.14,
+      lineColor: "#7e22ce",
+      lineWidth: 2,
+      highlightFillColor: "#fde047",
+      highlightLineColor: "#eab308"
+    }
+  },
+  {
     id: "london-metro",
     label: "London metro",
     semanticType: "district",

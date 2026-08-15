@@ -61,6 +61,13 @@ import { parseLabelFeatureId } from "../../interaction/labelFeatureIds";
 import { parseRoadFeatureId } from "../../interaction/roadFeatureIds";
 import { parseAreaFeatureId } from "../../interaction/areaFeatureIds";
 import { parseBuildingFeatureId } from "../../interaction/buildingFeatureIds";
+import { LayerSourceLoader } from "../../data/layerSourceLoader";
+import type { LayerFamily, LayerLoadChangeListener, LayerLoadState } from "../../types/layerLoadState";
+import {
+  applyGeoJsonToLayerSource,
+  collectAsyncLayerDescriptors,
+  collectInlineLayerDescriptors
+} from "./asyncLayerSources";
 
 type CameraChangeListener = (state: CameraState) => void;
 type MapReadyListener = (reason: MapReadyReason) => void;
@@ -93,6 +100,8 @@ export class MapLibreAdapter {
   private highlightedRoad: { layerId: string; featureKey: string } | null = null;
   private highlightedArea: { layerId: string; featureKey: string } | null = null;
   private highlightedBuilding: { layerId: string; featureKey: string } | null = null;
+  private readonly layerSourceLoader = new LayerSourceLoader();
+  private readonly layerLoadChangeListeners = new Set<LayerLoadChangeListener>();
 
   create(container: HTMLElement, initialCamera: CameraState, styleUrl: string): void {
     if (this.map) {
@@ -126,6 +135,20 @@ export class MapLibreAdapter {
       void this.onMapStyleReady("initial-load");
     });
 
+    this.layerSourceLoader.onChange(({ state }) => {
+      this.emitLayerLoadChange(state);
+
+      if (state.status === "error" && state.error) {
+        this.emitLayerLoadError({
+          kind: "layer-load",
+          message: state.error,
+          recoverable: true,
+          layerId: state.layerId,
+          layerFamily: state.family
+        });
+      }
+    });
+
     this.map.on("error", (event) => {
       this.emitError(classifyMapLibreError(event));
     });
@@ -149,6 +172,7 @@ export class MapLibreAdapter {
     this.highlightedBoundary = null;
     this.highlightedLabel = null;
     this.highlightedRoad = null;
+    this.layerSourceLoader.cancelAll();
   }
 
   configureTerrain(enabled: boolean, source: TerrainSourceDefinition | null): void {
@@ -257,6 +281,7 @@ export class MapLibreAdapter {
     const preservedCamera = mapLibreToCameraState(this.map);
     this.styleUrl = styleUrl;
     this.threeLayerAdded = false;
+    this.layerSourceLoader.invalidateAll();
 
     await new Promise<void>((resolve, reject) => {
       const onIdle = () => {
@@ -306,6 +331,7 @@ export class MapLibreAdapter {
     syncBoundaryLayersOnMap(this.map, definitions);
     this.moveThreeLayerToTop();
     this.applyBoundaryHighlight(this.highlightedBoundary);
+    this.syncLayerSourceLoads();
   }
 
   getEnabledBoundaryLayerIds(): string[] {
@@ -342,6 +368,7 @@ export class MapLibreAdapter {
     syncLabelLayersOnMap(this.map, definitions);
     this.moveThreeLayerToTop();
     this.applyLabelHighlight(this.highlightedLabel);
+    this.syncLayerSourceLoads();
   }
 
   getEnabledLabelLayerIds(): string[] {
@@ -378,6 +405,7 @@ export class MapLibreAdapter {
     syncRoadLayersOnMap(this.map, definitions);
     this.moveThreeLayerToTop();
     this.applyRoadHighlight(this.highlightedRoad);
+    this.syncLayerSourceLoads();
   }
 
   getEnabledRoadLayerIds(): string[] {
@@ -414,6 +442,7 @@ export class MapLibreAdapter {
     syncAreaLayersOnMap(this.map, definitions);
     this.moveThreeLayerToTop();
     this.applyAreaHighlight(this.highlightedArea);
+    this.syncLayerSourceLoads();
   }
 
   getEnabledAreaLayerIds(): string[] {
@@ -450,6 +479,7 @@ export class MapLibreAdapter {
     syncBuildingLayersOnMap(this.map, definitions);
     this.moveThreeLayerToTop();
     this.applyBuildingHighlight(this.highlightedBuilding);
+    this.syncLayerSourceLoads();
   }
 
   getEnabledBuildingLayerIds(): string[] {
@@ -623,6 +653,29 @@ export class MapLibreAdapter {
     };
   }
 
+  onLayerLoadChange(listener: LayerLoadChangeListener): () => void {
+    this.layerLoadChangeListeners.add(listener);
+    return () => {
+      this.layerLoadChangeListeners.delete(listener);
+    };
+  }
+
+  getLayerLoadState(layerId: string): LayerLoadState | undefined {
+    return this.layerSourceLoader.findState(layerId);
+  }
+
+  getLayerLoadStates(): LayerLoadState[] {
+    return this.layerSourceLoader.getStates();
+  }
+
+  retryLayerLoad(layerId: string, family?: LayerFamily): boolean {
+    if (family) {
+      return this.layerSourceLoader.retry(family, layerId);
+    }
+
+    return this.layerSourceLoader.retryByLayerId(layerId);
+  }
+
   private async onMapStyleReady(reason: MapReadyReason): Promise<void> {
     this.addThreeLayer();
     this.applyVisualEnvironment();
@@ -652,6 +705,7 @@ export class MapLibreAdapter {
       this.moveThreeLayerToTop();
       this.applyRoadHighlight(this.highlightedRoad);
     }
+    this.syncLayerSourceLoads();
     this.emitReady(reason);
   }
 
@@ -681,6 +735,97 @@ export class MapLibreAdapter {
     for (const listener of this.errorListeners) {
       listener(error);
     }
+  }
+
+  private emitLayerLoadChange(state: LayerLoadState): void {
+    for (const listener of this.layerLoadChangeListeners) {
+      listener({ state });
+    }
+  }
+
+  private emitLayerLoadError(error: ClassifiedMapError): void {
+    this.emitError(error);
+  }
+
+  private syncLayerSourceLoads(): void {
+    if (!this.map?.loaded()) {
+      return;
+    }
+
+    const enabledFamilies = this.currentEnabledLayerFamilies();
+    const enabledLayerIds = new Set(
+      [
+        ...this.boundaryLayers.map((layer) => layer.id),
+        ...this.labelLayers.map((layer) => layer.id),
+        ...this.roadLayers.map((layer) => layer.id),
+        ...this.areaLayers.map((layer) => layer.id),
+        ...this.buildingLayers.map((layer) => layer.id)
+      ]
+    );
+
+    for (const state of this.layerSourceLoader.getStates()) {
+      if (!enabledLayerIds.has(state.layerId)) {
+        this.layerSourceLoader.markIdle(state.family, state.layerId);
+      }
+    }
+
+    const layerInput = {
+      boundaryLayers: this.boundaryLayers,
+      labelLayers: this.labelLayers,
+      roadLayers: this.roadLayers,
+      areaLayers: this.areaLayers,
+      buildingLayers: this.buildingLayers
+    };
+
+    for (const inline of collectInlineLayerDescriptors(layerInput)) {
+      this.layerSourceLoader.markInlineReady(inline.family, inline.layerId);
+    }
+
+    for (const descriptor of collectAsyncLayerDescriptors(layerInput)) {
+      if (!enabledFamilies.has(descriptor.family)) {
+        continue;
+      }
+
+      void this.layerSourceLoader.load(
+        descriptor.family,
+        descriptor.layerId,
+        descriptor.url,
+        (data) => {
+          if (!this.map?.loaded()) {
+            return;
+          }
+
+          applyGeoJsonToLayerSource(this.map, descriptor.family, descriptor.layerId, data);
+          this.map.triggerRepaint();
+        }
+      );
+    }
+  }
+
+  private currentEnabledLayerFamilies(): Set<LayerFamily> {
+    const families = new Set<LayerFamily>();
+
+    if (this.boundaryLayers.length > 0) {
+      families.add("boundary");
+    }
+
+    if (this.labelLayers.length > 0) {
+      families.add("label");
+    }
+
+    if (this.roadLayers.length > 0) {
+      families.add("road");
+    }
+
+    if (this.areaLayers.length > 0) {
+      families.add("area");
+    }
+
+    if (this.buildingLayers.length > 0) {
+      families.add("building");
+    }
+
+    return families;
   }
 
   private async applyTerrainState(): Promise<void> {
