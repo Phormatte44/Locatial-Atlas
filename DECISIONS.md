@@ -1935,7 +1935,26 @@ Studio D-045 (Foundation 98) extends F95 single-keyframe drag with batch retime 
 
 **Next**
 
-- Foundation 99: TBD — candidate: move feel/arc drag on rail, validation summary autofix shortcuts per group, or keyframe copy/paste timing.
+- Foundation 99: move feel/arc drag on rail (see Studio D-046).
+
+## 2026-08-15 — Foundation 99 move feel/arc drag on Storyline rail stays Studio-side
+
+**Decision**
+
+On-rail drag on Storyline move feel·arc badges to cycle discrete feel (DIR/SMO/CIN) and arc (LOW/STD/HIGH) values — vertical drag adjusts feel, horizontal drag adjusts arc, live midpoint seek preview with draft overrides, persist via `updateMoveFeel` / `updateMoveArc` — lives in Creator Studio. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-046 (Foundation 99) completes F86–F96 structure-level move authoring with on-rail feel/arc adjustment on the shared storyline clock — same scrub/seek path as F94 badges and F96 duration drag. No renderer-side move rail or Atlas API is required.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-046 for `storylineMoveFeelArcDrag.ts`, draggable feel·arc badge in `MoveItem`, and `DirectorMarkupPanel` draft/preview/persist wiring.
+
+**Next**
+
+- Foundation 100: TBD — candidate: validation summary autofix shortcuts per group, keyframe copy/paste timing, or move type/style on-rail drag.
 
 ## 2026-08-15 — Foundation 95 keyframe drag on Storyline rail stays Studio-side
 
