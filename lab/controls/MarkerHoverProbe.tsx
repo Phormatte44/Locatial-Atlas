@@ -27,6 +27,31 @@ function describeFeatureId(featureId: string | null): string {
     return "none";
   }
 
+  if (featureId.startsWith("poi:")) {
+    const parts = featureId.split(":");
+    const layerId = parts[1];
+    const featureKey = parts.slice(2).join(":");
+
+    if (featureKey.startsWith("cluster:")) {
+      return `POI cluster (${layerId})`;
+    }
+
+    if (layerId === "lab-london-pois") {
+      if (featureKey === "tower-bridge") return "Tower Bridge POI";
+      if (featureKey === "shard") return "The Shard POI";
+    }
+
+    if (layerId === "lab-dubai-pois") {
+      if (featureKey === "burj-khalifa") return "Burj Khalifa POI";
+    }
+
+    if (layerId === "paris-pois-url") {
+      if (featureKey === "eiffel") return "Eiffel Tower POI (URL)";
+    }
+
+    return featureKey || layerId || featureId;
+  }
+
   if (featureId.startsWith("building:")) {
     const parts = featureId.split(":");
     const layerId = parts[1];
@@ -293,7 +318,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
 
   return (
     <div style={readoutStyle}>
-      <div>Foundation 43 — async layer loading</div>
+      <div>Foundation 44 — POI / cluster layers</div>
       <div>
         View: {viewMode}
         {viewMode === "globe" || viewModeBlend !== "settled"

@@ -42,6 +42,7 @@ export { registerLabelLayer } from "./data/providers/label/resolveLabelLayer";
 export { registerRoadLayer } from "./data/providers/road/resolveRoadLayer";
 export { registerAreaLayer } from "./data/providers/area/resolveAreaLayer";
 export { registerBuildingLayer } from "./data/providers/building/resolveBuildingLayer";
+export { registerPoiLayer } from "./data/providers/poi/resolvePoiLayer";
 export type { GeographicPoint, ScreenPoint } from "./types/projection";
 export type { MapStyleDefinition } from "./types/mapStyle";
 export type { TerrainSourceDefinition } from "./types/terrain";
@@ -80,6 +81,14 @@ export type {
   BuildingSemanticType,
   BuildingStyleTokens
 } from "./types/buildingLayer";
+export type {
+  PoiClusterConfig,
+  PoiGeoJsonInline,
+  PoiGeoJsonSource,
+  PoiLayerDefinition,
+  PoiSemanticType,
+  PoiStyleTokens
+} from "./types/poiLayer";
 export type {
   CameraPathFamily,
   CameraTransitionEvent,

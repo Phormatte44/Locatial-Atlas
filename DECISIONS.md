@@ -892,3 +892,34 @@ All five layer registries (boundary, label, road, area, building) accepted GeoJS
 - No request deduplication across duplicate URLs; each layer id loads independently.
 - No caching layer beyond the current map session; revisiting a layer re-fetches unless the browser cache hits.
 - POI and cluster layers deferred to Foundation 44.
+
+## 2026-08-15 — Foundation 44 POI / cluster layer registry
+
+**Decision**
+
+POI point layers render through a provider-agnostic registry in `src/data/pois`. Applications register `PoiLayerDefinition` entries (GeoJSON Point or MultiPoint features, semantic type, symbol or circle style tokens, optional cluster config) via `registerPoiLayer()` or `AtlasEngine.registerPoiLayer()`, then enable layers with `setPoiLayers(ids[])`. MapLibre GeoJSON sources with optional clustering and symbol or circle layers are composed in `poiSetup.ts` behind `MapLibreAdapter`; consumers never touch MapLibre source or layer ids. Cluster expansion uses `expandClusterAt(screenX, screenY)` on click or `frameCluster(layerId, clusterId)` to fit leaf features.
+
+**Reason**
+
+Studio and future products need interactive landmark and amenity markers with optional density clustering, without hard-coded demo geometry in `src` or direct MapLibre coupling. The registry mirrors label and building layer patterns from Foundations 39 and 42, extended with MapLibre cluster source options from Foundation 43 async loading.
+
+**Consequences**
+
+- Hover and selection extend the existing `onGeoHover` / `onGeoSelect` pipeline: world markup picks first, then registered POI layers, then labels, roads, buildings, areas, and boundaries.
+- POI feature ids use the `poi:{layerId}:{featureKey}` prefix; cluster picks use `poi:{layerId}:cluster:{clusterId}`. Highlight uses MapLibre feature-state on unclustered points only.
+- Optional clustering renders circle and count layers plus unclustered symbol or circle markers; `clusterProperties` passes through to MapLibre when provided.
+- Async URL POI layers load through `LayerSourceLoader` with family `poi`.
+- No built-in POI layers ship in `src`; Lab registers London and Dubai landmark presets plus a Paris async URL layer at runtime.
+- Style swaps re-sync enabled POI layers after the basemap reloads.
+
+**Limitations**
+
+- Point and MultiPoint GeoJSON only; polygon POI footprints and heatmaps deferred.
+- Custom `iconImage` sprites require matching images in the active map style; default rendering uses circle markers.
+- Cluster expansion eases the camera to MapLibre's expansion zoom; spiderfy layouts and supercluster custom reducers deferred.
+- POI hover does not yet participate in place-id expansion; explicit POI ids only.
+- `frameCluster` computes bounds from cluster leaf coordinates only; no padding or minimum zoom policy yet.
+
+**Next**
+
+- Foundation 45: raster / imagery overlay registry with tile URL sources, opacity tokens, and z-order relative to vector layers.

@@ -5,6 +5,7 @@ import type { LabelLayerDefinition } from "../../types/labelLayer";
 import type { RoadLayerDefinition } from "../../types/roadLayer";
 import type { AreaLayerDefinition } from "../../types/areaLayer";
 import type { BuildingLayerDefinition } from "../../types/buildingLayer";
+import type { PoiLayerDefinition } from "../../types/poiLayer";
 import type { LayerFamily } from "../../types/layerLoadState";
 import { layerUsesAsyncGeoJsonUrl } from "../../data/geoJsonLayerSource";
 import { boundarySourceId } from "./boundarySetup";
@@ -12,6 +13,7 @@ import { labelSourceId } from "./labelSetup";
 import { roadSourceId } from "./roadSetup";
 import { areaSourceId } from "./areaSetup";
 import { buildingSourceId } from "./buildingSetup";
+import { poiSourceId } from "./poiSetup";
 
 export interface AsyncLayerDescriptor {
   family: LayerFamily;
@@ -31,6 +33,8 @@ export function sourceIdForLayer(family: LayerFamily, layerId: string): string {
       return areaSourceId(layerId);
     case "building":
       return buildingSourceId(layerId);
+    case "poi":
+      return poiSourceId(layerId);
   }
 }
 
@@ -54,6 +58,7 @@ export function collectAsyncLayerDescriptors(input: {
   roadLayers: RoadLayerDefinition[];
   areaLayers: AreaLayerDefinition[];
   buildingLayers: BuildingLayerDefinition[];
+  poiLayers: PoiLayerDefinition[];
 }): AsyncLayerDescriptor[] {
   const descriptors: AsyncLayerDescriptor[] = [];
 
@@ -107,6 +112,16 @@ export function collectAsyncLayerDescriptors(input: {
     }
   }
 
+  for (const definition of input.poiLayers) {
+    if (layerUsesAsyncGeoJsonUrl(definition.source.data)) {
+      descriptors.push({
+        family: "poi",
+        layerId: definition.id,
+        url: definition.source.data
+      });
+    }
+  }
+
   return descriptors;
 }
 
@@ -116,6 +131,7 @@ export function collectInlineLayerDescriptors(input: {
   roadLayers: RoadLayerDefinition[];
   areaLayers: AreaLayerDefinition[];
   buildingLayers: BuildingLayerDefinition[];
+  poiLayers: PoiLayerDefinition[];
 }): Array<{ family: LayerFamily; layerId: string }> {
   const inline: Array<{ family: LayerFamily; layerId: string }> = [];
 
@@ -146,6 +162,12 @@ export function collectInlineLayerDescriptors(input: {
   for (const definition of input.buildingLayers) {
     if (!layerUsesAsyncGeoJsonUrl(definition.source.data)) {
       inline.push({ family: "building", layerId: definition.id });
+    }
+  }
+
+  for (const definition of input.poiLayers) {
+    if (!layerUsesAsyncGeoJsonUrl(definition.source.data)) {
+      inline.push({ family: "poi", layerId: definition.id });
     }
   }
 

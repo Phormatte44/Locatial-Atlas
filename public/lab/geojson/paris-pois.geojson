@@ -1,0 +1,41 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "eiffel",
+      "properties": { "id": "eiffel", "name": "Eiffel Tower" },
+      "geometry": { "type": "Point", "coordinates": [2.2945, 48.8584] }
+    },
+    {
+      "type": "Feature",
+      "id": "louvre",
+      "properties": { "id": "louvre", "name": "Louvre" },
+      "geometry": { "type": "Point", "coordinates": [2.3376, 48.8606] }
+    },
+    {
+      "type": "Feature",
+      "id": "notre-dame",
+      "properties": { "id": "notre-dame", "name": "Notre-Dame" },
+      "geometry": { "type": "Point", "coordinates": [2.3499, 48.853] }
+    },
+    {
+      "type": "Feature",
+      "id": "arc-triomphe",
+      "properties": { "id": "arc-triomphe", "name": "Arc de Triomphe" },
+      "geometry": { "type": "Point", "coordinates": [2.295, 48.8738] }
+    },
+    {
+      "type": "Feature",
+      "id": "sacre-coeur",
+      "properties": { "id": "sacre-coeur", "name": "Sacré-Cœur" },
+      "geometry": { "type": "Point", "coordinates": [2.3431, 48.8867] }
+    },
+    {
+      "type": "Feature",
+      "id": "musee-orsay",
+      "properties": { "id": "musee-orsay", "name": "Musée d'Orsay" },
+      "geometry": { "type": "Point", "coordinates": [2.3266, 48.86] }
+    }
+  ]
+}

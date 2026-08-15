@@ -63,6 +63,14 @@ export type {
   BuildingSemanticType,
   BuildingStyleTokens
 } from "../types/buildingLayer";
+export type {
+  PoiClusterConfig,
+  PoiGeoJsonInline,
+  PoiGeoJsonSource,
+  PoiLayerDefinition,
+  PoiSemanticType,
+  PoiStyleTokens
+} from "../types/poiLayer";
 export type { CameraTransitionEvent, CameraTransitionListener } from "../types/cameraTransition";
 export type { CameraPathFamily } from "../types/cameraTransition";
 export type { GeoHoverEvent, GeoHoverListener } from "../types/geoHover";
@@ -128,6 +136,12 @@ export interface AtlasEngineContract {
   registerBuildingLayer(def: import("../types/buildingLayer").BuildingLayerDefinition): void;
   getEnabledBuildingLayerIds(): string[];
   setBuildingLayers(layerIds: string[]): void;
+  listPoiLayers(): import("../types/poiLayer").PoiLayerDefinition[];
+  registerPoiLayer(def: import("../types/poiLayer").PoiLayerDefinition): void;
+  getEnabledPoiLayerIds(): string[];
+  setPoiLayers(layerIds: string[]): void;
+  expandClusterAt(screenX: number, screenY: number): Promise<boolean>;
+  frameCluster(layerId: string, clusterId: number): Promise<void>;
   getTransitionPathFamily(to: import("../types/place").AtlasPlace): CameraPathFamily;
   isMapReady(): boolean;
   onMapReady(listener: import("../types/mapReady").MapReadyListener): () => void;

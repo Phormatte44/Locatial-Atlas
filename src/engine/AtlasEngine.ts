@@ -11,6 +11,7 @@ import type { LabelLayerDefinition } from "../types/labelLayer";
 import type { RoadLayerDefinition } from "../types/roadLayer";
 import type { AreaLayerDefinition } from "../types/areaLayer";
 import type { BuildingLayerDefinition } from "../types/buildingLayer";
+import type { PoiLayerDefinition } from "../types/poiLayer";
 import { markupsFromMarkers } from "../geometry/worldMarkup";
 import type { WorldMarker } from "../types/worldMarker";
 import { getMarkupAnchor, type WorldMarkup } from "../types/worldMarkup";
@@ -55,11 +56,17 @@ import {
   registerBuildingLayer as registerBuildingLayerDefinition,
   resolveBuildingLayers
 } from "../data/providers/building/resolveBuildingLayer";
+import {
+  listAvailablePoiLayers,
+  registerPoiLayer as registerPoiLayerDefinition,
+  resolvePoiLayers
+} from "../data/providers/poi/resolvePoiLayer";
 import { isBoundaryFeatureId } from "../interaction/boundaryFeatureIds";
 import { isLabelFeatureId } from "../interaction/labelFeatureIds";
 import { isRoadFeatureId } from "../interaction/roadFeatureIds";
 import { isAreaFeatureId } from "../interaction/areaFeatureIds";
 import { isBuildingFeatureId } from "../interaction/buildingFeatureIds";
+import { isPoiFeatureId, parsePoiFeatureId } from "../interaction/poiFeatureIds";
 import { DEFAULT_MAP_STYLE_ID } from "../data/mapStyles/builtinMapStyles";
 import { DEFAULT_TERRAIN_SOURCE_ID } from "../data/terrain/builtinTerrainSources";
 import type { GeoHoverEvent, GeoHoverListener } from "../types/geoHover";
@@ -137,6 +144,7 @@ export class AtlasEngine implements AtlasEngineContract {
   private enabledRoadLayerIds: string[] = [];
   private enabledAreaLayerIds: string[] = [];
   private enabledBuildingLayerIds: string[] = [];
+  private enabledPoiLayerIds: string[] = [];
 
   constructor(options: AtlasEngineOptions = {}) {
     this.mapStyleId = options.mapStyleId ?? DEFAULT_MAP_STYLE_ID;
@@ -369,6 +377,7 @@ export class AtlasEngine implements AtlasEngineContract {
     const geo = this.unproject(screenX, screenY);
     this.hoverFeatureId =
       this.findInteractiveMarkupAtScreen(screenX, screenY, thresholdPx) ??
+      this.mapAdapter.queryPoiFeatureAtScreen(screenX, screenY) ??
       this.mapAdapter.queryLabelFeatureAtScreen(screenX, screenY) ??
       this.mapAdapter.queryRoadFeatureAtScreen(screenX, screenY) ??
       this.mapAdapter.queryBuildingFeatureAtScreen(screenX, screenY) ??
@@ -408,11 +417,20 @@ export class AtlasEngine implements AtlasEngineContract {
     const geo = this.unproject(screenX, screenY);
     this.selectedFeatureId =
       this.findInteractiveMarkupAtScreen(screenX, screenY) ??
+      this.mapAdapter.queryPoiFeatureAtScreen(screenX, screenY) ??
       this.mapAdapter.queryLabelFeatureAtScreen(screenX, screenY) ??
       this.mapAdapter.queryRoadFeatureAtScreen(screenX, screenY) ??
       this.mapAdapter.queryBuildingFeatureAtScreen(screenX, screenY) ??
       this.mapAdapter.queryAreaFeatureAtScreen(screenX, screenY) ??
       this.mapAdapter.queryBoundaryFeatureAtScreen(screenX, screenY);
+
+    if (this.selectedFeatureId) {
+      const poiSelection = parsePoiFeatureId(this.selectedFeatureId);
+      if (poiSelection?.isCluster) {
+        void this.expandClusterAt(screenX, screenY);
+      }
+    }
+
     this.syncFeatureHighlight();
     this.emitGeoSelect({
       featureId: this.selectedFeatureId,
@@ -605,6 +623,45 @@ export class AtlasEngine implements AtlasEngineContract {
     this.mapAdapter.setBuildingLayers(definitions);
   }
 
+  listPoiLayers(): PoiLayerDefinition[] {
+    return listAvailablePoiLayers();
+  }
+
+  registerPoiLayer(def: PoiLayerDefinition): void {
+    registerPoiLayerDefinition(def);
+  }
+
+  getEnabledPoiLayerIds(): string[] {
+    return [...this.enabledPoiLayerIds];
+  }
+
+  setPoiLayers(layerIds: string[]): void {
+    const definitions = resolvePoiLayers(layerIds);
+    this.enabledPoiLayerIds = definitions.map((layer) => layer.id);
+    this.mapAdapter.setPoiLayers(definitions);
+  }
+
+  async expandClusterAt(screenX: number, screenY: number): Promise<boolean> {
+    if (!this.attached) {
+      return false;
+    }
+
+    return this.mapAdapter.expandClusterAt(screenX, screenY);
+  }
+
+  async frameCluster(layerId: string, clusterId: number): Promise<void> {
+    if (!this.attached) {
+      return;
+    }
+
+    const bounds = await this.mapAdapter.frameCluster(layerId, clusterId);
+    if (!bounds) {
+      return;
+    }
+
+    await this.frameBounds(bounds);
+  }
+
   highlightFeature(featureId: string | null): void {
     this.explicitHighlightId = featureId;
     this.syncFeatureHighlight();
@@ -769,6 +826,7 @@ export class AtlasEngine implements AtlasEngineContract {
 
     if (activeFeatureId && isBoundaryFeatureId(activeFeatureId)) {
       this.mapAdapter.highlightWorldMarkup(null);
+      this.mapAdapter.highlightPoiFeature(null);
       this.mapAdapter.highlightLabelFeature(null);
       this.mapAdapter.highlightRoadFeature(null);
       this.mapAdapter.highlightBuildingFeature(null);
@@ -780,6 +838,7 @@ export class AtlasEngine implements AtlasEngineContract {
     if (activeFeatureId && isLabelFeatureId(activeFeatureId)) {
       this.mapAdapter.highlightWorldMarkup(null);
       this.mapAdapter.highlightBoundaryFeature(null);
+      this.mapAdapter.highlightPoiFeature(null);
       this.mapAdapter.highlightRoadFeature(null);
       this.mapAdapter.highlightBuildingFeature(null);
       this.mapAdapter.highlightAreaFeature(null);
@@ -790,6 +849,7 @@ export class AtlasEngine implements AtlasEngineContract {
     if (activeFeatureId && isRoadFeatureId(activeFeatureId)) {
       this.mapAdapter.highlightWorldMarkup(null);
       this.mapAdapter.highlightBoundaryFeature(null);
+      this.mapAdapter.highlightPoiFeature(null);
       this.mapAdapter.highlightLabelFeature(null);
       this.mapAdapter.highlightBuildingFeature(null);
       this.mapAdapter.highlightAreaFeature(null);
@@ -800,6 +860,7 @@ export class AtlasEngine implements AtlasEngineContract {
     if (activeFeatureId && isBuildingFeatureId(activeFeatureId)) {
       this.mapAdapter.highlightWorldMarkup(null);
       this.mapAdapter.highlightBoundaryFeature(null);
+      this.mapAdapter.highlightPoiFeature(null);
       this.mapAdapter.highlightLabelFeature(null);
       this.mapAdapter.highlightRoadFeature(null);
       this.mapAdapter.highlightAreaFeature(null);
@@ -810,6 +871,7 @@ export class AtlasEngine implements AtlasEngineContract {
     if (activeFeatureId && isAreaFeatureId(activeFeatureId)) {
       this.mapAdapter.highlightWorldMarkup(null);
       this.mapAdapter.highlightBoundaryFeature(null);
+      this.mapAdapter.highlightPoiFeature(null);
       this.mapAdapter.highlightLabelFeature(null);
       this.mapAdapter.highlightRoadFeature(null);
       this.mapAdapter.highlightBuildingFeature(null);
@@ -817,7 +879,19 @@ export class AtlasEngine implements AtlasEngineContract {
       return;
     }
 
+    if (activeFeatureId && isPoiFeatureId(activeFeatureId)) {
+      this.mapAdapter.highlightWorldMarkup(null);
+      this.mapAdapter.highlightBoundaryFeature(null);
+      this.mapAdapter.highlightLabelFeature(null);
+      this.mapAdapter.highlightRoadFeature(null);
+      this.mapAdapter.highlightBuildingFeature(null);
+      this.mapAdapter.highlightAreaFeature(null);
+      this.mapAdapter.highlightPoiFeature(activeFeatureId);
+      return;
+    }
+
     this.mapAdapter.highlightBoundaryFeature(null);
+    this.mapAdapter.highlightPoiFeature(null);
     this.mapAdapter.highlightLabelFeature(null);
     this.mapAdapter.highlightRoadFeature(null);
     this.mapAdapter.highlightBuildingFeature(null);

@@ -1,5 +1,5 @@
 /** Registered GeoJSON layer family that supports async URL loading. */
-export type LayerFamily = "boundary" | "label" | "road" | "area" | "building";
+export type LayerFamily = "boundary" | "label" | "road" | "area" | "building" | "poi";
 
 /** Lifecycle state for a GeoJSON layer source. */
 export type LayerLoadStatus = "idle" | "loading" | "ready" | "error";

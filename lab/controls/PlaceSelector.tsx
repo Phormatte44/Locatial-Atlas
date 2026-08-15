@@ -8,6 +8,7 @@ import { LabelLayerToggle } from "./LabelLayerToggle";
 import { RoadLayerToggle } from "./RoadLayerToggle";
 import { AreaLayerToggle } from "./AreaLayerToggle";
 import { BuildingLayerToggle } from "./BuildingLayerToggle";
+import { PoiLayerToggle } from "./PoiLayerToggle";
 import { ViewModeSelector } from "./ViewModeSelector";
 import { VisualEnvironmentControls } from "./VisualEnvironmentControls";
 
@@ -81,10 +82,11 @@ export function PlaceSelector({ engine, places }: PlaceSelectorProps) {
 
   return (
     <div style={panelStyle}>
-      <strong style={{ fontSize: 14 }}>Atlas Lab — Foundation 43</strong>
+      <strong style={{ fontSize: 14 }}>Atlas Lab — Foundation 44</strong>
       <span style={{ fontSize: 12, color: "#555" }}>
-        City buttons frame the center point; area buttons frame metro bounds. Enable the Paris
-        async URL boundary layer to observe load lifecycle (loading → ready, retry on error).
+        City buttons frame the center point; area buttons frame metro bounds. Enable POI layers to
+        see clustered landmarks — click a cluster to expand. Try the Paris async URL POI layer for
+        load lifecycle (loading → ready, retry on error).
       </span>
       <ViewModeSelector engine={engine} />
       <VisualEnvironmentControls engine={engine} />
@@ -96,6 +98,7 @@ export function PlaceSelector({ engine, places }: PlaceSelectorProps) {
       <RoadLayerToggle engine={engine} />
       <AreaLayerToggle engine={engine} />
       <BuildingLayerToggle engine={engine} />
+      <PoiLayerToggle engine={engine} />
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         <button
           type="button"

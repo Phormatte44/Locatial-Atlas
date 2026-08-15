@@ -4,6 +4,7 @@ import type { LabelLayerDefinition } from "../../types/labelLayer";
 import type { RoadLayerDefinition } from "../../types/roadLayer";
 import type { AreaLayerDefinition } from "../../types/areaLayer";
 import type { BuildingLayerDefinition } from "../../types/buildingLayer";
+import type { PoiLayerDefinition } from "../../types/poiLayer";
 import type { TerrainSourceDefinition } from "../../types/terrain";
 import type { CameraState } from "../../types/camera";
 import { markupsFromMarkers } from "../../geometry/worldMarkup";
@@ -56,11 +57,19 @@ import {
   setBuildingFeatureHighlight,
   syncBuildingLayersOnMap
 } from "./buildingSetup";
+import {
+  expandClusterAtScreen,
+  frameCluster as frameClusterOnMap,
+  queryPoiFeatureAtScreen,
+  setPoiFeatureHighlight,
+  syncPoiLayersOnMap
+} from "./poiSetup";
 import { parseBoundaryFeatureId } from "../../interaction/boundaryFeatureIds";
 import { parseLabelFeatureId } from "../../interaction/labelFeatureIds";
 import { parseRoadFeatureId } from "../../interaction/roadFeatureIds";
 import { parseAreaFeatureId } from "../../interaction/areaFeatureIds";
 import { parseBuildingFeatureId } from "../../interaction/buildingFeatureIds";
+import { parsePoiFeatureId } from "../../interaction/poiFeatureIds";
 import { LayerSourceLoader } from "../../data/layerSourceLoader";
 import type { LayerFamily, LayerLoadChangeListener, LayerLoadState } from "../../types/layerLoadState";
 import {
@@ -95,11 +104,13 @@ export class MapLibreAdapter {
   private roadLayers: RoadLayerDefinition[] = [];
   private areaLayers: AreaLayerDefinition[] = [];
   private buildingLayers: BuildingLayerDefinition[] = [];
+  private poiLayers: PoiLayerDefinition[] = [];
   private highlightedBoundary: { layerId: string; featureKey: string } | null = null;
   private highlightedLabel: { layerId: string; featureKey: string } | null = null;
   private highlightedRoad: { layerId: string; featureKey: string } | null = null;
   private highlightedArea: { layerId: string; featureKey: string } | null = null;
   private highlightedBuilding: { layerId: string; featureKey: string } | null = null;
+  private highlightedPoi: { layerId: string; featureKey: string } | null = null;
   private readonly layerSourceLoader = new LayerSourceLoader();
   private readonly layerLoadChangeListeners = new Set<LayerLoadChangeListener>();
 
@@ -506,6 +517,98 @@ export class MapLibreAdapter {
     this.applyBuildingHighlight(parsed);
   }
 
+  setPoiLayers(definitions: PoiLayerDefinition[]): void {
+    this.poiLayers = definitions;
+
+    if (!this.map?.loaded()) {
+      return;
+    }
+
+    syncPoiLayersOnMap(this.map, definitions);
+    this.moveThreeLayerToTop();
+    this.applyPoiHighlight(this.highlightedPoi);
+    this.syncLayerSourceLoads();
+  }
+
+  getEnabledPoiLayerIds(): string[] {
+    return this.poiLayers.map((layer) => layer.id);
+  }
+
+  queryPoiFeatureAtScreen(x: number, y: number): string | null {
+    if (!this.map?.loaded()) {
+      return null;
+    }
+
+    const pick = queryPoiFeatureAtScreen(
+      this.map,
+      x,
+      y,
+      this.getEnabledPoiLayerIds()
+    );
+
+    return pick?.featureId ?? null;
+  }
+
+  highlightPoiFeature(featureId: string | null): void {
+    const parsed = featureId ? parsePoiFeatureId(featureId) : null;
+    this.applyPoiHighlight(
+      parsed && !parsed.isCluster
+        ? { layerId: parsed.layerId, featureKey: parsed.featureKey.replace(/^cluster:/, "") }
+        : null
+    );
+  }
+
+  async expandClusterAt(screenX: number, screenY: number): Promise<boolean> {
+    if (!this.map?.loaded()) {
+      return false;
+    }
+
+    const result = await expandClusterAtScreen(
+      this.map,
+      screenX,
+      screenY,
+      this.getEnabledPoiLayerIds()
+    );
+
+    return result !== null;
+  }
+
+  async frameCluster(layerId: string, clusterId: number): Promise<import("../../types/bounds").GeographicBounds | null> {
+    if (!this.map?.loaded()) {
+      return null;
+    }
+
+    const coordinates = await frameClusterOnMap(this.map, layerId, clusterId);
+    if (!coordinates || coordinates.length === 0) {
+      return null;
+    }
+
+    let minLng = coordinates[0].lng;
+    let maxLng = coordinates[0].lng;
+    let minLat = coordinates[0].lat;
+    let maxLat = coordinates[0].lat;
+
+    for (const point of coordinates) {
+      minLng = Math.min(minLng, point.lng);
+      maxLng = Math.max(maxLng, point.lng);
+      minLat = Math.min(minLat, point.lat);
+      maxLat = Math.max(maxLat, point.lat);
+    }
+
+    return [minLng, minLat, maxLng, maxLat];
+  }
+
+  private applyPoiHighlight(next: { layerId: string; featureKey: string } | null): void {
+    if (!this.map?.loaded()) {
+      this.highlightedPoi = next;
+      return;
+    }
+
+    setPoiFeatureHighlight(this.map, next?.layerId ?? "", next?.featureKey ?? null, this.highlightedPoi);
+    this.highlightedPoi = next;
+    this.map.triggerRepaint();
+  }
+
   private applyRoadHighlight(next: { layerId: string; featureKey: string } | null): void {
     if (!this.map?.loaded()) {
       this.highlightedRoad = next;
@@ -695,6 +798,11 @@ export class MapLibreAdapter {
       this.moveThreeLayerToTop();
       this.applyBuildingHighlight(this.highlightedBuilding);
     }
+    if (this.poiLayers.length > 0) {
+      syncPoiLayersOnMap(this.map!, this.poiLayers);
+      this.moveThreeLayerToTop();
+      this.applyPoiHighlight(this.highlightedPoi);
+    }
     if (this.labelLayers.length > 0) {
       syncLabelLayersOnMap(this.map!, this.labelLayers);
       this.moveThreeLayerToTop();
@@ -759,7 +867,8 @@ export class MapLibreAdapter {
         ...this.labelLayers.map((layer) => layer.id),
         ...this.roadLayers.map((layer) => layer.id),
         ...this.areaLayers.map((layer) => layer.id),
-        ...this.buildingLayers.map((layer) => layer.id)
+        ...this.buildingLayers.map((layer) => layer.id),
+        ...this.poiLayers.map((layer) => layer.id)
       ]
     );
 
@@ -774,7 +883,8 @@ export class MapLibreAdapter {
       labelLayers: this.labelLayers,
       roadLayers: this.roadLayers,
       areaLayers: this.areaLayers,
-      buildingLayers: this.buildingLayers
+      buildingLayers: this.buildingLayers,
+      poiLayers: this.poiLayers
     };
 
     for (const inline of collectInlineLayerDescriptors(layerInput)) {
@@ -823,6 +933,10 @@ export class MapLibreAdapter {
 
     if (this.buildingLayers.length > 0) {
       families.add("building");
+    }
+
+    if (this.poiLayers.length > 0) {
+      families.add("poi");
     }
 
     return families;
