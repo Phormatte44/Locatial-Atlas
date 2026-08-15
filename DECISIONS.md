@@ -2238,7 +2238,26 @@ Studio D-061 (Foundation 114) lets authors lock/unlock paste-preview anchors fro
 
 **Next**
 
-- Foundation 115: candidate — paste-preview pin indicator on rail scrub tooltip, or properties-panel snooze parity.
+- Foundation 115: paste-preview pin indicator on rail ghost tooltips (see Studio D-062).
+
+## 2026-08-15 — Foundation 115 paste-preview pin indicator on rail ghost tooltips stays Studio-side
+
+**Decision**
+
+When F112 paste-preview pin is active, **Storyline rail ghost hover tooltips** append a **"Pinned: playhead"** (or first keyframe/move) label on matching ghost markers so authors confirm the locked anchor while scrubbing. Keyframe diamonds (F104) and move connectors (F109) share one tooltip composer; non-pinned ghosts in Both mode and unpinned-global tooltips stay unchanged. Invalid bounds ghosts show pin status plus the bounds message. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-062 (Foundation 115) completes the F112–F114 pin workflow with at-pointer tooltip confirmation — authors no longer need to read toolbar pressed state while aligning timing on the rail.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-062 for `timingPastePreviewPinCore.ts` ghost tooltip helper, `StorylineKeyframeMarkers`, and `MoveItem` title wiring.
+
+**Next**
+
+- Foundation 116: candidate — properties-panel snooze parity, or paste-preview keyboard focus ring on pinned ghosts.
 
 ## 2026-08-15 — Foundation 111 validation dismiss/snooze stays Studio-side
 
