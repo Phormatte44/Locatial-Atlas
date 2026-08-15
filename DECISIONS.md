@@ -924,22 +924,6 @@ Studio and future products need interactive landmark and amenity markers with op
 
 - Foundation 45: raster / imagery overlay registry with tile URL sources, opacity tokens, and z-order relative to vector layers.
 
-## 2026-08-15 — Camera path family modules
-
-**Decision**
-
-Live camera path families live under `src/camera/paths/`, each as a TypeScript sampler plus a markdown brief. `src/camera/CAMERA-SYSTEM.md` is the governing file. Root `CAMERA-SYSTEM.md` is a pointer. Planned families (`linear`, `high-arc`, `low-arc`, `route`) are signpost markdown only — they do not have `CameraPathFamily` ids and must not be auto-selected or parsed at runtime. Lab buttons, when added, target a live family id.
-
-**Reason**
-
-Path shape should be isolatable so each move can be aged without turning `sampleTransitionPath.ts` into a switchboard of unrelated animation. The public camera contract is unchanged: distance still auto-selects `local-glide`, `orbit-reveal`, or `departure-arrival-arc`, and products still call `framePlace` / `frameBounds` / `setCamera`.
-
-**Consequences**
-
-- `CameraTransitionRunner` still owns progress and easing. Samplers only emit `CameraState`.
-- Foundation 45 remains raster / imagery overlays.
-- Promoting a planned family requires a sampler, a contract id, a dispatcher branch, and a decision note.
-
 ## 2026-08-15 — Foundation 45 raster / imagery overlay registry
 
 **Decision**
@@ -968,7 +952,22 @@ Studio and future products need satellite, hillshade, and thematic imagery overl
 
 **Next**
 
-- Foundation 47: 3D Tiles overlay registry, Studio integration documentation update, or additional camera path families.
+- Foundation 46: GSAP camera path integration, 3D Tiles overlay registry, or Studio integration documentation update.
+
+## 2026-08-15 — Camera path family modules
+
+**Decision**
+
+Live camera path families live under `src/camera/paths/`, each as a TypeScript sampler plus a markdown brief. `src/camera/CAMERA-SYSTEM.md` is the governing file. Root `CAMERA-SYSTEM.md` is a pointer. Planned families (`linear`, `high-arc`, `low-arc`, `route`) are signpost markdown only — they do not have `CameraPathFamily` ids and must not be auto-selected or parsed at runtime. Lab buttons, when added, target a live family id.
+
+**Reason**
+
+Path shape should be isolatable so each move can be aged without turning `sampleTransitionPath.ts` into a switchboard of unrelated animation. The public camera contract is unchanged: distance still auto-selects `local-glide`, `orbit-reveal`, or `departure-arrival-arc`, and products still call `framePlace` / `frameBounds` / `setCamera`.
+
+**Consequences**
+
+- `CameraTransitionRunner` still owns progress and easing. Samplers only emit `CameraState`.
+- Promoting a planned family requires a sampler, a contract id, a dispatcher branch, and a decision note.
 
 ## 2026-08-15 — Foundation 46 GSAP camera path integration
 

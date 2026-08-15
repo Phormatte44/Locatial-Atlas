@@ -23,6 +23,10 @@ Apex altitude is `max(from, to) altitude + min(distance × 0.35, 8_000 km)`.
 
 Commit, then resolve. Climb should read as leaving. Descent should read as arriving. Cruise should not fidget.
 
+## Playback
+
+See [`../PLAYBACK.md`](../PLAYBACK.md). Duration is a family knob; easing is playback (`power4.inOut`).
+
 ## Knobs
 
 | Knob | Current |

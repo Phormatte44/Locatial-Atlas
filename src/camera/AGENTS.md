@@ -12,5 +12,6 @@ Camera code produces canonical geographic camera state and transition behavior.
 - Renderer adapters consume camera output.
 - Document changes to the canonical camera model in `DECISIONS.md`.
 - Refine a path family in `paths/<family>.md` (intent) and `paths/<family>.ts` (sampler). Do not parse markdown at runtime.
+- Playback easing lives in `transitionEasing.ts` / `gsapPlayback.ts`, not in path samplers. See `PLAYBACK.md`.
 - Do not add a live `CameraPathFamily` id until the family has a sampler and is registered in `CAMERA-SYSTEM.md` and `src/types/cameraTransition.ts`.
 - Lab buttons must target a path family id, not a file path.

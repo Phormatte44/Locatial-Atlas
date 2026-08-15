@@ -15,7 +15,7 @@ Each path family is one TypeScript sampler plus one markdown brief.
 - Edit the `.md` to refine intent, feel, distance band, and knobs.
 - Edit the `.ts` to change sampled `CameraState`.
 - Every sampler must return canonical `CameraState`. Shared geo math stays in `../geodesicInterpolation.ts` and `../easing.ts`.
-- Duration belongs with the family. Playback easing stays in `CameraTransitionRunner`.
+- Duration belongs with the family. Playback easing stays in `../transitionEasing.ts` and `../CameraTransitionRunner.ts`.
 - Do not parse markdown at runtime.
 - Do not hard-code demo cities into a sampler.
 - A new live family needs: `.ts`, `.md`, a `CameraPathFamily` id, a dispatcher branch in `../sampleTransitionPath.ts`, a duration, and a `DECISIONS.md` note.

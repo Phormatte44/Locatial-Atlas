@@ -17,6 +17,10 @@ Geodesic interpolation of longitude/latitude. Altitude, heading, pitch, roll, an
 
 Glide. Precise. No flourish. The subject should feel like it was already almost in frame.
 
+## Playback
+
+See [`../PLAYBACK.md`](../PLAYBACK.md). Duration is a family knob; easing is playback (`power2.inOut`).
+
 ## Knobs
 
 | Knob | Current |

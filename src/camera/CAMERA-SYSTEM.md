@@ -10,6 +10,7 @@ This is the governing file. Path math lives in `paths/`. Each live family has a 
 src/camera/
   CAMERA-SYSTEM.md          ← this file
   AGENTS.md                 ← implementation rules
+  PLAYBACK.md               ← progress and easing (not path shape)
   README.md                 ← short index
   CameraController.ts       ← canonical state + framing targets
   CameraTransitionRunner.ts ← GSAP timeline playback (rAF fallback)
@@ -66,7 +67,7 @@ A transition should separate:
 
 GSAP types and timelines never cross the public API boundary. Without `gsap`, the runner falls back to `requestAnimationFrame` with cubic ease-in-out.
 
-Path samplers in `paths/` receive **eased** progress; they define spatial shape only. Duration stays in `transitionDuration.ts`.
+Path samplers in `paths/` receive **eased** progress; they define spatial shape only. Duration constants live on each family file; `transitionDuration.ts` selects them.
 
 ## Path families
 

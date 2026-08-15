@@ -17,6 +17,10 @@ Geodesic progress with a lateral offset to the right of the route. Offset peaks 
 
 Reveal. The destination comes into view as if the camera stepped aside, not as if it teleported along a line.
 
+## Playback
+
+See [`../PLAYBACK.md`](../PLAYBACK.md). Duration is a family knob; easing is playback (`power3.inOut`).
+
 ## Knobs
 
 | Knob | Current |
