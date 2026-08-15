@@ -2124,7 +2124,26 @@ Studio D-055 (Foundation 108) extends F96–F107 on-rail move editing with a tim
 
 **Next**
 
-- Foundation 109: TBD — candidate: move timing paste ghost preview, validation dismiss/snooze, or paste-preview hover persistence.
+- Foundation 109: move timing paste ghost preview (see Studio D-056).
+
+## 2026-08-15 — Foundation 109 move timing paste ghost preview stays Studio-side
+
+**Decision**
+
+**Ghost preview** for move timing paste on the Storyline rail (proposed connector widths for ⌘V and ⇧⌘V before commit; F108 math reuse; bounds-invalid error styling; F105-style mode toggle and context-aware ⌥⌘P cycle; Escape/paste lifecycle; hidden during move drag) lives in Creator Studio. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-056 (Foundation 109) extends F108 so authors see proposed move duration patterns on structure segments — including playhead-anchored paste — without committing or leaving the rail.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-056 for `previewMoveTimingPasteModes`, `MoveItem` ghost connectors, `moveTimingPastePreviewMode.ts`, and `DirectorMarkupPanel` preview visibility.
+
+**Next**
+
+- Foundation 110: TBD — candidate: unified paste-preview toggle, validation dismiss/snooze, or paste-preview hover persistence.
 
 ## 2026-08-15 — Foundation 95 keyframe drag on Storyline rail stays Studio-side
 
