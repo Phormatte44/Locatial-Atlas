@@ -2409,7 +2409,26 @@ Studio D-071 (Foundation 124) closes the F112–F115 accessibility gap for keybo
 
 **Next**
 
-- Foundation 125: candidate — paste-preview ghost Enter-to-paste on focused pinned ghost, or validation snooze keyboard restore on selected sequence row.
+- Foundation 125: paste-preview ghost Enter-to-paste on focused pinned ghost (see Studio D-072).
+
+## 2026-08-15 — Foundation 125 paste-preview ghost Enter-to-paste on focused pinned ghost stays Studio-side
+
+**Decision**
+
+When a **pinned paste-preview ghost** is keyboard-focused (F124), **Enter** or **Space** commits paste at that ghost's anchor mode (**first keyframe/move** or **playhead**) — closing the keyboard loop **Tab → focus ghost → Enter paste**. Invalid bounds ghosts show error feedback; successful paste clears pin and preview via existing persist paths. Shortcut skips text inputs and only fires when focus is on a pinned focusable ghost.
+
+**Reason**
+
+Studio D-072 (Foundation 125) completes the F112–F124 paste-preview pin keyboard workflow without toolbar pointer travel.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-072 for `timingPastePreviewGhostCommitShortcut`, ghost `data-paste-preview-*` metadata, and `DirectorMarkupPanel` Enter handler.
+
+**Next**
+
+- Foundation 126: candidate — validation snooze keyboard restore on selected sequence row, or paste-preview ghost arrow-key anchor switch while pinned.
 
 ## 2026-08-15 — Foundation 119 validation snooze bulk-snooze by group stays Studio-side
 
