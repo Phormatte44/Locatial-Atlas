@@ -1802,7 +1802,7 @@ Studio D-034 (Foundation 87) extends F85–F86 structure-level move authoring wi
 
 **Next**
 
-- Foundation 90: TBD — candidate: move type preview on rail, keyframe segment duration editing, or bulk validation fix across section.
+- Foundation 90: move type preview on rail (see Studio D-037).
 
 ## 2026-08-15 — Foundation 88 keyframe easing curves stay Studio-side
 
@@ -1821,7 +1821,7 @@ Studio D-035 (Foundation 88) extends F76–F83 keyframe authoring with editorial
 
 **Next**
 
-- Foundation 90: TBD — candidate: move type preview on rail, keyframe segment duration editing, or bulk validation fix across section.
+- Foundation 90: move type preview on rail (see Studio D-037).
 
 ## 2026-08-15 — Foundation 89 markup motion validation auto-fix stays Studio-side
 
@@ -1840,7 +1840,26 @@ Studio D-036 (Foundation 89) extends F84 inline validation with remediation path
 
 **Next**
 
-- Foundation 90: TBD — candidate: move type preview on rail, keyframe segment duration editing, or bulk validation fix across section.
+- Foundation 91: TBD — candidate: keyframe segment duration editing, bulk validation fix across section, or move feel preview on rail.
+
+## 2026-08-15 — Foundation 90 move type preview on rail stays Studio-side
+
+**Decision**
+
+Effective move transition-type badges on Storyline rail move chips and instant seek preview (midpoint on select, start/mid/end stepping via Frame **Preview move**) live in Creator Studio. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-037 (Foundation 90) extends F85–F87 structure-level move authoring with at-a-glance type feedback on the rail and instant camera sampling via existing `storylineCameraSeek` — no animated replay or renderer changes.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-037 for `moveTypeBadgeLabel.ts`, `storylineMoveSegmentPreview.ts`, `MovePreviewControls`, and rail badge rendering in `MoveItem`.
+
+**Next**
+
+- Foundation 91: TBD — candidate: keyframe segment duration editing, bulk validation fix across section, or move feel preview on rail.
 
 ## 2026-08-15 — Foundation 85 structure-level move duration editing stays Studio-side
 
