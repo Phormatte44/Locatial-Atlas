@@ -1280,6 +1280,32 @@ Foundation 54 established Atlas-owned projection timing but left camera pitch/al
 
 - Foundation 57: line/polygon globe geometry (F36 carryover).
 
+## 2026-08-15 — Foundation 57 line/polygon globe geometry
+
+**Decision**
+
+`WorldLineMarkup` and `WorldPolygonMarkup` overlay geometry uses per-vertex placement derived from MapLibre `getMatrixForModel` in the anchor’s local frame, with mercator meter positions blended during `projectionTransition` (same globeness signal as Foundation 55 labels). Anchor model matrices for lines and polygons blend mercator ground and globe matrices via `blendLabelModelMatrices`. Lit polygon meshes (shadows, directional lighting) keep the anchor + local shape path; only vertex generation changes. `globeMarkupGeometry.ts` caps line paths at 512 vertices and polygon rings at 256, uniformly decimating beyond that.
+
+**Reason**
+
+Foundation 36 placed overlay anchors on the globe but left line/polygon vertices in a single-anchor mercator meter frame, so long geodesic routes and ~12 km area rings misaligned on the sphere and drifted during projection blend. Foundation 55 solved the same class of problem for labels; lines and polygons needed the equivalent vertex + matrix blend.
+
+**Consequences**
+
+- `createGlobeAwareLineGeometry`, `createGlobeAwarePolygonShapeGeometry`, and performance caps export from `src/index.ts`.
+- `createLineGeometry` / `createPolygonShapeGeometry` remain mercator-local helpers for non-overlay callers.
+- `ThreeOverlayAdapter` refreshes line/polygon geometry each projection-blend frame.
+
+**Limitations**
+
+- Decimation is uniform, not Douglas–Peucker; very dense authored paths may lose detail before the cap.
+- Each globeness step recomputes all vertex matrices (no spatial clustering cache yet).
+- Circles remain single-anchor primitives; only line/polygon rings use geodesic-aware vertices.
+
+**Next**
+
+- Foundation 58: TBD — candidate: circle/ellipse globe primitives, or overlay geometry simplification upgrade.
+
 ## 2026-08-15 — Studio transition preview uses Atlas straight and high-arc
 
 **Decision**

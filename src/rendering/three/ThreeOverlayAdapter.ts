@@ -1,7 +1,11 @@
 import type { CustomLayerInterface, CustomRenderMethodInput, Map as MapLibreMap } from "maplibre-gl";
 import * as THREE from "three";
-import { createLineGeometry } from "../../geometry/lineMarkup";
-import { createPolygonShapeGeometry } from "../../geometry/polygonMarkup";
+import {
+  applyMarkupLocalVertices,
+  createGlobeAwareLineGeometry,
+  createGlobeAwarePolygonShapeGeometry,
+  lineLegibilityForGlobeness
+} from "../../geometry/globeMarkupGeometry";
 import type { WorldMarkup } from "../../types/worldMarkup";
 import { createLabelSprite, disposeLabelObject, createLabelPlaneMesh, applyLabelOpacity } from "./labelSprites";
 import { createOverlayMatrixForMarkup } from "../../world/overlayModelMatrix";
@@ -69,6 +73,7 @@ interface MarkupEntry {
   modelMatrix: THREE.Matrix4;
   labelUsesTangent?: boolean;
   labelHighlighted?: boolean;
+  linePolygonGlobeness?: number;
 }
 
 export class ThreeOverlayAdapter {
@@ -219,6 +224,7 @@ export class ThreeOverlayAdapter {
 
     if (isProjectionBlendActive(this.projectionTransition)) {
       this.refreshMarkupMatrices();
+      this.refreshLinePolygonGeometry();
     }
 
     const mapMatrix = new THREE.Matrix4().fromArray(options.defaultProjectionData.mainMatrix);
@@ -297,7 +303,11 @@ export class ThreeOverlayAdapter {
         object,
         groundReceiver,
         baseMatrix,
-        modelMatrix: baseMatrix.clone()
+        modelMatrix: baseMatrix.clone(),
+        linePolygonGlobeness:
+          markup.kind === "line" || markup.kind === "polygon"
+            ? resolveLabelGlobeness(this.getOverlayTransformContext())
+            : undefined
       });
     }
 
@@ -317,14 +327,18 @@ export class ThreeOverlayAdapter {
 
     const color = markerColorForId(markup.id);
     const lightingEnabled = this.lightingSettings.enabled;
+    const context = this.getOverlayTransformContext();
+    const globeness = resolveLabelGlobeness(context);
+    const altitudeMeters = markup.altitudeMeters ?? 0;
 
     if (markup.kind === "line") {
+      const opacity = defaultOpacityForMarkup("line", false) * lineLegibilityForGlobeness(globeness);
       return new THREE.Line(
-        createLineGeometry(markup.path, markup.lng, markup.lat),
+        createGlobeAwareLineGeometry(markup.path, markup.lng, markup.lat, altitudeMeters, context),
         createMarkupMaterial({
           kind: "line",
           color,
-          opacity: defaultOpacityForMarkup("line", false),
+          opacity,
           lightingEnabled
         })
       );
@@ -332,7 +346,13 @@ export class ThreeOverlayAdapter {
 
     if (markup.kind === "polygon") {
       const mesh = new THREE.Mesh(
-        createPolygonShapeGeometry(markup.ring, markup.lng, markup.lat),
+        createGlobeAwarePolygonShapeGeometry(
+          markup.ring,
+          markup.lng,
+          markup.lat,
+          altitudeMeters,
+          context
+        ),
         createMarkupMaterial({
           kind: "polygon",
           color,
@@ -451,6 +471,70 @@ export class ThreeOverlayAdapter {
     }
   }
 
+  private syncLinePolygonGeometry(entry: MarkupEntry): void {
+    const markup = this.markups.find((candidate) => candidate.id === entry.id);
+    if (!markup || (markup.kind !== "line" && markup.kind !== "polygon")) {
+      return;
+    }
+
+    const context = this.getOverlayTransformContext();
+    const globeness = resolveLabelGlobeness(context);
+    const altitudeMeters = (markup.altitudeMeters ?? 0) + (this.getElevationMeters?.(markup.lng, markup.lat) ?? 0);
+
+    if (
+      entry.linePolygonGlobeness !== undefined &&
+      Math.abs(entry.linePolygonGlobeness - globeness) < 0.0001
+    ) {
+      return;
+    }
+
+    entry.linePolygonGlobeness = globeness;
+
+    if (markup.kind === "line" && entry.object instanceof THREE.Line) {
+      applyMarkupLocalVertices(
+        entry.object.geometry,
+        markup.path,
+        markup.lng,
+        markup.lat,
+        altitudeMeters,
+        context
+      );
+
+      const material = getTintableMarkupMaterial(entry.object);
+      if (material) {
+        const isHighlighted = this.isMarkupHighlighted(entry.id);
+        const color = isHighlighted ? highlightedMarkerColorForId(entry.id) : markerColorForId(entry.id);
+        applyMarkupMaterialAppearance(
+          material,
+          color,
+          defaultOpacityForMarkup("line", isHighlighted) * lineLegibilityForGlobeness(globeness)
+        );
+      }
+      return;
+    }
+
+    if (markup.kind === "polygon" && entry.object instanceof THREE.Mesh) {
+      const nextGeometry = createGlobeAwarePolygonShapeGeometry(
+        markup.ring,
+        markup.lng,
+        markup.lat,
+        altitudeMeters,
+        context
+      );
+      entry.object.geometry.dispose();
+      entry.object.geometry = nextGeometry;
+    }
+  }
+
+  private refreshLinePolygonGeometry(): void {
+    for (const entry of this.markupEntries) {
+      if (entry.kind === "line" || entry.kind === "polygon") {
+        entry.linePolygonGlobeness = undefined;
+        this.syncLinePolygonGeometry(entry);
+      }
+    }
+  }
+
   private refreshMarkupMatrices(): void {
     if (!this.getElevationMeters) {
       return;
@@ -482,6 +566,10 @@ export class ThreeOverlayAdapter {
       if (entry.kind === "label") {
         this.syncLabelPresentation(entry);
         continue;
+      }
+
+      if (entry.kind === "line" || entry.kind === "polygon") {
+        this.syncLinePolygonGeometry(entry);
       }
 
       const material = getTintableMarkupMaterial(entry.object);

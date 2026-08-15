@@ -58,6 +58,7 @@ export function lineMarkupFromPath(
   };
 }
 
+/** Build mercator-local line geometry (single-anchor meter frame). Prefer `createGlobeAwareLineGeometry` for overlays. */
 export function createLineGeometry(
   path: GeoRing,
   anchorLng: number,

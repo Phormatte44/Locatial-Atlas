@@ -29,6 +29,13 @@ export {
   midpointOfPath,
   sampleGeodesicPath
 } from "./geometry/lineMarkup";
+export {
+  createGlobeAwareLineGeometry,
+  createGlobeAwarePolygonShapeGeometry,
+  MAX_LINE_VERTICES,
+  MAX_POLYGON_VERTICES,
+  simplifyGeoRing
+} from "./geometry/globeMarkupGeometry";
 export { markupsFromMarkers, sphereMarkupFromMarker } from "./geometry/worldMarkup";
 export {
   DEFAULT_MAP_STYLE_ID,

@@ -154,6 +154,32 @@ function createGlobeMatrixForMarkup(
   );
 }
 
+function createLinePolygonOverlayMatrix(
+  markup: Extract<WorldMarkup, { kind: "line" | "polygon" }>,
+  altitudeMeters: number,
+  context: OverlayTransformContext
+): THREE.Matrix4 {
+  const mercatorMatrix = createMercatorGroundMatrix(markup.lng, markup.lat, altitudeMeters);
+  const globeness = resolveLabelGlobeness(context);
+
+  if (globeness <= 0 || !context.map) {
+    return mercatorMatrix;
+  }
+
+  const globeMatrix = matrixFromMapLibreModel(
+    context.map,
+    markup.lng,
+    markup.lat,
+    altitudeMeters
+  );
+
+  if (globeness >= 1) {
+    return globeMatrix;
+  }
+
+  return blendLabelModelMatrices(mercatorMatrix, globeMatrix, globeness);
+}
+
 /** Build the overlay model matrix for markup in the active view mode. */
 export function createOverlayMatrixForMarkup(
   markup: WorldMarkup,
@@ -162,6 +188,10 @@ export function createOverlayMatrixForMarkup(
 ): THREE.Matrix4 {
   if (markup.kind === "label") {
     return createLabelOverlayMatrix(markup, altitudeMeters, context);
+  }
+
+  if (markup.kind === "line" || markup.kind === "polygon") {
+    return createLinePolygonOverlayMatrix(markup, altitudeMeters, context);
   }
 
   if (usesGlobeOverlayProjection(context) && context.map) {

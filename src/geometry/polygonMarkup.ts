@@ -68,6 +68,7 @@ export function ringToLocalShape(ring: GeoRing, anchorLng: number, anchorLat: nu
   return shape;
 }
 
+/** Build mercator-local polygon shape geometry. Prefer `createGlobeAwarePolygonShapeGeometry` for overlays. */
 export function createPolygonShapeGeometry(
   ring: GeoRing,
   anchorLng: number,
