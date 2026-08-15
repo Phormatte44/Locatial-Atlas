@@ -2941,7 +2941,26 @@ Studio D-107 (Foundation 160) closes the feedback gap left by F157/F158 live-pre
 
 **Next**
 
-- Foundation 161: candidate — validation snooze keyboard restore extensions, or paste-preview keyboard loop polish.
+- Foundation 161: paste-preview re-copy keyboard paste feedback polish (see Studio D-108).
+
+## 2026-08-15 — Foundation 161 paste-preview re-copy keyboard paste feedback polish stays Studio-side
+
+**Decision**
+
+After **re-copy** (F156), Creator Studio **⌘V / ⇧⌘V** keyboard paste uses the same after-recopy feedback as F125 Enter/Space on a pinned ghost: **updated-pattern success** via `resolveTimingPasteRecopyEnterPasteSuccessFeedback`, **updated-pattern bounds rejection** via `resolveTimingPasteRecopyEnterPasteBoundsError`, and F148 post-paste hint merge. F160 session refs are consumed on successful keyboard paste; toolbar paste keeps generic messages.
+
+**Reason**
+
+Studio D-108 (Foundation 161) closes the feedback gap left by F160 — authors who paste with keyboard shortcuts after re-copy need the same confirmation that Enter commit already provides.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-108 for `DirectorMarkupPanel` keyboard paste wiring and F161 Vitest cases reusing F160 helpers.
+
+**Next**
+
+- Foundation 162: candidate — validation snooze keyboard restore extensions, or paste-preview toolbar/keyboard loop unification.
 
 ## 2026-08-15 — Foundation 154 keyboard-first snooze badge activation audit stays Studio-side
 
