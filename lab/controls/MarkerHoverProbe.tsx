@@ -350,7 +350,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
 
   return (
     <div style={readoutStyle}>
-      <div>Foundation 52 — async mesh picks + metadata</div>
+      <div>Foundation 53 — view-mode atmosphere polish</div>
       <div>
         View: {viewMode}
         {viewMode === "globe" || viewModeBlend !== "settled"

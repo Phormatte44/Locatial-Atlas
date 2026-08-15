@@ -69,6 +69,7 @@ Lit mesh markup (`sphere`, `polygon`, `circle`) renders in a shared Three.js ove
 - Shadow frustum is fitted to visible lit anchors; very wide multi-city markup spreads may need cascaded shadow work later.
 - Globe view mode uses MapLibre `getMatrixForModel` for overlay anchor transforms and shadow frustum alignment (Foundation 36).
 - During MapLibre projection blend (`projectionTransition` between 0 and 1), overlay matrices refresh each custom-layer frame so markup and shadows stay aligned (Foundation 37).
+- During the same projection blend, atmosphere sky/fog blends and overlay lighting intensities interpolate with transition progress; base settings stay user-configured (Foundation 53).
 
 ### Boundary layers (F38)
 

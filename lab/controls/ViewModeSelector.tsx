@@ -13,22 +13,42 @@ const selectStyle: React.CSSProperties = {
   background: "#fff"
 };
 
+function formatBlendPercent(transition: number): string {
+  return `${(transition * 100).toFixed(0)}%`;
+}
+
 export function ViewModeSelector({ engine }: ViewModeSelectorProps) {
   const [viewMode, setViewMode] = useState<AtlasViewMode>(engine.getViewMode());
-  const [blendProgress, setBlendProgress] = useState<number | null>(null);
+  const [blendProgress, setBlendProgress] = useState<number | null>(() => {
+    const transition = engine.getProjectionTransition();
+    return transition > 0.001 && transition < 0.999 ? transition : null;
+  });
 
   useEffect(() => {
-    return engine.onViewModeChange((event) => {
+    const unsubViewMode = engine.onViewModeChange((event) => {
       setViewMode(event.viewMode);
-      setBlendProgress(event.transitionProgress ?? null);
+      if (event.transitionProgress !== undefined) {
+        setBlendProgress(event.transitionProgress);
+      }
     });
+
+    const unsubBlend = engine.onProjectionBlendProgress((transition) => {
+      setBlendProgress(transition > 0.001 && transition < 0.999 ? transition : null);
+    });
+
+    return () => {
+      unsubViewMode();
+      unsubBlend();
+    };
   }, [engine]);
 
   return (
     <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 12 }}>
       View mode
       {blendProgress !== null ? (
-        <span style={{ color: "#666" }}>Projection blend: {(blendProgress * 100).toFixed(0)}%</span>
+        <span style={{ color: "#666" }}>
+          Globeness / projection blend: {formatBlendPercent(blendProgress)}
+        </span>
       ) : null}
       <select
         style={selectStyle}

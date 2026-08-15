@@ -94,7 +94,7 @@ import type {
   LayerLoadState
 } from "../types/layerLoadState";
 import type { CameraChangeEvent, CameraChangeListener } from "../types/cameraChange";
-import type { AtlasViewMode, ViewModeChangeEvent, ViewModeChangeListener } from "../types/viewMode";
+import type { AtlasViewMode, ViewModeChangeEvent, ViewModeChangeListener, ProjectionBlendListener } from "../types/viewMode";
 import { ATLAS_VIEW_MODES } from "../types/viewMode";
 import type {
   AtmosphereChangeEvent,
@@ -112,6 +112,10 @@ import {
   mergeAtmosphereSettings,
   mergeLightingSettings
 } from "../rendering/lighting/atmosphereDefaults";
+import {
+  atmosphereForProjectionTransition,
+  lightingForProjectionTransition
+} from "../rendering/lighting/interpolateVisualEnvironment";
 import { findNearestGeoFeature } from "../interaction/pickGeoFeature";
 import { findNearestInteractiveMarkup } from "../interaction/pickInteractiveMarkup";
 import { MapLibreAdapter } from "../rendering/maplibre/MapLibreAdapter";
@@ -153,6 +157,7 @@ export class AtlasEngine implements AtlasEngineContract {
   private readonly viewModeListeners = new Set<ViewModeChangeListener>();
   private readonly atmosphereListeners = new Set<AtmosphereChangeListener>();
   private readonly lightingListeners = new Set<LightingChangeListener>();
+  private readonly projectionBlendListeners = new Set<ProjectionBlendListener>();
   private pendingViewModeChange: ViewModeChangeEvent | null = null;
   private lastViewModeProgressEmit = -1;
   private enabledBoundaryLayerIds: string[] = [];
@@ -216,6 +221,7 @@ export class AtlasEngine implements AtlasEngineContract {
 
     this.mapAdapter.onProjectionBlendProgress((transition) => {
       this.handleProjectionBlendProgress(transition);
+      this.emitProjectionBlendProgress(transition);
     });
   }
 
@@ -925,6 +931,32 @@ export class AtlasEngine implements AtlasEngineContract {
     };
   }
 
+  getProjectionTransition(): number {
+    return this.mapAdapter.readProjectionTransition();
+  }
+
+  getEffectiveAtmosphereSettings(): AtmosphereSettings {
+    return atmosphereForProjectionTransition(
+      this.atmosphereSettings,
+      this.mapAdapter.readProjectionTransition()
+    );
+  }
+
+  getEffectiveLightingSettings(): LightingSettings {
+    return lightingForProjectionTransition(
+      this.lightingSettings,
+      this.mapAdapter.readProjectionTransition()
+    );
+  }
+
+  onProjectionBlendProgress(listener: ProjectionBlendListener): () => void {
+    this.projectionBlendListeners.add(listener);
+    listener(this.getProjectionTransition());
+    return () => {
+      this.projectionBlendListeners.delete(listener);
+    };
+  }
+
   queryGroundElevation(lng: number, lat: number): number | null {
     if (!this.attached) {
       return null;
@@ -1227,6 +1259,12 @@ export class AtlasEngine implements AtlasEngineContract {
   private emitLightingChange(event: LightingChangeEvent): void {
     for (const listener of this.lightingListeners) {
       listener(event);
+    }
+  }
+
+  private emitProjectionBlendProgress(transition: number): void {
+    for (const listener of this.projectionBlendListeners) {
+      listener(transition);
     }
   }
 

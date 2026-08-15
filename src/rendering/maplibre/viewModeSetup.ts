@@ -6,17 +6,25 @@ const FLAT_MERCATOR_MAX_PITCH = 0;
 
 /** Apply a canonical Atlas view mode to MapLibre projection and pitch limits. */
 export function applyViewModeToMap(map: MapLibreMap, mode: AtlasViewMode): void {
+  const projectionType = map.getProjection().type;
+
   switch (mode) {
     case "globe":
-      map.setProjection({ type: "globe" });
+      if (projectionType !== "globe") {
+        map.setProjection({ type: "globe" });
+      }
       map.setMaxPitch(MAP_MAX_PITCH);
       break;
     case "map":
-      map.setProjection({ type: "mercator" });
+      if (projectionType !== "mercator") {
+        map.setProjection({ type: "mercator" });
+      }
       map.setMaxPitch(MAP_MAX_PITCH);
       break;
     case "mercator":
-      map.setProjection({ type: "mercator" });
+      if (projectionType !== "mercator") {
+        map.setProjection({ type: "mercator" });
+      }
       map.setMaxPitch(FLAT_MERCATOR_MAX_PITCH);
       if (map.getPitch() > FLAT_MERCATOR_MAX_PITCH) {
         map.setPitch(FLAT_MERCATOR_MAX_PITCH);

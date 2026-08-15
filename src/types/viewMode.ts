@@ -10,5 +10,8 @@ export interface ViewModeChangeEvent {
 
 export type ViewModeChangeListener = (event: ViewModeChangeEvent) => void;
 
+/** Listener for MapLibre globe↔mercator blend progress (0 = mercator, 1 = globe). */
+export type ProjectionBlendListener = (transition: number) => void;
+
 /** All view modes Atlas exposes through the public contract. */
 export const ATLAS_VIEW_MODES: readonly AtlasViewMode[] = ["globe", "map", "mercator"] as const;

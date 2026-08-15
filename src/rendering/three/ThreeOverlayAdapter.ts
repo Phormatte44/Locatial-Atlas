@@ -141,6 +141,19 @@ export class ThreeOverlayAdapter {
       this.lightingSettings.shadowIntensity !== settings.shadowIntensity;
 
     this.lightingSettings = settings;
+    this.applyLightingSettings(settings, lightingModeChanged, shadowModeChanged);
+  }
+
+  /** Apply lighting without replacing configured base settings (projection-blend frames). */
+  applyEffectiveLighting(settings: LightingSettings): void {
+    this.applyLightingSettings(settings, false, false);
+  }
+
+  private applyLightingSettings(
+    settings: LightingSettings,
+    lightingModeChanged: boolean,
+    shadowModeChanged: boolean
+  ): void {
     this.lightingRig.applySettings(settings);
 
     if (this.litScene) {

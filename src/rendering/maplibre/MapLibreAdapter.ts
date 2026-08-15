@@ -29,6 +29,10 @@ import type { AtlasViewMode } from "../../types/viewMode";
 import type { AtmosphereSettings } from "../../types/atmosphere";
 import type { LightingSettings } from "../../types/lighting";
 import { applyAtmosphereToMap } from "../lighting/applyAtmosphere";
+import {
+  atmosphereForProjectionTransition,
+  lightingForProjectionTransition
+} from "../lighting/interpolateVisualEnvironment";
 import { applyViewModeToMap } from "./viewModeSetup";
 import {
   isProjectionBlendActive,
@@ -315,7 +319,7 @@ export class MapLibreAdapter {
     }
 
     applyViewModeToMap(this.map, mode);
-    this.applyVisualEnvironment();
+    this.syncVisualEnvironment();
     this.refreshMarkupGrounding();
     this.map.triggerRepaint();
   }
@@ -327,13 +331,14 @@ export class MapLibreAdapter {
       return;
     }
 
-    this.applyVisualEnvironment();
+    this.syncVisualEnvironment();
     this.map.triggerRepaint();
   }
 
   setLightingSettings(settings: LightingSettings): void {
     this.lightingSettings = settings;
     this.threeOverlay.setLightingSettings(settings);
+    this.syncVisualEnvironment();
     this.map?.triggerRepaint();
   }
 
@@ -1080,13 +1085,28 @@ export class MapLibreAdapter {
     }
 
     applyViewModeToMap(this.map, this.viewMode);
+    this.syncVisualEnvironment();
+  }
+
+  /** Apply atmosphere and overlay lighting scaled to current projection blend. */
+  private syncVisualEnvironment(): void {
+    if (!this.map) {
+      return;
+    }
+
+    const transition = readProjectionTransition(this.map);
 
     if (this.atmosphereSettings) {
-      applyAtmosphereToMap(this.map, this.atmosphereSettings);
+      applyAtmosphereToMap(
+        this.map,
+        atmosphereForProjectionTransition(this.atmosphereSettings, transition)
+      );
     }
 
     if (this.lightingSettings) {
-      this.threeOverlay.setLightingSettings(this.lightingSettings);
+      this.threeOverlay.applyEffectiveLighting(
+        lightingForProjectionTransition(this.lightingSettings, transition)
+      );
     }
   }
 
@@ -1291,6 +1311,7 @@ export class MapLibreAdapter {
 
     if (isProjectionBlendActive(transition)) {
       this.refreshMarkupGrounding();
+      this.syncVisualEnvironment();
     }
 
     for (const listener of this.projectionBlendListeners) {

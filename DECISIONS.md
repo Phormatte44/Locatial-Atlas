@@ -1171,7 +1171,33 @@ Photogrammetry tilesets often store feature ids in textures; sync reads miss on 
 
 **Next**
 
-- Foundation 53: Studio Director wiring for 3D Tiles enable + hover property readout, or next Atlas gap (view-mode transition polish, atmosphere/lab parity).
+- Foundation 53: view-mode transition atmosphere/lighting interpolation and Lab globeness readout.
+
+## 2026-08-15 — Foundation 53 view-mode transition and atmosphere polish
+
+**Decision**
+
+Atlas interpolates atmosphere and overlay lighting with MapLibre globe↔mercator blend progress (`projectionTransition` / `_globeness`). `interpolateVisualEnvironment.ts` scales `atmosphereBlend`, fog/sky blends, and lighting intensities by transition; `MapLibreAdapter.syncVisualEnvironment()` applies effective settings each blend frame alongside existing markup matrix refresh (Foundation 37). Public API adds `getProjectionTransition()`, `getEffectiveAtmosphereSettings()`, `getEffectiveLightingSettings()`, and `onProjectionBlendProgress()`. `applyViewModeToMap()` skips redundant `setProjection({ mercator })` on map↔mercator switches so camera center/zoom/bearing are preserved (pitch still clamps for flat mercator). Lab `ViewModeSelector` and `VisualEnvironmentControls` show globeness and effective atmosphere/lighting during transitions.
+
+**Reason**
+
+Foundation 32 established atmosphere/lighting settings and Foundation 37 aligned overlays during projection blend, but sky and overlay lighting snapped instantly on `setViewMode` while MapLibre continued interpolating projection. Products and Lab need visibility into blend state and a smooth visual handoff during globe entry/exit.
+
+**Consequences**
+
+- Base atmosphere/lighting settings remain user-configured; effective values are derived per frame from transition progress.
+- `ThreeOverlayAdapter.applyEffectiveLighting()` updates rig intensities during blend without overwriting configured settings or re-triggering material mode changes.
+- Lab labels advance to Foundation 53.
+
+**Limitations**
+
+- No Atlas-owned `transitionViewMode()` duration yet; blend timing still follows MapLibre zoom and `setProjection` behavior (Foundation 37 limitation).
+- Zoom-driven globe↔mercator blends update atmosphere/lighting but do not emit view-mode events.
+- Color channels are not lerped — only blend scalars and lighting intensities scale with transition.
+
+**Next**
+
+- Foundation 54: Studio Director wiring for 3D Tiles enable + hover property readout, or Atlas-owned view-mode transition timing / label globe alignment.
 
 ## 2026-08-15 — Studio transition preview uses Atlas straight and high-arc
 

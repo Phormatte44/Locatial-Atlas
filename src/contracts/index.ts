@@ -106,7 +106,7 @@ export type {
   LayerLoadStatus
 } from "../types/layerLoadState";
 export type { CameraChangeEvent, CameraChangeListener, CameraChangeReason } from "../types/cameraChange";
-export type { AtlasViewMode, ViewModeChangeEvent, ViewModeChangeListener } from "../types/viewMode";
+export type { AtlasViewMode, ViewModeChangeEvent, ViewModeChangeListener, ProjectionBlendListener } from "../types/viewMode";
 export { ATLAS_VIEW_MODES } from "../types/viewMode";
 export type {
   AtmosphereChangeEvent,
@@ -214,6 +214,10 @@ export interface AtlasEngineContract {
   setViewMode(mode: import("../types/viewMode").AtlasViewMode): void;
   listViewModes(): readonly import("../types/viewMode").AtlasViewMode[];
   onViewModeChange(listener: import("../types/viewMode").ViewModeChangeListener): () => void;
+  getProjectionTransition(): number;
+  getEffectiveAtmosphereSettings(): import("../types/atmosphere").AtmosphereSettings;
+  getEffectiveLightingSettings(): import("../types/lighting").LightingSettings;
+  onProjectionBlendProgress(listener: import("../types/viewMode").ProjectionBlendListener): () => void;
   getAtmosphereSettings(): import("../types/atmosphere").AtmosphereSettings;
   setAtmosphereSettings(settings: Partial<import("../types/atmosphere").AtmosphereSettings>): void;
   onAtmosphereChange(listener: import("../types/atmosphere").AtmosphereChangeListener): () => void;

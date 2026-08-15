@@ -122,7 +122,7 @@ export type {
   LayerLoadStatus
 } from "./types/layerLoadState";
 export type { CameraChangeEvent, CameraChangeListener, CameraChangeReason } from "./types/cameraChange";
-export type { AtlasViewMode, ViewModeChangeEvent, ViewModeChangeListener } from "./types/viewMode";
+export type { AtlasViewMode, ViewModeChangeEvent, ViewModeChangeListener, ProjectionBlendListener } from "./types/viewMode";
 export { ATLAS_VIEW_MODES } from "./types/viewMode";
 export type {
   AtmosphereChangeEvent,
