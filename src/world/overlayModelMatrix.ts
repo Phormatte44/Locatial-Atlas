@@ -15,11 +15,22 @@ import {
 export interface OverlayTransformContext {
   viewMode: AtlasViewMode;
   map: MapLibreMap | null;
+  /** MapLibre globe↔mercator blend progress from the active custom-layer frame. */
+  projectionTransition?: number;
 }
 
 /** Whether overlay matrices should use MapLibre globe model placement. */
-export function usesGlobeOverlayProjection(viewMode: AtlasViewMode): boolean {
-  return viewMode === "globe";
+export function usesGlobeOverlayProjection(context: OverlayTransformContext): boolean {
+  if (context.viewMode === "mercator") {
+    return false;
+  }
+
+  if (context.viewMode === "globe") {
+    return Boolean(context.map);
+  }
+
+  const transition = context.projectionTransition ?? 0;
+  return transition > 0 && Boolean(context.map);
 }
 
 function matrixFromMapLibreModel(
@@ -108,7 +119,7 @@ export function createOverlayMatrixForMarkup(
   altitudeMeters: number,
   context: OverlayTransformContext
 ): THREE.Matrix4 {
-  if (usesGlobeOverlayProjection(context.viewMode) && context.map) {
+  if (usesGlobeOverlayProjection(context) && context.map) {
     return createGlobeMatrixForMarkup(context.map, markup, altitudeMeters);
   }
 

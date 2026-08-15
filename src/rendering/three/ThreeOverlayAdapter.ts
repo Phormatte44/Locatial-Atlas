@@ -5,6 +5,7 @@ import { createPolygonShapeGeometry } from "../../geometry/polygonMarkup";
 import type { WorldMarkup } from "../../types/worldMarkup";
 import { createLabelSprite, disposeLabelSprite } from "./labelSprites";
 import { createOverlayMatrixForMarkup } from "../../world/overlayModelMatrix";
+import { isProjectionBlendActive } from "../maplibre/projectionBlend";
 import {
   highlightedMarkerColorForId,
   HIGHLIGHTED_MARKER_SCALE,
@@ -67,6 +68,8 @@ export class ThreeOverlayAdapter {
   private renderer: THREE.WebGLRenderer | null = null;
   private map: MapLibreMap | null = null;
   private viewMode: AtlasViewMode = "map";
+  private projectionTransition = 0;
+  private getElevationMeters: ((lng: number, lat: number) => number) | null = null;
   private lightingSettings: LightingSettings = DEFAULT_LIGHTING_SETTINGS;
   private readonly lightingRig = new OverlayLightingRig();
   private litScene: THREE.Scene | null = null;
@@ -172,18 +175,12 @@ export class ThreeOverlayAdapter {
   }
 
   refreshMarkupGrounding(getElevationMeters: (lng: number, lat: number) => number): void {
-    for (const entry of this.markupEntries) {
-      const markup = this.markups.find((candidate) => candidate.id === entry.id);
-      if (!markup) {
-        continue;
-      }
+    this.getElevationMeters = getElevationMeters;
+    this.refreshMarkupMatrices();
+  }
 
-      const terrainElevationMeters = getElevationMeters(markup.lng, markup.lat);
-      entry.baseMatrix = this.createMatrixForMarkup(markup, terrainElevationMeters);
-    }
-
-    this.applyHighlightStyles();
-    this.map?.triggerRepaint();
+  getProjectionTransition(): number {
+    return this.projectionTransition;
   }
 
   private renderMarkups(
@@ -192,6 +189,12 @@ export class ThreeOverlayAdapter {
   ): void {
     if (!this.renderer || !this.camera || !this.map || this.markupEntries.length === 0) {
       return;
+    }
+
+    this.projectionTransition = options.defaultProjectionData.projectionTransition;
+
+    if (isProjectionBlendActive(this.projectionTransition)) {
+      this.refreshMarkupMatrices();
     }
 
     const mapMatrix = new THREE.Matrix4().fromArray(options.defaultProjectionData.mainMatrix);
@@ -356,8 +359,27 @@ export class ThreeOverlayAdapter {
 
     return createOverlayMatrixForMarkup(markup, altitudeMeters, {
       viewMode: this.viewMode,
-      map: this.map
+      map: this.map,
+      projectionTransition: this.projectionTransition
     });
+  }
+
+  private refreshMarkupMatrices(): void {
+    if (!this.getElevationMeters) {
+      return;
+    }
+
+    for (const entry of this.markupEntries) {
+      const markup = this.markups.find((candidate) => candidate.id === entry.id);
+      if (!markup) {
+        continue;
+      }
+
+      const terrainElevationMeters = this.getElevationMeters(markup.lng, markup.lat);
+      entry.baseMatrix = this.createMatrixForMarkup(markup, terrainElevationMeters);
+    }
+
+    this.applyHighlightStyles();
   }
 
   private applyHighlightStyles(): void {

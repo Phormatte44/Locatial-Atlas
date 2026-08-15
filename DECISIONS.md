@@ -716,3 +716,30 @@ Foundation 31 established the view-mode contract and Foundation 35 added lit sha
 - MapLibre globe/mercator projection blend during zoom transitions follows MapLibre's `_globeness` interpolation; Atlas does not override it.
 - Terrain elevation on globe uses MapLibre model altitude above the nominal sphere, not per-vertex draping.
 - Label sprites remain billboards without tangent-plane rotation on globe.
+
+---
+
+## 2026-08-15 — Foundation 37 view-mode projection blend
+
+**Decision**
+
+Atlas keeps Three.js overlay matrices aligned during MapLibre's globe↔mercator projection interpolation (`projectionTransition` / `_globeness`). While blend progress is strictly between 0 and 1, `ThreeOverlayAdapter` refreshes markup grounding each custom-layer frame; `overlayModelMatrix.ts` routes map mode through `getMatrixForModel` whenever transition > 0. View-mode switches that involve globe defer `onViewModeChange` until projection settles and emit throttled `transitionProgress` on interim events, matching the camera transition pattern. Instant switches (map↔mercator, globe→map) still settle on the next frame.
+
+**Reason**
+
+Foundation 36 aligned overlays in settled globe or mercator states, but `setViewMode` snapped logical mode while MapLibre continued interpolating projection during zoom and globe entry. Markup anchors and shadow receivers drifted for the duration of the blend.
+
+**Consequences**
+
+- `projectionBlend.ts` centralizes reading blend progress from MapLibre custom-layer projection data.
+- `MapLibreAdapter` listens on map `render` to refresh grounding and forward blend progress to the engine.
+- `ViewModeChangeEvent` gains optional `transitionProgress`; Lab readout and `ViewModeSelector` show blend percentage.
+- Shadow anchors inherit per-frame matrix refresh automatically.
+
+**Limitations**
+
+- No Atlas-owned `transitionViewMode()` animation yet; projection timing follows MapLibre zoom and `setProjection` behavior.
+- Zoom-driven globe↔mercator blends do not emit view-mode events (view mode unchanged); only overlay matrices refresh.
+- Line/polygon geometry remains single-anchor mercator meters (Foundation 36 limitation).
+- `map↔mercator` pitch-only switches remain instant with no blend tracking.
+- High-frequency zoom transitions may refresh matrices every frame; acceptable for current markup counts but not yet batched.

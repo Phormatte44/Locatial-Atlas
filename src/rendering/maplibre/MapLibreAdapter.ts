@@ -21,10 +21,16 @@ import type { AtmosphereSettings } from "../../types/atmosphere";
 import type { LightingSettings } from "../../types/lighting";
 import { applyAtmosphereToMap } from "../lighting/applyAtmosphere";
 import { applyViewModeToMap } from "./viewModeSetup";
+import {
+  isProjectionBlendActive,
+  isViewModeProjectionSettled,
+  readProjectionTransition
+} from "./projectionBlend";
 
 type CameraChangeListener = (state: CameraState) => void;
 type MapReadyListener = (reason: MapReadyReason) => void;
 type MapErrorListener = (error: ClassifiedMapError) => void;
+type ProjectionBlendListener = (transition: number) => void;
 
 export class MapLibreAdapter {
   private map: maplibregl.Map | null = null;
@@ -41,6 +47,7 @@ export class MapLibreAdapter {
   private viewMode: AtlasViewMode = "map";
   private atmosphereSettings: AtmosphereSettings | null = null;
   private lightingSettings: LightingSettings | null = null;
+  private projectionBlendListeners = new Set<ProjectionBlendListener>();
 
   create(container: HTMLElement, initialCamera: CameraState, styleUrl: string): void {
     if (this.map) {
@@ -76,6 +83,10 @@ export class MapLibreAdapter {
 
     this.map.on("error", (event) => {
       this.emitError(classifyMapLibreError(event));
+    });
+
+    this.map.on("render", () => {
+      this.handleProjectionBlendFrame();
     });
   }
 
@@ -141,6 +152,29 @@ export class MapLibreAdapter {
 
   getViewMode(): AtlasViewMode {
     return this.viewMode;
+  }
+
+  isViewModeProjectionSettled(mode: AtlasViewMode = this.viewMode): boolean {
+    if (!this.map?.loaded()) {
+      return true;
+    }
+
+    return isViewModeProjectionSettled(mode, this.map);
+  }
+
+  readProjectionTransition(): number {
+    if (!this.map?.loaded()) {
+      return this.viewMode === "globe" ? 1 : 0;
+    }
+
+    return readProjectionTransition(this.map);
+  }
+
+  onProjectionBlendProgress(listener: ProjectionBlendListener): () => void {
+    this.projectionBlendListeners.add(listener);
+    return () => {
+      this.projectionBlendListeners.delete(listener);
+    };
   }
 
   isTerrainEnabled(): boolean {
@@ -366,6 +400,22 @@ export class MapLibreAdapter {
 
       return queryTerrainElevationMeters(this.map!, lng, lat);
     });
+  }
+
+  private handleProjectionBlendFrame(): void {
+    if (!this.map?.loaded()) {
+      return;
+    }
+
+    const transition = readProjectionTransition(this.map);
+
+    if (isProjectionBlendActive(transition)) {
+      this.refreshMarkupGrounding();
+    }
+
+    for (const listener of this.projectionBlendListeners) {
+      listener(transition);
+    }
   }
 
   private addThreeLayer(): void {

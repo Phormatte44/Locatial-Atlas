@@ -54,6 +54,10 @@ import { findNearestGeoFeature } from "../interaction/pickGeoFeature";
 import { findNearestInteractiveMarkup } from "../interaction/pickInteractiveMarkup";
 import { MapLibreAdapter } from "../rendering/maplibre/MapLibreAdapter";
 import { snapCameraStateForMapLibre } from "../rendering/maplibre/cameraToMapLibre";
+import {
+  isProjectionBlendActive,
+  viewModeSwitchUsesProjectionBlend
+} from "../rendering/maplibre/projectionBlend";
 
 export class AtlasEngine implements AtlasEngineContract {
   private readonly camera = new CameraController();
@@ -84,6 +88,8 @@ export class AtlasEngine implements AtlasEngineContract {
   private readonly viewModeListeners = new Set<ViewModeChangeListener>();
   private readonly atmosphereListeners = new Set<AtmosphereChangeListener>();
   private readonly lightingListeners = new Set<LightingChangeListener>();
+  private pendingViewModeChange: ViewModeChangeEvent | null = null;
+  private lastViewModeProgressEmit = -1;
 
   constructor(options: AtlasEngineOptions = {}) {
     this.mapStyleId = options.mapStyleId ?? DEFAULT_MAP_STYLE_ID;
@@ -127,6 +133,10 @@ export class AtlasEngine implements AtlasEngineContract {
         ...error,
         mapStyleId: this.mapStyleId
       });
+    });
+
+    this.mapAdapter.onProjectionBlendProgress((transition) => {
+      this.handleProjectionBlendProgress(transition);
     });
   }
 
@@ -464,7 +474,25 @@ export class AtlasEngine implements AtlasEngineContract {
     const previousViewMode = this.viewMode;
     this.viewMode = mode;
     this.mapAdapter.setViewMode(mode);
-    this.emitViewModeChange({ viewMode: mode, previousViewMode });
+
+    const pendingChange: ViewModeChangeEvent = { viewMode: mode, previousViewMode };
+
+    if (!viewModeSwitchUsesProjectionBlend(previousViewMode, mode)) {
+      this.emitViewModeChange(pendingChange);
+      return;
+    }
+
+    this.pendingViewModeChange = pendingChange;
+    this.lastViewModeProgressEmit = -1;
+
+    if (this.mapAdapter.isViewModeProjectionSettled(mode)) {
+      this.completePendingViewModeChange();
+      return;
+    }
+
+    if (isProjectionBlendActive(this.mapAdapter.readProjectionTransition())) {
+      this.emitViewModeTransitionProgress(this.mapAdapter.readProjectionTransition());
+    }
   }
 
   listViewModes(): readonly AtlasViewMode[] {
@@ -599,6 +627,52 @@ export class AtlasEngine implements AtlasEngineContract {
     for (const listener of this.viewModeListeners) {
       listener(event);
     }
+  }
+
+  private handleProjectionBlendProgress(transition: number): void {
+    if (!this.pendingViewModeChange) {
+      return;
+    }
+
+    if (this.mapAdapter.isViewModeProjectionSettled(this.pendingViewModeChange.viewMode)) {
+      this.completePendingViewModeChange();
+      return;
+    }
+
+    if (isProjectionBlendActive(transition)) {
+      this.emitViewModeTransitionProgress(transition);
+    }
+  }
+
+  private emitViewModeTransitionProgress(transition: number): void {
+    if (!this.pendingViewModeChange) {
+      return;
+    }
+
+    const progressBucket = Math.min(1, Math.floor(transition * 20) / 20);
+    if (progressBucket === this.lastViewModeProgressEmit) {
+      return;
+    }
+
+    this.lastViewModeProgressEmit = progressBucket;
+    this.emitViewModeChange({
+      ...this.pendingViewModeChange,
+      transitionProgress: transition
+    });
+  }
+
+  private completePendingViewModeChange(): void {
+    if (!this.pendingViewModeChange) {
+      return;
+    }
+
+    const settled: ViewModeChangeEvent = {
+      viewMode: this.pendingViewModeChange.viewMode,
+      previousViewMode: this.pendingViewModeChange.previousViewMode
+    };
+    this.pendingViewModeChange = null;
+    this.lastViewModeProgressEmit = -1;
+    this.emitViewModeChange(settled);
   }
 
   private emitAtmosphereChange(event: AtmosphereChangeEvent): void {

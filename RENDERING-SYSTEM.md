@@ -68,6 +68,7 @@ Lit mesh markup (`sphere`, `polygon`, `circle`) renders in a shared Three.js ove
 - Lines and labels do not participate in the shadow pass.
 - Shadow frustum is fitted to visible lit anchors; very wide multi-city markup spreads may need cascaded shadow work later.
 - Globe view mode uses MapLibre `getMatrixForModel` for overlay anchor transforms and shadow frustum alignment (Foundation 36).
+- During MapLibre projection blend (`projectionTransition` between 0 and 1), overlay matrices refresh each custom-layer frame so markup and shadows stay aligned (Foundation 37).
 
 ## Materials
 

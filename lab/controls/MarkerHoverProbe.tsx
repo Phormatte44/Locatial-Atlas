@@ -73,6 +73,7 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
   const [highlightedFeatureId, setHighlightedFeatureId] = useState<string>("none");
   const [transitionRunning, setTransitionRunning] = useState(false);
   const [viewMode, setViewMode] = useState(engine.getViewMode());
+  const [viewModeBlend, setViewModeBlend] = useState<string>("idle");
   const [atmosphereEnabled, setAtmosphereEnabled] = useState(engine.getAtmosphereSettings().enabled);
   const [lightingEnabled, setLightingEnabled] = useState(engine.getLightingSettings().enabled);
   const [shadowEnabled, setShadowEnabled] = useState(engine.getLightingSettings().shadowEnabled);
@@ -153,6 +154,11 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
   useEffect(() => {
     return engine.onViewModeChange((event) => {
       setViewMode(event.viewMode);
+      setViewModeBlend(
+        event.transitionProgress !== undefined
+          ? `${Math.round(event.transitionProgress * 100)}%`
+          : "settled"
+      );
     });
   }, [engine]);
 
@@ -186,8 +192,14 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
 
   return (
     <div style={readoutStyle}>
-      <div>Foundation 36 — globe overlay alignment</div>
-      <div>View: {viewMode}{viewMode === "globe" ? " · globe matrices" : " · mercator matrices"}</div>
+      <div>Foundation 37 — view-mode projection blend</div>
+      <div>
+        View: {viewMode}
+        {viewMode === "globe" || viewModeBlend !== "settled"
+          ? " · globe matrices"
+          : " · mercator matrices"}
+      </div>
+      <div>Projection blend: {viewModeBlend}</div>
       <div>Atmosphere: {atmosphereEnabled ? "on" : "off"}</div>
       <div>Lighting: {lightingEnabled ? "on" : "off"}</div>
       <div>Shadows: {shadowEnabled ? "on" : "off"}</div>
