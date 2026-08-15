@@ -165,3 +165,7 @@ export {
   DEFAULT_ATMOSPHERE_SETTINGS,
   DEFAULT_LIGHTING_SETTINGS
 } from "./rendering/lighting/atmosphereDefaults";
+export {
+  sampleTransitionCameraState as sampleCameraTransition,
+  selectPathFamily
+} from "./camera/sampleTransitionPath";

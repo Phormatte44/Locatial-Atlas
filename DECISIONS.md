@@ -1630,9 +1630,28 @@ F72 resolved cue-anchored motion timing but left no scrub control. F73 connects 
 - Cross-reference Studio D-020 for playhead wiring and pause/resume behavior.
 - HEAD-002 markup slice satisfied; camera seek on scrub remains Studio Build 4.
 
+### Next
+- Foundation 75: TBD — candidate: markup-cue rail items (Build 5), hide-cue authoring, or keyframed attributes.
+
+## 2026-08-15 — Foundation 74 camera transition sampling on public API
+
+**Decision**
+
+Atlas exports `sampleCameraTransition` and `selectPathFamily` on the public contract so Creator Studio can seek storyline camera state at any progress without replaying GSAP transitions or importing renderer internals.
+
+**Reason**
+
+F73 satisfied HEAD-002 for markup via instant motion sampling. Build 4 camera seek must use the same canonical path samplers as live `framePlace` transitions. Exporting the existing dispatcher keeps Studio on the public API only.
+
+**Consequences**
+
+- `src/index.ts` re-exports from `camera/sampleTransitionPath.ts`.
+- No `AtlasEngine` behavior change — sampling functions only.
+- Cross-reference Studio D-021 for playhead wiring and Save View overrides.
+
 **Next**
 
-- Foundation 74: TBD — candidate: camera seek on playhead scrub, markup-cue rail items, or hide-cue authoring.
+- Foundation 75: TBD — candidate: markup-cue rail items, hide-cue authoring, or keyframed attributes.
 
 ## 2026-08-15 — Studio transition preview uses Atlas straight and high-arc
 
