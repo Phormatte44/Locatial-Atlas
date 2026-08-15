@@ -1745,7 +1745,26 @@ Studio D-027 (Foundation 80) implements INTERACTION-PRD R10 — keyframed shapes
 
 **Next**
 
-- Foundation 81: TBD — candidate: relative `afterItemId` authoring, markup-cue rail selection, or keyframe geometry capture at playhead.
+- Foundation 82: TBD — candidate: edit relative placement on existing cues, markup-cue rail selection, or keyframe geometry capture at playhead.
+
+## 2026-08-15 — Foundation 81 relative afterItemId stays Studio-side
+
+**Decision**
+
+Relative storyline cue placement (`afterItemId` + optional offset) and resolution to absolute `startSeconds` at merge time lives in Creator Studio. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-028 (Foundation 81) implements INTERACTION-PRD R1 — authored markup/focus/title cues can anchor after any rail item, resolving when `buildSectionStoryline` merges fixture place/move items with draft cues.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-028 for `resolveStorylineItemTimes`, `StorylineCuePlacement`, and rail-relative add-cue UI.
+
+**Next**
+
+- Foundation 82: TBD — candidate: relative cue editing, markup-cue rail selection, or keyframe geometry capture at playhead.
 
 ## 2026-08-15 — Foundation 74 camera transition sampling on public API
 
