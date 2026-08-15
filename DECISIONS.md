@@ -1802,7 +1802,26 @@ Studio D-034 (Foundation 87) extends F85–F86 structure-level move authoring wi
 
 **Next**
 
-- Foundation 88: TBD — candidate: keyframe easing curves, validation auto-fix actions, or move type preview on rail.
+- Foundation 89: TBD — candidate: validation auto-fix actions, move type preview on rail, or keyframe segment duration editing.
+
+## 2026-08-15 — Foundation 88 keyframe easing curves stay Studio-side
+
+**Decision**
+
+Per-keyframe easing on authored markup keyframes (optional `ease` on `MarkupKeyframe`, shared `motionEase` sampling, properties-panel selectors) lives in Creator Studio. Atlas engine and public API are unchanged.
+
+**Reason**
+
+Studio D-035 (Foundation 88) extends F76–F83 keyframe authoring with editorial ease curves on style and geometry interpolation at storyline seek time. Motion effect ease on `MarkupMotionSpec` remains the global fallback; no renderer-side keyframe system is required.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-035 for `markupKeyframeSampling.ts`, `markupMotion.ts` (`motionEase`), and `MarkupPropertiesPanel` keyframe ease UI.
+
+**Next**
+
+- Foundation 89: TBD — candidate: validation auto-fix actions, move type preview on rail, or keyframe segment duration editing.
 
 ## 2026-08-15 — Foundation 85 structure-level move duration editing stays Studio-side
 
