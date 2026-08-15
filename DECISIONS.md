@@ -1433,7 +1433,27 @@ Foundation 61 stabilized fill rendering, but hover/click still scanned every ove
 
 **Next**
 
-- Foundation 63: TBD — candidate: Studio ellipse area-authoring integration, line topology cache mirroring fill stability if profiling warrants it, or tile/feature pick spatial index parity for vector layers.
+- Foundation 63: TBD — candidate: line topology cache mirroring fill stability if profiling warrants it, or tile/feature pick spatial index parity for vector layers.
+
+## 2026-08-15 — Foundation 64 Studio ellipse area authoring
+
+**Decision**
+
+Creator Studio owns geodesic place-area ellipse authoring. Atlas public API is unchanged — Studio seeds and edits `MarkupElement` ellipses (`radiusXMeters`, `radiusYMeters`, `bearingDegrees`, center from place geometry), converts them with `ellipseMarkupFromCenter` in `worldMarkupFromStudio`, and persists markup per place in localStorage. The Frame tab toggle still switches between authored place-area ellipses and legacy rectangle/polygon markup.
+
+**Reason**
+
+Foundation 63 proved Atlas rendering and pick for `WorldEllipseMarkup`. F64 promotes ellipses from a render-time side channel into first-class authored markup so properties, selection, search boundaries, and persistence work through the same Studio state path as other shapes.
+
+**Consequences**
+
+- No Atlas engine changes required; `ellipseMarkupFromCenter` and `sampleGeodesicEllipseRing` remain the public integration surface.
+- Studio `locational-atlas.d.ts` shim adds `sampleGeodesicEllipseRing` for search-boundary ring sampling.
+- Stable ids (`place-area:{placeId}`) preserve hover/select without cross-repo imports.
+
+**Next**
+
+- Foundation 65: TBD — candidate: markup style passthrough to Atlas world markup, ellipse drag handles on map, or line topology cache if profiling warrants it.
 
 ## 2026-08-15 — Studio transition preview uses Atlas straight and high-arc
 

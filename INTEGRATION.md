@@ -215,7 +215,7 @@ Highlight applies an emissive tint on the picked mesh; it does not cross the pub
 
 For geodesic place-area authoring, build `WorldEllipseMarkup` with `ellipseMarkupFromCenter(id, lng, lat, radiusXMeters, radiusYMeters, bearingDegrees?)` and push it through `engine.setWorldMarkup([...])` alongside labels, circles, and other markup. Atlas samples the ellipse ring geodesically (turf `destination` on a rotated ENU loop) and renders it on the ground plane with the same hover/select pipeline as circles and polygons (pick priority 2, spatial index from Foundation 62).
 
-Studio pattern: derive one ellipse per place from the Director place index (bounds → axis radii when available, otherwise demo defaults), toggle against legacy rectangle/polygon markup in the Frame tab, and keep markup ids stable (`place-area:{placeId}`) so `onGeoHover` / `onGeoSelect` highlight and selection work without Studio importing renderer internals.
+Studio pattern: seed one authored `MarkupElement` (`type: 'ellipse'`, id `place-area:{placeId}`) per place in Studio markup state, derive `WorldEllipseMarkup` with `ellipseMarkupFromCenter` in `worldMarkupFromStudio`, persist per place in localStorage, and use the Frame tab toggle to show geodesic ellipses vs legacy rectangle/polygon areas. Search boundaries sample the geodesic ring via `sampleGeodesicEllipseRing` (best-effort). Atlas public API only — no renderer imports from Studio.
 
 #### Async mesh-feature picks
 
