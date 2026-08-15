@@ -1,5 +1,10 @@
 import type { Map as MapLibreMap } from "maplibre-gl";
 import * as THREE from "three";
+import {
+  blendLabelModelMatrices,
+  labelLegibilityForGlobeness,
+  resolveLabelGlobeness
+} from "../geometry/labelGlobeAlignment";
 import { measureLabelSpriteMeters } from "../geometry/labelMarkup";
 import { createLabelModelMatrix } from "../rendering/three/labelSprites";
 import type { AtlasViewMode } from "../types/viewMode";
@@ -56,14 +61,7 @@ function createMercatorMatrixForMarkup(markup: WorldMarkup, altitudeMeters: numb
   }
 
   if (markup.kind === "label") {
-    const dimensions = measureLabelSpriteMeters(markup.text);
-    return createLabelModelMatrix(
-      markup.lng,
-      markup.lat,
-      altitudeMeters,
-      dimensions.widthMeters,
-      dimensions.heightMeters
-    );
+    return createMercatorLabelMatrix(markup, altitudeMeters);
   }
 
   return createMarkerModelMatrix(
@@ -71,6 +69,56 @@ function createMercatorMatrixForMarkup(markup: WorldMarkup, altitudeMeters: numb
     markup.lat,
     altitudeMeters,
     markup.radiusMeters ?? DEFAULT_MARKER_RADIUS_METERS
+  );
+}
+
+function createMercatorLabelMatrix(
+  markup: Extract<WorldMarkup, { kind: "label" }>,
+  altitudeMeters: number
+): THREE.Matrix4 {
+  const dimensions = measureLabelSpriteMeters(markup.text);
+  return createLabelModelMatrix(
+    markup.lng,
+    markup.lat,
+    altitudeMeters,
+    dimensions.widthMeters,
+    dimensions.heightMeters
+  );
+}
+
+function createGlobeLabelMatrix(
+  map: MapLibreMap,
+  markup: Extract<WorldMarkup, { kind: "label" }>,
+  altitudeMeters: number
+): THREE.Matrix4 {
+  const dimensions = measureLabelSpriteMeters(markup.text);
+  const elevationMeters = altitudeMeters + MARKER_VERTICAL_OFFSET_METERS;
+  return withLocalScale(
+    matrixFromMapLibreModel(map, markup.lng, markup.lat, elevationMeters),
+    dimensions.widthMeters,
+    -dimensions.heightMeters,
+    1
+  );
+}
+
+function createLabelOverlayMatrix(
+  markup: Extract<WorldMarkup, { kind: "label" }>,
+  altitudeMeters: number,
+  context: OverlayTransformContext
+): THREE.Matrix4 {
+  const mercatorMatrix = createMercatorLabelMatrix(markup, altitudeMeters);
+  const globeness = resolveLabelGlobeness(context);
+
+  if (globeness <= 0 || !context.map) {
+    return mercatorMatrix;
+  }
+
+  const globeMatrix = createGlobeLabelMatrix(context.map, markup, altitudeMeters);
+  const blended = blendLabelModelMatrices(mercatorMatrix, globeMatrix, globeness);
+  const legibility = labelLegibilityForGlobeness(globeness);
+
+  return blended.multiply(
+    new THREE.Matrix4().makeScale(legibility.scale, legibility.scale, legibility.scale)
   );
 }
 
@@ -93,14 +141,7 @@ function createGlobeMatrixForMarkup(
   }
 
   if (markup.kind === "label") {
-    const dimensions = measureLabelSpriteMeters(markup.text);
-    const elevationMeters = altitudeMeters + MARKER_VERTICAL_OFFSET_METERS;
-    return withLocalScale(
-      matrixFromMapLibreModel(map, markup.lng, markup.lat, elevationMeters),
-      dimensions.widthMeters,
-      -dimensions.heightMeters,
-      1
-    );
+    return createGlobeLabelMatrix(map, markup, altitudeMeters);
   }
 
   const radiusMeters = markup.radiusMeters ?? DEFAULT_MARKER_RADIUS_METERS;
@@ -119,6 +160,10 @@ export function createOverlayMatrixForMarkup(
   altitudeMeters: number,
   context: OverlayTransformContext
 ): THREE.Matrix4 {
+  if (markup.kind === "label") {
+    return createLabelOverlayMatrix(markup, altitudeMeters, context);
+  }
+
   if (usesGlobeOverlayProjection(context) && context.map) {
     return createGlobeMatrixForMarkup(context.map, markup, altitudeMeters);
   }

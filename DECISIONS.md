@@ -715,7 +715,7 @@ Foundation 31 established the view-mode contract and Foundation 35 added lit sha
 - Line and polygon local geometry is still built in a single-anchor mercator meter frame; long geodesic spans may diverge slightly on the sphere until geometry generation becomes globe-aware.
 - MapLibre globe/mercator projection blend during zoom transitions follows MapLibre's `_globeness` interpolation; Atlas does not override it.
 - Terrain elevation on globe uses MapLibre model altitude above the nominal sphere, not per-vertex draping.
-- Label sprites remain billboards without tangent-plane rotation on globe.
+- Label sprites remain billboards without tangent-plane rotation on globe (addressed in Foundation 55).
 
 ---
 
@@ -743,6 +743,7 @@ Foundation 36 aligned overlays in settled globe or mercator states, but `setView
 - Line/polygon geometry remains single-anchor mercator meters (Foundation 36 limitation).
 - `map↔mercator` pitch-only switches remain instant with no blend tracking.
 - High-frequency zoom transitions may refresh matrices every frame; acceptable for current markup counts but not yet batched.
+- Label globe tangent alignment deferred to Foundation 55.
 
 ---
 
@@ -1218,12 +1219,40 @@ Foundation 37 and 53 aligned overlays and atmosphere during MapLibre's default p
 **Limitations**
 
 - Zoom-driven globe↔mercator blends (view mode unchanged) still follow MapLibre internal timing; only programmatic `transitionViewMode()` uses Atlas duration.
-- Line/polygon geometry and label billboards remain single-anchor mercator meters (Foundation 36 limitation — Foundation 55 target).
+- Line/polygon geometry remains single-anchor mercator meters (Foundation 36 limitation).
 - No coordinated camera motion during view-mode transition yet; camera state is preserved.
 
 **Next**
 
 - Foundation 55: label globe alignment.
+
+## 2026-08-15 — Foundation 55 label globe alignment
+
+**Decision**
+
+`WorldLabelMarkup` uses tangent-plane orientation on the globe and during MapLibre globe↔mercator projection blend. Mercator and settled map mode keep camera-facing billboard sprites. When globeness > 0, labels render as textured plane meshes whose model matrices come from `getMatrixForModel` with slerp-blended rotation between mercator and globe frames (`labelGlobeAlignment.ts`, `overlayModelMatrix.ts`). Legibility scale (up to 1.2×) and opacity (0.9→1) interpolate with globeness. Registered MapLibre symbol label layers use `text-rotation-alignment: map` and `text-pitch-alignment: map` so registry labels follow the same globe tangent convention as the editorial basemap.
+
+**Reason**
+
+Foundation 36 aligned overlay anchors to the globe but left label sprites as screen billboards, so place names skewed and shrank on the sphere. Foundation 54 added Atlas-owned view-mode transitions; labels needed to stay readable throughout the blend, not only at settled globe.
+
+**Consequences**
+
+- `labelGlobeAlignment.ts` centralizes globeness resolution, matrix blending, and legibility scaling.
+- `ThreeOverlayAdapter` swaps sprite/plane label objects when projection crosses the blend threshold and applies per-frame opacity during transitions.
+- `createOverlayMatrixForMarkup()` routes labels through a dedicated blend path independent of other markup kinds.
+- Lab readout distinguishes tangent vs billboard label mode during globe and blend.
+
+**Limitations**
+
+- Label picking still uses mercator meter bounds without globe legibility scale.
+- Line/polygon geometry remains single-anchor mercator meters (Foundation 36 limitation).
+- Zoom-driven projection blends (view mode unchanged) still follow MapLibre timing; label blend follows the same globeness signal without Atlas duration control.
+- No coordinated camera motion during view-mode transition yet.
+
+**Next**
+
+- Foundation 56: view-mode transition camera choreography (preserve framing intent across globe entry/exit).
 
 ## 2026-08-15 — Studio transition preview uses Atlas straight and high-arc
 

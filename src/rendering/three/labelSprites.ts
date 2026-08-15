@@ -22,14 +22,13 @@ function hexToCss(color: number): string {
   return `#${color.toString(16).padStart(6, "0")}`;
 }
 
-/** Build a billboard sprite for geographic label markup. */
-export function createLabelSprite(options: LabelSpriteOptions): THREE.Sprite {
+function createLabelCanvas(options: LabelSpriteOptions): HTMLCanvasElement | null {
   const fontSizePx = options.fontSizePx ?? DEFAULT_LABEL_FONT_PX;
   const canvas = document.createElement("canvas");
   const context = canvas.getContext("2d");
 
   if (!context) {
-    return new THREE.Sprite(new THREE.SpriteMaterial({ depthTest: false }));
+    return null;
   }
 
   context.font = `${fontSizePx}px system-ui, sans-serif`;
@@ -47,11 +46,33 @@ export function createLabelSprite(options: LabelSpriteOptions): THREE.Sprite {
   context.fillStyle = "#ffffff";
   context.fillText(options.text, LABEL_PADDING_PX, fontSizePx + LABEL_PADDING_PX / 2);
 
+  return canvas;
+}
+
+function createLabelTexture(options: LabelSpriteOptions): THREE.CanvasTexture | null {
+  const canvas = createLabelCanvas(options);
+  if (!canvas) {
+    return null;
+  }
+
   const texture = new THREE.CanvasTexture(canvas);
   texture.needsUpdate = true;
+  return texture;
+}
+
+function disposeLabelTextureMaterial(
+  material: THREE.SpriteMaterial | THREE.MeshBasicMaterial
+): void {
+  material.map?.dispose();
+  material.dispose();
+}
+
+/** Build a billboard sprite for geographic label markup in mercator projection. */
+export function createLabelSprite(options: LabelSpriteOptions): THREE.Sprite {
+  const texture = createLabelTexture(options);
 
   const material = new THREE.SpriteMaterial({
-    map: texture,
+    map: texture ?? undefined,
     transparent: true,
     depthTest: false,
     depthWrite: false
@@ -60,14 +81,75 @@ export function createLabelSprite(options: LabelSpriteOptions): THREE.Sprite {
   return new THREE.Sprite(material);
 }
 
+/** Build a tangent-plane label mesh for globe projection (respects model-matrix rotation). */
+export function createLabelPlaneMesh(options: LabelSpriteOptions): THREE.Mesh {
+  const texture = createLabelTexture(options);
+
+  const material = new THREE.MeshBasicMaterial({
+    map: texture ?? undefined,
+    transparent: true,
+    depthTest: false,
+    depthWrite: false,
+    side: THREE.DoubleSide
+  });
+
+  return new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
+}
+
 export function disposeLabelSprite(sprite: THREE.Sprite): void {
   const material = sprite.material;
   if (!(material instanceof THREE.SpriteMaterial)) {
     return;
   }
 
-  material.map?.dispose();
-  material.dispose();
+  disposeLabelTextureMaterial(material);
+}
+
+export function disposeLabelPlaneMesh(mesh: THREE.Mesh): void {
+  mesh.geometry.dispose();
+
+  const material = mesh.material;
+  if (!(material instanceof THREE.MeshBasicMaterial)) {
+    return;
+  }
+
+  disposeLabelTextureMaterial(material);
+}
+
+export function disposeLabelObject(object: THREE.Object3D): void {
+  if (object instanceof THREE.Sprite) {
+    disposeLabelSprite(object);
+    return;
+  }
+
+  if (object instanceof THREE.Mesh) {
+    disposeLabelPlaneMesh(object);
+  }
+}
+
+export function applyLabelOpacity(object: THREE.Object3D, opacity: number): void {
+  if (object instanceof THREE.Sprite) {
+    const material = object.material;
+    if (material instanceof THREE.SpriteMaterial) {
+      material.opacity = opacity;
+      material.transparent = opacity < 1;
+      material.needsUpdate = true;
+    }
+    return;
+  }
+
+  if (object instanceof THREE.Mesh) {
+    const material = object.material;
+    if (material instanceof THREE.MeshBasicMaterial) {
+      material.opacity = opacity;
+      material.transparent = opacity < 1;
+      material.needsUpdate = true;
+    }
+  }
+}
+
+export function labelObjectUsesTangentPlane(object: THREE.Object3D): boolean {
+  return object instanceof THREE.Mesh && object.geometry instanceof THREE.PlaneGeometry;
 }
 
 /** Build a model matrix that scales a label sprite to geographic meter dimensions. */

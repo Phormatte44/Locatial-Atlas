@@ -350,12 +350,12 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
 
   return (
     <div style={readoutStyle}>
-      <div>Foundation 54 — view-mode transition timing</div>
+      <div>Foundation 55 — label globe alignment</div>
       <div>
         View: {viewMode}
         {viewMode === "globe" || viewModeBlend !== "settled"
-          ? " · globe matrices"
-          : " · mercator matrices"}
+          ? " · globe matrices · tangent labels"
+          : " · mercator matrices · billboard labels"}
       </div>
       <div>Projection blend: {viewModeBlend}</div>
       <div>Atmosphere: {atmosphereEnabled ? "on" : "off"}</div>

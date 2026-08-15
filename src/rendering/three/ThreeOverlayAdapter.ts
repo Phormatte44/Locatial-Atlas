@@ -3,9 +3,14 @@ import * as THREE from "three";
 import { createLineGeometry } from "../../geometry/lineMarkup";
 import { createPolygonShapeGeometry } from "../../geometry/polygonMarkup";
 import type { WorldMarkup } from "../../types/worldMarkup";
-import { createLabelSprite, disposeLabelSprite } from "./labelSprites";
+import { createLabelSprite, disposeLabelObject, createLabelPlaneMesh, applyLabelOpacity } from "./labelSprites";
 import { createOverlayMatrixForMarkup } from "../../world/overlayModelMatrix";
 import { isProjectionBlendActive } from "../maplibre/projectionBlend";
+import {
+  labelLegibilityForGlobeness,
+  labelUsesTangentPlane,
+  resolveLabelGlobeness
+} from "../../geometry/labelGlobeAlignment";
 import {
   beginMarkupOverlayPass,
   resetOverlayRendererState
@@ -62,6 +67,8 @@ interface MarkupEntry {
   groundReceiver: THREE.Mesh | null;
   baseMatrix: THREE.Matrix4;
   modelMatrix: THREE.Matrix4;
+  labelUsesTangent?: boolean;
+  labelHighlighted?: boolean;
 }
 
 export class ThreeOverlayAdapter {
@@ -305,10 +312,7 @@ export class ThreeOverlayAdapter {
 
   private createObjectForMarkup(markup: WorldMarkup): THREE.Object3D {
     if (markup.kind === "label") {
-      return createLabelSprite({
-        text: markup.text,
-        accentColor: markerColorForId(markup.id)
-      });
+      return this.createLabelObjectForMarkup(markup, false);
     }
 
     const color = markerColorForId(markup.id);
@@ -370,14 +374,81 @@ export class ThreeOverlayAdapter {
     return mesh;
   }
 
-  private createMatrixForMarkup(markup: WorldMarkup, terrainElevationMeters: number): THREE.Matrix4 {
-    const altitudeMeters = (markup.altitudeMeters ?? 0) + terrainElevationMeters;
-
-    return createOverlayMatrixForMarkup(markup, altitudeMeters, {
+  private getOverlayTransformContext(): {
+    viewMode: AtlasViewMode;
+    map: MapLibreMap | null;
+    projectionTransition: number;
+  } {
+    return {
       viewMode: this.viewMode,
       map: this.map,
       projectionTransition: this.projectionTransition
-    });
+    };
+  }
+
+  private createLabelObjectForMarkup(
+    markup: Extract<WorldMarkup, { kind: "label" }>,
+    isHighlighted: boolean
+  ): THREE.Object3D {
+    const globeness = resolveLabelGlobeness(this.getOverlayTransformContext());
+    const accentColor = isHighlighted
+      ? highlightedMarkerColorForId(markup.id)
+      : markerColorForId(markup.id);
+
+    const options = {
+      text: markup.text,
+      accentColor,
+      highlighted: isHighlighted
+    };
+
+    return labelUsesTangentPlane(globeness)
+      ? createLabelPlaneMesh(options)
+      : createLabelSprite(options);
+  }
+
+  private createMatrixForMarkup(markup: WorldMarkup, terrainElevationMeters: number): THREE.Matrix4 {
+    const altitudeMeters = (markup.altitudeMeters ?? 0) + terrainElevationMeters;
+
+    return createOverlayMatrixForMarkup(markup, altitudeMeters, this.getOverlayTransformContext());
+  }
+
+  private syncLabelPresentation(entry: MarkupEntry): void {
+    const markup = this.markups.find((candidate) => candidate.id === entry.id);
+    if (!markup || markup.kind !== "label") {
+      return;
+    }
+
+    const globeness = resolveLabelGlobeness(this.getOverlayTransformContext());
+    const useTangent = labelUsesTangentPlane(globeness);
+    const isHighlighted = this.isMarkupHighlighted(entry.id);
+    const needsRebuild =
+      useTangent !== entry.labelUsesTangent || isHighlighted !== entry.labelHighlighted;
+
+    if (needsRebuild) {
+      disposeLabelObject(entry.object);
+      entry.scene.remove(entry.object);
+      entry.object = this.createLabelObjectForMarkup(markup, isHighlighted);
+      entry.scene.add(entry.object);
+      entry.labelUsesTangent = useTangent;
+      entry.labelHighlighted = isHighlighted;
+    }
+
+    applyLabelOpacity(entry.object, labelLegibilityForGlobeness(globeness).opacity);
+
+    entry.object.renderOrder = isHighlighted
+      ? markupRenderPriority(entry.kind) + 10
+      : markupRenderPriority(entry.kind);
+
+    const highlightScale = new THREE.Matrix4().makeScale(
+      HIGHLIGHTED_MARKER_SCALE,
+      HIGHLIGHTED_MARKER_SCALE,
+      HIGHLIGHTED_MARKER_SCALE
+    );
+
+    entry.modelMatrix.copy(entry.baseMatrix);
+    if (isHighlighted) {
+      entry.modelMatrix.multiply(highlightScale);
+    }
   }
 
   private refreshMarkupMatrices(): void {
@@ -409,7 +480,7 @@ export class ThreeOverlayAdapter {
       const isHighlighted = this.isMarkupHighlighted(entry.id);
 
       if (entry.kind === "label") {
-        this.applyLabelHighlight(entry, isHighlighted, highlightScale);
+        this.syncLabelPresentation(entry);
         continue;
       }
 
@@ -434,38 +505,6 @@ export class ThreeOverlayAdapter {
 
   private isMarkupHighlighted(markupId: string): boolean {
     return markupMatchesHighlight(markupId, this.highlightedMarkupId);
-  }
-
-  private applyLabelHighlight(
-    entry: MarkupEntry,
-    isHighlighted: boolean,
-    highlightScale: THREE.Matrix4
-  ): void {
-    const markup = this.markups.find((candidate) => candidate.id === entry.id);
-    if (!markup || markup.kind !== "label") {
-      return;
-    }
-
-    if (entry.object instanceof THREE.Sprite) {
-      disposeLabelSprite(entry.object);
-      entry.scene.remove(entry.object);
-    }
-
-    const sprite = createLabelSprite({
-      text: markup.text,
-      accentColor: isHighlighted ? highlightedMarkerColorForId(markup.id) : markerColorForId(markup.id),
-      highlighted: isHighlighted
-    });
-    entry.scene.add(sprite);
-    entry.object = sprite;
-    entry.object.renderOrder = isHighlighted
-      ? markupRenderPriority(entry.kind) + 10
-      : markupRenderPriority(entry.kind);
-    entry.modelMatrix.copy(entry.baseMatrix);
-
-    if (isHighlighted) {
-      entry.modelMatrix.multiply(highlightScale);
-    }
   }
 
   private refreshMarkupMaterialModes(): void {
@@ -550,8 +589,8 @@ export class ThreeOverlayAdapter {
         this.litScene.remove(entry.anchor);
       }
 
-      if (entry.object instanceof THREE.Sprite) {
-        disposeLabelSprite(entry.object);
+      if (entry.kind === "label") {
+        disposeLabelObject(entry.object);
       } else if (entry.object instanceof THREE.Line || entry.object instanceof THREE.Mesh) {
         entry.object.geometry.dispose();
 

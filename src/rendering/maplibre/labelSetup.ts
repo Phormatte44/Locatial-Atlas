@@ -68,6 +68,10 @@ export function addLabelLayerToMap(map: MapLibreMap, definition: LabelLayerDefin
       "text-size": highlightExpression(style.textSize, style.highlightTextSize),
       "text-anchor": style.textAnchor,
       "text-offset": style.textOffset,
+      // Map-aligned rotation/pitch keep registered labels tangent to the globe surface
+      // during vertical-perspective projection (MapLibre handles mercator fallback).
+      "text-rotation-alignment": "map",
+      "text-pitch-alignment": "map",
       "text-allow-overlap": true,
       "text-ignore-placement": false
     },
