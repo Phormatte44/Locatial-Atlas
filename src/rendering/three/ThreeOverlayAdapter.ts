@@ -3,18 +3,8 @@ import * as THREE from "three";
 import { createLineGeometry } from "../../geometry/lineMarkup";
 import { createPolygonShapeGeometry } from "../../geometry/polygonMarkup";
 import type { WorldMarkup } from "../../types/worldMarkup";
-import {
-  createLabelModelMatrix,
-  createLabelSprite,
-  disposeLabelSprite,
-  measureLabelSpriteMeters
-} from "./labelSprites";
-import {
-  createMarkerModelMatrix,
-  createMercatorGroundMatrix,
-  createMercatorMatrix
-} from "../../world/mercatorTransform";
-import { DEFAULT_MARKER_RADIUS_METERS } from "../../world/mercatorTransform";
+import { createLabelSprite, disposeLabelSprite } from "./labelSprites";
+import { createOverlayMatrixForMarkup } from "../../world/overlayModelMatrix";
 import {
   highlightedMarkerColorForId,
   HIGHLIGHTED_MARKER_SCALE,
@@ -364,31 +354,10 @@ export class ThreeOverlayAdapter {
   private createMatrixForMarkup(markup: WorldMarkup, terrainElevationMeters: number): THREE.Matrix4 {
     const altitudeMeters = (markup.altitudeMeters ?? 0) + terrainElevationMeters;
 
-    if (markup.kind === "circle") {
-      return createMercatorMatrix(markup.lng, markup.lat, altitudeMeters, markup.radiusMeters);
-    }
-
-    if (markup.kind === "polygon" || markup.kind === "line") {
-      return createMercatorGroundMatrix(markup.lng, markup.lat, altitudeMeters);
-    }
-
-    if (markup.kind === "label") {
-      const dimensions = measureLabelSpriteMeters(markup.text);
-      return createLabelModelMatrix(
-        markup.lng,
-        markup.lat,
-        altitudeMeters,
-        dimensions.widthMeters,
-        dimensions.heightMeters
-      );
-    }
-
-    return createMarkerModelMatrix(
-      markup.lng,
-      markup.lat,
-      altitudeMeters,
-      markup.radiusMeters ?? DEFAULT_MARKER_RADIUS_METERS
-    );
+    return createOverlayMatrixForMarkup(markup, altitudeMeters, {
+      viewMode: this.viewMode,
+      map: this.map
+    });
   }
 
   private applyHighlightStyles(): void {

@@ -186,8 +186,8 @@ export function MarkerHoverProbe({ engine }: MarkerHoverProbeProps) {
 
   return (
     <div style={readoutStyle}>
-      <div>Foundation 35 — overlay shadow foundation</div>
-      <div>View: {viewMode}</div>
+      <div>Foundation 36 — globe overlay alignment</div>
+      <div>View: {viewMode}{viewMode === "globe" ? " · globe matrices" : " · mercator matrices"}</div>
       <div>Atmosphere: {atmosphereEnabled ? "on" : "off"}</div>
       <div>Lighting: {lightingEnabled ? "on" : "off"}</div>
       <div>Shadows: {shadowEnabled ? "on" : "off"}</div>

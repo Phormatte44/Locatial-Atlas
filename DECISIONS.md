@@ -601,7 +601,7 @@ Foundation 28 added runtime basemap style registration; terrain sources still re
 
 **Decision**
 
-Atlas exposes geographic presentation through `getViewMode()`, `setViewMode(mode)`, `listViewModes()`, and `onViewModeChange()`. Modes are `globe` (MapLibre globe projection), `map` (Mercator with full 3D pitch for editorial map work), and `mercator` (flat Mercator with pitch clamped to 0). The Three.js overlay tracks view mode for future globe-specific alignment; MapLibre applies projection and pitch policy in `viewModeSetup.ts`.
+Atlas exposes geographic presentation through `getViewMode()`, `setViewMode(mode)`, `listViewModes()`, and `onViewModeChange()`. Modes are `globe` (MapLibre globe projection), `map` (Mercator with full 3D pitch for editorial map work), and `mercator` (flat Mercator with pitch clamped to 0). MapLibre applies projection and pitch policy in `viewModeSetup.ts`; globe overlay alignment is implemented in Foundation 36.
 
 **Reason**
 
@@ -691,3 +691,28 @@ Directional overlay shadows are configured in `src/rendering/lighting/overlaySha
 - Basemap/terrain shadow receiving deferred until MapLibre/Three depth integration is defined.
 - Lines and labels are excluded from the shadow pass.
 - Single ortho frustum per frame; cascaded shadows not yet implemented.
+
+---
+
+## 2026-08-15 — Foundation 36 globe Three overlay alignment
+
+**Decision**
+
+Globe overlay model matrices live in `src/world/overlayModelMatrix.ts`. When `viewMode === "globe"`, markup anchors use MapLibre `map.transform.getMatrixForModel(lngLat, altitudeMeters)` so local meter geometry shares the same unit-sphere space as `defaultProjectionData.mainMatrix`. Map and flat-mercator modes keep the existing `mercatorTransform.ts` path unchanged. `MapLibreAdapter.setViewMode()` refreshes markup grounding so matrices recompute after projection changes; lit shadow anchors reuse the same matrices for ortho frustum fitting.
+
+**Reason**
+
+Foundation 31 established the view-mode contract and Foundation 35 added lit shadow anchors, but both still assumed Mercator placement while MapLibre supplies globe custom-layer projection via `getProjectionDataForCustomLayer()`. Using MapLibre's documented model-matrix helper keeps Three.js overlays aligned during globe camera motion without duplicating globe math.
+
+**Consequences**
+
+- `ThreeOverlayAdapter` routes matrix creation through `createOverlayMatrixForMarkup()`.
+- Shadow ground receivers and directional frustum bounds inherit globe-aware anchor transforms automatically.
+- Lab readout shows active projection path (`globe matrices` vs `mercator matrices`).
+
+**Limitations**
+
+- Line and polygon local geometry is still built in a single-anchor mercator meter frame; long geodesic spans may diverge slightly on the sphere until geometry generation becomes globe-aware.
+- MapLibre globe/mercator projection blend during zoom transitions follows MapLibre's `_globeness` interpolation; Atlas does not override it.
+- Terrain elevation on globe uses MapLibre model altitude above the nominal sphere, not per-vertex draping.
+- Label sprites remain billboards without tangent-plane rotation on globe.

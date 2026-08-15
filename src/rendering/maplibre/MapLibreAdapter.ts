@@ -118,6 +118,7 @@ export class MapLibreAdapter {
 
     applyViewModeToMap(this.map, mode);
     this.applyVisualEnvironment();
+    this.refreshMarkupGrounding();
     this.map.triggerRepaint();
   }
 

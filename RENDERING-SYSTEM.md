@@ -67,7 +67,7 @@ Lit mesh markup (`sphere`, `polygon`, `circle`) renders in a shared Three.js ove
 - MapLibre terrain and basemap tiles are not shadow receivers yet — shadows appear on overlay geometry and ground receivers only.
 - Lines and labels do not participate in the shadow pass.
 - Shadow frustum is fitted to visible lit anchors; very wide multi-city markup spreads may need cascaded shadow work later.
-- Globe view mode uses the same overlay path; full globe-scale shadow alignment is deferred to F36+ work.
+- Globe view mode uses MapLibre `getMatrixForModel` for overlay anchor transforms and shadow frustum alignment (Foundation 36).
 
 ## Materials
 
