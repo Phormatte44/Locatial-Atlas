@@ -3017,9 +3017,28 @@ Studio D-111 (Foundation 164) lets keyboard authors traverse paste-preview toolb
 
 **Next**
 
-- Foundation 165: candidate — validation summary sequence-row roving, or paste-preview ghost keyboard loop polish.
+- Foundation 165: validation summary sequence-row keyboard roving (see Studio D-112).
 
-## 2026-08-15 — Foundation 163 validation summary keyboard roving between group controls stays Studio-side
+## 2026-08-15 — Foundation 165 validation summary sequence-row keyboard roving stays Studio-side
+
+**Decision**
+
+F165 adds **roving tabindex** on Creator Studio validation summary element rows within expanded issue groups. Snooze/Restore and Go actions use one row action `tabIndex={0}` per expanded group with ArrowUp/Down vertical roving between rows and ArrowLeft/Right horizontal roving between row actions when both exist. Enter/Space and ⌥⌘S/R/W unchanged. F155/F162 programmatic focus restore syncs roving index via `onFocus` and restores to the row primary action after summary-row snooze/restore.
+
+**Reason**
+
+Studio D-112 (Foundation 165) lets keyboard authors traverse element-row actions without tabbing every Snooze/Restore and Go control — a11y polish only, snooze behavior unchanged.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-112 for `validationSummarySequenceRowKeyboard.ts`, `MarkupMotionValidationSummary` expanded group element lists, and `validationSnoozeSequenceRowFocus.ts` summary-sequence-row restore.
+
+**Next**
+
+- Foundation 166: candidate — paste-preview ghost keyboard loop polish, or validation summary group expand/collapse focus restore.
+
+## 2026-08-15 — Foundation 154 keyboard-first snooze badge activation audit stays Studio-side
 
 **Decision**
 
