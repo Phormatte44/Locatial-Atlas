@@ -2998,9 +2998,28 @@ Studio D-110 (Foundation 163) lets keyboard authors move between summary bulk co
 
 **Next**
 
-- Foundation 164: candidate — paste-preview toolbar/keyboard loop unification, or validation summary sequence-row roving.
+- Foundation 164: paste-preview timing toolbar keyboard roving (see D-111).
 
-## 2026-08-15 — Foundation 154 keyboard-first snooze badge activation audit stays Studio-side
+## 2026-08-15 — Foundation 164 paste-preview timing toolbar keyboard roving stays Studio-side
+
+**Decision**
+
+F164 adds **roving tabindex** on Creator Studio keyframe and move timing paste-preview toolbars. Preview mode (checked segmented option), Copy, Paste, and Paste at playhead use `role="toolbar"` with one control `tabIndex={0}` and ArrowLeft/Right roving among enabled controls. When both toolbars are visible, keyframe wins tab order over move (F110 parity). Enter/Space and ⌘C/⌘V/⇧⌘V/⌥⌘P/⌥⌘L unchanged. F130/F156/F159 programmatic focus syncs roving index via `onFocus`.
+
+**Reason**
+
+Studio D-111 (Foundation 164) lets keyboard authors traverse paste-preview toolbar actions without extra tab stops or dual-toolbar tab traps — a11y polish only, paste behavior unchanged.
+
+**Consequences**
+
+- No Atlas engine changes required.
+- Cross-reference Studio D-111 for `timingPasteToolbarKeyboard.ts`, `TimingPastePreviewToggle` roving props, and `DirectorMarkupPanel` keyframe/move timing toolbars.
+
+**Next**
+
+- Foundation 165: candidate — validation summary sequence-row roving, or paste-preview ghost keyboard loop polish.
+
+## 2026-08-15 — Foundation 163 validation summary keyboard roving between group controls stays Studio-side
 
 **Decision**
 
